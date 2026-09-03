@@ -2,7 +2,7 @@
     "name": "generative-ui-concept",
     "version": "0.1.0",
     "private": true,
-    "description": "Generative UI prototype \u2014 a Vivid Seats performer page composed at runtime from a validated layout spec",
+    "description": "Generative UI prototype — a Vivid Seats performer page composed at runtime from a validated layout spec",
     "scripts": {
         "dev": "next dev",
         "build": "next build",
@@ -29,6 +29,7 @@
         "@types/node": "^20.16.11",
         "@types/react": "^19.2.7",
         "@types/react-dom": "^19.2.3",
+        "agentation": "^3.0.2",
         "sass": "^1.72.0",
         "typescript": "^5.4.3",
         "vitest": "^2.1.9"
