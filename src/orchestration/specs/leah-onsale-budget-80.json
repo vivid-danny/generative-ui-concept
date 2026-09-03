@@ -11,19 +11,19 @@
                     "sort": "price",
                     "highlight": "cheapest",
                     "group_by_geo": true,
-                    "max_items": 6
+                    "max_items": 12
                 }
             }
         ],
-        "reasoning": "At $80 the answer to 'should I buy now' is really 'where can I actually go'. Only one of the two Chicago nights has anything under her ceiling (12/05 opens at $76; 12/04 starts at $89), while Indianapolis, St. Louis, Milwaukee and Detroit all open in the $54-$72 range. So the list leads the page at hero prominence, sorted by price rather than date, with the geo grouping on so the one reachable hometown date reads separately from the four that need a drive. Cheapest is highlighted because at this budget the binding constraint is the floor price, not the value.",
-        "headline": "Five dates under $80 \u2014 one of them in Chicago"
+        "reasoning": "At $80 the question is really 'where can I actually go'. Fifteen of the tour's fifty-two dates come in under her ceiling, so the list leads the page at hero prominence, sorted by price rather than date, with the floor at Indianapolis ($54). Geo grouping keeps her one reachable hometown night — Chicago on 12/05 at $76 — in its own group instead of buried mid-list among the road trips it is cheaper than. Cheapest is highlighted because at this budget the binding constraint is the floor price, not value, and max_items is 12 so the affordable spread is visible without turning into a wall of dates.",
+        "headline": "15 dates under $80 — one of them a night in Chicago"
     },
     "provenance": {
-        "generated_at": "2026-09-02T17:05:00Z",
+        "generated_at": "2026-09-03T00:00:00Z",
         "source": "precomputed",
-        "model": "claude-opus-5",
-        "prompt_version": "v1",
+        "model": "hand-authored (interim refresh; pending live regeneration under prompt v2)",
+        "prompt_version": "v2",
         "context_id": "leah_onsale/budget_80",
-        "raw_response": "{\n  \"layout\": [\n    {\n      \"module\": \"production_list\",\n      \"size\": \"hero\",\n      \"props\": {\n        \"filter\": {\n          \"max_price\": 80\n        },\n        \"sort\": \"price\",\n        \"highlight\": \"cheapest\",\n        \"group_by_geo\": true,\n        \"max_items\": 6\n      }\n    }\n  ],\n  \"reasoning\": \"At $80 the answer to 'should I buy now' is really 'where can I actually go'. Only one of the two Chicago nights has anything under her ceiling (12/05 opens at $76; 12/04 starts at $89), while Indianapolis, St. Louis, Milwaukee and Detroit all open in the $54-$72 range. So the list leads the page at hero prominence, sorted by price rather than date, with the geo grouping on so the one reachable hometown date reads separately from the four that need a drive. Cheapest is highlighted because at this budget the binding constraint is the floor price, not the value.\",\n  \"headline\": \"Five dates under $80 \\u2014 one of them in Chicago\"\n}"
+        "raw_response": "{\n  \"layout\": [\n    {\n      \"module\": \"production_list\",\n      \"size\": \"hero\",\n      \"props\": {\n        \"filter\": {\n          \"max_price\": 80\n        },\n        \"sort\": \"price\",\n        \"highlight\": \"cheapest\",\n        \"group_by_geo\": true,\n        \"max_items\": 12\n      }\n    }\n  ],\n  \"reasoning\": \"At $80 the question is really 'where can I actually go'. Fifteen of the tour's fifty-two dates come in under her ceiling, so the list leads the page at hero prominence, sorted by price rather than date, with the floor at Indianapolis ($54). Geo grouping keeps her one reachable hometown night — Chicago on 12/05 at $76 — in its own group instead of buried mid-list among the road trips it is cheaper than. Cheapest is highlighted because at this budget the binding constraint is the floor price, not value, and max_items is 12 so the affordable spread is visible without turning into a wall of dates.\",\n  \"headline\": \"15 dates under $80 — one of them a night in Chicago\"\n}"
     }
 }

@@ -36,6 +36,23 @@ export const ProductionSchema = z.object({
     /** DERIVED — fabricated. Fractional 7-day change, e.g. -0.04 = down 4%. */
     price_trend_7d: z.number(),
     inventory_by_tier: InventoryByTierSchema,
+    /**
+     * DERIVED — fabricated. 0..1 fan anticipation / popularity for this date,
+     * independent of price and inventory. The "biggest crowd / most anticipated"
+     * axis — carried over from the earlier event-decision prototype's `demand`.
+     */
+    demand_score: z.number().min(0).max(1),
+    /**
+     * DERIVED — fabricated. 0..1 rate inventory is moving, a continuous signal
+     * finer than `sellout_risk`. The "selling fast" axis (prototype `salesVelocity`).
+     */
+    sales_velocity: z.number().min(0).max(1),
+    /**
+     * DERIVED — fabricated. 0..1 price-for-demand value at the date level (higher
+     * is better value). The prototype's "best-deal" blend, stored as its own signal
+     * rather than computed, so modules and the orchestrator read it directly.
+     */
+    value_score: z.number().min(0).max(1),
 })
 
 export const ListingSchema = z.object({

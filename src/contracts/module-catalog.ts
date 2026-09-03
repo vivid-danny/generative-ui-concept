@@ -103,7 +103,7 @@ export const MODULE_CATALOG = {
     sellout_urgency: {
         id: 'sellout_urgency',
         purpose:
-            'Tells the visitor how fast inventory is moving, so they can judge whether waiting is a risk. Reach for this when the snapshot shows real scarcity — a selling-out event is material information, so cite the actual listing count or sellout risk rather than an invented figure.',
+            'Tells the visitor how fast inventory is moving, so they can judge whether waiting is a risk. Reach for this when the snapshot shows real scarcity — a selling-out event is material information, so cite the actual listing count, sellout risk, or sales velocity rather than an invented figure.',
         lever: 'price',
         sizes: ['hero', 'compact'],
         defaultSize: 'compact',
@@ -113,7 +113,11 @@ export const MODULE_CATALOG = {
                 message_tone: z.literal('factual').default('factual'),
             })
             .strict(),
-        dataRequirements: ['productions[].sellout_risk', 'productions[].listing_count'],
+        dataRequirements: [
+            'productions[].sellout_risk',
+            'productions[].listing_count',
+            'productions[].sales_velocity',
+        ],
         orchestrated: true,
         implemented: false,
     },
@@ -154,7 +158,7 @@ export const MODULE_CATALOG = {
         propsSchema: z
             .object({ highlight: z.enum(['best_value', 'cheapest']).default('best_value') })
             .strict(),
-        dataRequirements: ['productions'],
+        dataRequirements: ['productions', 'productions[].value_score'],
         orchestrated: true,
         implemented: false,
     },

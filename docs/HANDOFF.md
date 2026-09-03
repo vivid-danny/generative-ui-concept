@@ -71,7 +71,7 @@ first.
 | Shell | `src/shell/` | Navbar, PageShell grid (header / main / rail / SEO slots), Breadcrumbs, PerformerTabs, PerformerFilters, PerformerRail, TrustBanner, SeoContent, Footer, Logo |
 | Design | `src/design/` | Athena tokens copied verbatim, Figma type scale as data, MUI theme, grid constants |
 | Design system | `src/design-system/` | `box`, `typography`, `chip` ported from athena (i18n stripped); local `icons` set (microphone, user, calendar, ticket, shield, heart, rewards) |
-| Fixtures | `src/fixtures/` | Olivia Rodrigo snapshot + 3 Leah contexts. **Read `src/fixtures/README.md`** — it marks which fields are real vs fabricated |
+| Fixtures | `src/fixtures/` | Olivia Rodrigo ~52-date tour + 3 Leah contexts. **Read `src/fixtures/README.md`** — it marks which fields are real vs fabricated, and the authoring invariants the tests pin |
 | Prompt | `orchestrator/prompt.md` | v1. Every spec records the `prompt_version` that produced it |
 | Evals | `orchestrator/eval/cases.test.ts` | Property tests, incl. the anti-convergence check |
 | Demo chrome | `src/demo/` | `DemoBar` drawer, context variants, and `summarize.ts` — "what it composed", shared with `/diff` so the two cannot drift |
@@ -246,6 +246,19 @@ model, not a shortfall to engineer around. Consequences:
 `listing_preview` can be built. Only the performer page has been supplied.
 
 ---
+
+## Data foundation (2026-09-03)
+
+The market snapshot was enriched before the slice-2 modules were built, so the data
+they read already exists. Each production now carries `demand_score`,
+`sales_velocity`, and `value_score` (all fabricated-derived, in the README ledger);
+day-of-week and lead time derive from `date` via `src/orchestration/derive.ts`; the
+context gained an `experience_first` intent; and the orchestrator prompt is at v2
+with a "Signals available" section describing them. The fixture is a full ~52-date
+tour. The three precomputed specs were hand-refreshed for the bigger market and want
+a real regeneration once the live bridge exists — see the README's spec note. What
+is **not** done: no module renders the new signals yet, and `production_list`'s
+sort/highlight were left unchanged — that wiring belongs with the module work below.
 
 ## The next batch (slice 2)
 

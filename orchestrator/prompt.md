@@ -1,8 +1,12 @@
-# Orchestrator prompt — v1
+# Orchestrator prompt — v2
 
 Source plan §7. Versioned deliberately: every precomputed spec records the
 `prompt_version` it was generated under, so a composition can always be traced
 back to the instructions that produced it.
+
+**v2 (2026-09-03):** the market snapshot gained per-date demand, sales-velocity,
+and value signals, and the context gained an `experience_first` intent. The
+"Signals available" section below is the material change over v1.
 
 ---
 
@@ -37,6 +41,28 @@ snapshot does not satisfy.
    or `listing_preview`.
 4. Order by what this visitor needs first, not by convention.
 5. Do not place `event_header`. It is always rendered first, by the page.
+
+### Signals available
+
+Each production in the snapshot carries more than price and inventory. Reason
+about these when the context calls for them — they are real (if fabricated for the
+prototype) per-date signals, not decoration:
+
+- `demand_score` (0–1) — fan anticipation for this date, independent of price and
+  inventory. This is the "biggest crowd / most anticipated" axis; lean on it when
+  the visitor's intent is `experience_first`.
+- `sales_velocity` (0–1) — how fast inventory is moving right now, a finer read
+  than the `sellout_risk` enum. The "selling fast" signal.
+- `value_score` (0–1) — price-for-demand value for this date, higher is better
+  value. Use it to answer "which night is worth it", distinct from raw cheapest.
+
+Day-of-week and lead time are **derivable**, not stored: read the ISO `date`
+against `captured_at`. A weekend show, or one only days away, is a valid lever for
+a `date_flexible` visitor even though no field says "weekend".
+
+The `context.entry.inferred_intent` may be `experience_first` — a visitor there for
+the crowd and the moment, for whom demand and the marquee nights matter more than
+shaving dollars.
 
 ### Urgency is information
 

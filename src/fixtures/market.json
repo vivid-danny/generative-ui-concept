@@ -22,7 +22,10 @@
                 "lower": 125,
                 "upper": 699,
                 "floor": 52
-            }
+            },
+            "demand_score": 0.88,
+            "sales_velocity": 0.82,
+            "value_score": 0.6
         },
         {
             "id": "prod-002",
@@ -39,7 +42,10 @@
                 "lower": 142,
                 "upper": 795,
                 "floor": 59
-            }
+            },
+            "demand_score": 0.9,
+            "sales_velocity": 0.7,
+            "value_score": 0.68
         },
         {
             "id": "prod-003",
@@ -56,7 +62,10 @@
                 "lower": 101,
                 "upper": 564,
                 "floor": 42
-            }
+            },
+            "demand_score": 0.6,
+            "sales_velocity": 0.5,
+            "value_score": 0.72
         },
         {
             "id": "prod-004",
@@ -73,7 +82,10 @@
                 "lower": 187,
                 "upper": 1045,
                 "floor": 78
-            }
+            },
+            "demand_score": 0.55,
+            "sales_velocity": 0.45,
+            "value_score": 0.9
         },
         {
             "id": "prod-005",
@@ -90,7 +102,10 @@
                 "lower": 158,
                 "upper": 884,
                 "floor": 66
-            }
+            },
+            "demand_score": 0.5,
+            "sales_velocity": 0.4,
+            "value_score": 0.95
         },
         {
             "id": "prod-006",
@@ -107,7 +122,10 @@
                 "lower": 116,
                 "upper": 649,
                 "floor": 48
-            }
+            },
+            "demand_score": 0.65,
+            "sales_velocity": 0.55,
+            "value_score": 0.65
         },
         {
             "id": "prod-007",
@@ -124,7 +142,910 @@
                 "lower": 77,
                 "upper": 429,
                 "floor": 32
-            }
+            },
+            "demand_score": 0.85,
+            "sales_velocity": 0.7,
+            "value_score": 0.35
+        },
+        {
+            "id": "prod-008",
+            "date": "2026-12-13T18:00:00",
+            "venue": "Nationwide Arena",
+            "city": "Columbus",
+            "state": "OH",
+            "listing_count": 910,
+            "floor_price": 66,
+            "median_price": 158,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.05,
+            "inventory_by_tier": {
+                "lower": 109,
+                "upper": 610,
+                "floor": 46
+            },
+            "demand_score": 0.52,
+            "sales_velocity": 0.44,
+            "value_score": 0.88
+        },
+        {
+            "id": "prod-009",
+            "date": "2026-12-20T18:00:00",
+            "venue": "Rocket Mortgage FieldHouse",
+            "city": "Cleveland",
+            "state": "OH",
+            "listing_count": 1024,
+            "floor_price": 71,
+            "median_price": 169,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.03,
+            "inventory_by_tier": {
+                "lower": 123,
+                "upper": 686,
+                "floor": 51
+            },
+            "demand_score": 0.58,
+            "sales_velocity": 0.5,
+            "value_score": 0.7
+        },
+        {
+            "id": "prod-010",
+            "date": "2026-12-29T19:30:00",
+            "venue": "PPG Paints Arena",
+            "city": "Pittsburgh",
+            "state": "PA",
+            "listing_count": 780,
+            "floor_price": 79,
+            "median_price": 176,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.02,
+            "inventory_by_tier": {
+                "lower": 94,
+                "upper": 523,
+                "floor": 39
+            },
+            "demand_score": 0.57,
+            "sales_velocity": 0.48,
+            "value_score": 0.62
+        },
+        {
+            "id": "prod-011",
+            "date": "2026-12-31T20:00:00",
+            "venue": "Wells Fargo Center",
+            "city": "Philadelphia",
+            "state": "PA",
+            "listing_count": 1490,
+            "floor_price": 149,
+            "median_price": 322,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.05,
+            "inventory_by_tier": {
+                "lower": 179,
+                "upper": 998,
+                "floor": 75
+            },
+            "demand_score": 0.95,
+            "sales_velocity": 0.9,
+            "value_score": 0.3
+        },
+        {
+            "id": "prod-012",
+            "date": "2027-01-03T19:00:00",
+            "venue": "Capital One Arena",
+            "city": "Washington",
+            "state": "DC",
+            "listing_count": 1210,
+            "floor_price": 94,
+            "median_price": 205,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.02,
+            "inventory_by_tier": {
+                "lower": 145,
+                "upper": 811,
+                "floor": 61
+            },
+            "demand_score": 0.7,
+            "sales_velocity": 0.58,
+            "value_score": 0.6
+        },
+        {
+            "id": "prod-013",
+            "date": "2027-01-10T19:30:00",
+            "venue": "FedExForum",
+            "city": "Memphis",
+            "state": "TN",
+            "listing_count": 690,
+            "floor_price": 62,
+            "median_price": 156,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.06,
+            "inventory_by_tier": {
+                "lower": 83,
+                "upper": 462,
+                "floor": 35
+            },
+            "demand_score": 0.5,
+            "sales_velocity": 0.42,
+            "value_score": 0.92
+        },
+        {
+            "id": "prod-014",
+            "date": "2027-01-16T20:00:00",
+            "venue": "State Farm Arena",
+            "city": "Atlanta",
+            "state": "GA",
+            "listing_count": 1360,
+            "floor_price": 108,
+            "median_price": 232,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.01,
+            "inventory_by_tier": {
+                "lower": 163,
+                "upper": 911,
+                "floor": 68
+            },
+            "demand_score": 0.82,
+            "sales_velocity": 0.72,
+            "value_score": 0.45
+        },
+        {
+            "id": "prod-015",
+            "date": "2027-01-17T19:00:00",
+            "venue": "State Farm Arena",
+            "city": "Atlanta",
+            "state": "GA",
+            "listing_count": 1180,
+            "floor_price": 96,
+            "median_price": 214,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.03,
+            "inventory_by_tier": {
+                "lower": 142,
+                "upper": 791,
+                "floor": 59
+            },
+            "demand_score": 0.75,
+            "sales_velocity": 0.62,
+            "value_score": 0.55
+        },
+        {
+            "id": "prod-016",
+            "date": "2027-01-20T19:30:00",
+            "venue": "Spectrum Center",
+            "city": "Charlotte",
+            "state": "NC",
+            "listing_count": 720,
+            "floor_price": 74,
+            "median_price": 168,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.04,
+            "inventory_by_tier": {
+                "lower": 86,
+                "upper": 482,
+                "floor": 36
+            },
+            "demand_score": 0.55,
+            "sales_velocity": 0.46,
+            "value_score": 0.8
+        },
+        {
+            "id": "prod-017",
+            "date": "2027-01-23T20:00:00",
+            "venue": "Amalie Arena",
+            "city": "Tampa",
+            "state": "FL",
+            "listing_count": 980,
+            "floor_price": 88,
+            "median_price": 192,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.02,
+            "inventory_by_tier": {
+                "lower": 118,
+                "upper": 657,
+                "floor": 49
+            },
+            "demand_score": 0.66,
+            "sales_velocity": 0.56,
+            "value_score": 0.63
+        },
+        {
+            "id": "prod-018",
+            "date": "2027-01-24T19:00:00",
+            "venue": "Kaseya Center",
+            "city": "Miami",
+            "state": "FL",
+            "listing_count": 1420,
+            "floor_price": 132,
+            "median_price": 288,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.04,
+            "inventory_by_tier": {
+                "lower": 170,
+                "upper": 951,
+                "floor": 71
+            },
+            "demand_score": 0.9,
+            "sales_velocity": 0.8,
+            "value_score": 0.4
+        },
+        {
+            "id": "prod-019",
+            "date": "2027-01-27T19:30:00",
+            "venue": "Frost Bank Center",
+            "city": "San Antonio",
+            "state": "TX",
+            "listing_count": 660,
+            "floor_price": 69,
+            "median_price": 161,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.05,
+            "inventory_by_tier": {
+                "lower": 79,
+                "upper": 442,
+                "floor": 33
+            },
+            "demand_score": 0.48,
+            "sales_velocity": 0.4,
+            "value_score": 0.85
+        },
+        {
+            "id": "prod-020",
+            "date": "2027-01-30T20:00:00",
+            "venue": "Toyota Center",
+            "city": "Houston",
+            "state": "TX",
+            "listing_count": 1290,
+            "floor_price": 102,
+            "median_price": 221,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.01,
+            "inventory_by_tier": {
+                "lower": 155,
+                "upper": 864,
+                "floor": 65
+            },
+            "demand_score": 0.78,
+            "sales_velocity": 0.66,
+            "value_score": 0.5
+        },
+        {
+            "id": "prod-021",
+            "date": "2027-01-31T19:00:00",
+            "venue": "American Airlines Center",
+            "city": "Dallas",
+            "state": "TX",
+            "listing_count": 1350,
+            "floor_price": 114,
+            "median_price": 244,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.02,
+            "inventory_by_tier": {
+                "lower": 162,
+                "upper": 905,
+                "floor": 68
+            },
+            "demand_score": 0.83,
+            "sales_velocity": 0.74,
+            "value_score": 0.44
+        },
+        {
+            "id": "prod-022",
+            "date": "2027-02-03T19:30:00",
+            "venue": "Paycom Center",
+            "city": "Oklahoma City",
+            "state": "OK",
+            "listing_count": 610,
+            "floor_price": 64,
+            "median_price": 159,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.06,
+            "inventory_by_tier": {
+                "lower": 73,
+                "upper": 409,
+                "floor": 31
+            },
+            "demand_score": 0.46,
+            "sales_velocity": 0.38,
+            "value_score": 0.86
+        },
+        {
+            "id": "prod-023",
+            "date": "2027-02-06T20:00:00",
+            "venue": "Ball Arena",
+            "city": "Denver",
+            "state": "CO",
+            "listing_count": 1130,
+            "floor_price": 98,
+            "median_price": 209,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.02,
+            "inventory_by_tier": {
+                "lower": 136,
+                "upper": 757,
+                "floor": 57
+            },
+            "demand_score": 0.72,
+            "sales_velocity": 0.6,
+            "value_score": 0.56
+        },
+        {
+            "id": "prod-024",
+            "date": "2027-02-07T18:00:00",
+            "venue": "Vivint Arena",
+            "city": "Salt Lake City",
+            "state": "UT",
+            "listing_count": 840,
+            "floor_price": 82,
+            "median_price": 184,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.03,
+            "inventory_by_tier": {
+                "lower": 101,
+                "upper": 563,
+                "floor": 42
+            },
+            "demand_score": 0.6,
+            "sales_velocity": 0.5,
+            "value_score": 0.64
+        },
+        {
+            "id": "prod-025",
+            "date": "2027-02-10T19:30:00",
+            "venue": "Footprint Center",
+            "city": "Phoenix",
+            "state": "AZ",
+            "listing_count": 990,
+            "floor_price": 91,
+            "median_price": 198,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.02,
+            "inventory_by_tier": {
+                "lower": 119,
+                "upper": 663,
+                "floor": 50
+            },
+            "demand_score": 0.68,
+            "sales_velocity": 0.57,
+            "value_score": 0.6
+        },
+        {
+            "id": "prod-026",
+            "date": "2027-02-13T20:00:00",
+            "venue": "T-Mobile Arena",
+            "city": "Las Vegas",
+            "state": "NV",
+            "listing_count": 1680,
+            "floor_price": 168,
+            "median_price": 356,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.06,
+            "inventory_by_tier": {
+                "lower": 202,
+                "upper": 1126,
+                "floor": 84
+            },
+            "demand_score": 0.96,
+            "sales_velocity": 0.92,
+            "value_score": 0.32
+        },
+        {
+            "id": "prod-027",
+            "date": "2027-02-17T19:30:00",
+            "venue": "Acrisure Arena",
+            "city": "Palm Springs",
+            "state": "CA",
+            "listing_count": 560,
+            "floor_price": 86,
+            "median_price": 187,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.04,
+            "inventory_by_tier": {
+                "lower": 67,
+                "upper": 375,
+                "floor": 28
+            },
+            "demand_score": 0.54,
+            "sales_velocity": 0.45,
+            "value_score": 0.66
+        },
+        {
+            "id": "prod-028",
+            "date": "2027-02-20T20:00:00",
+            "venue": "Crypto.com Arena",
+            "city": "Los Angeles",
+            "state": "CA",
+            "listing_count": 1920,
+            "floor_price": 214,
+            "median_price": 448,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.07,
+            "inventory_by_tier": {
+                "lower": 230,
+                "upper": 1286,
+                "floor": 96
+            },
+            "demand_score": 0.98,
+            "sales_velocity": 0.95,
+            "value_score": 0.28
+        },
+        {
+            "id": "prod-029",
+            "date": "2027-02-21T19:00:00",
+            "venue": "Crypto.com Arena",
+            "city": "Los Angeles",
+            "state": "CA",
+            "listing_count": 1740,
+            "floor_price": 189,
+            "median_price": 402,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.04,
+            "inventory_by_tier": {
+                "lower": 209,
+                "upper": 1166,
+                "floor": 87
+            },
+            "demand_score": 0.94,
+            "sales_velocity": 0.88,
+            "value_score": 0.34
+        },
+        {
+            "id": "prod-030",
+            "date": "2027-02-24T19:30:00",
+            "venue": "Honda Center",
+            "city": "Anaheim",
+            "state": "CA",
+            "listing_count": 1080,
+            "floor_price": 126,
+            "median_price": 258,
+            "sellout_risk": "moderate",
+            "price_trend_7d": 0,
+            "inventory_by_tier": {
+                "lower": 130,
+                "upper": 724,
+                "floor": 54
+            },
+            "demand_score": 0.8,
+            "sales_velocity": 0.66,
+            "value_score": 0.46
+        },
+        {
+            "id": "prod-031",
+            "date": "2027-02-27T20:00:00",
+            "venue": "Chase Center",
+            "city": "San Francisco",
+            "state": "CA",
+            "listing_count": 1560,
+            "floor_price": 176,
+            "median_price": 372,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.05,
+            "inventory_by_tier": {
+                "lower": 187,
+                "upper": 1045,
+                "floor": 78
+            },
+            "demand_score": 0.92,
+            "sales_velocity": 0.85,
+            "value_score": 0.36
+        },
+        {
+            "id": "prod-032",
+            "date": "2027-02-28T18:00:00",
+            "venue": "Golden 1 Center",
+            "city": "Sacramento",
+            "state": "CA",
+            "listing_count": 870,
+            "floor_price": 108,
+            "median_price": 224,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.01,
+            "inventory_by_tier": {
+                "lower": 104,
+                "upper": 583,
+                "floor": 44
+            },
+            "demand_score": 0.7,
+            "sales_velocity": 0.58,
+            "value_score": 0.52
+        },
+        {
+            "id": "prod-033",
+            "date": "2027-03-03T19:30:00",
+            "venue": "Moda Center",
+            "city": "Portland",
+            "state": "OR",
+            "listing_count": 940,
+            "floor_price": 99,
+            "median_price": 206,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.02,
+            "inventory_by_tier": {
+                "lower": 113,
+                "upper": 630,
+                "floor": 47
+            },
+            "demand_score": 0.67,
+            "sales_velocity": 0.56,
+            "value_score": 0.58
+        },
+        {
+            "id": "prod-034",
+            "date": "2027-03-06T20:00:00",
+            "venue": "Climate Pledge Arena",
+            "city": "Seattle",
+            "state": "WA",
+            "listing_count": 1440,
+            "floor_price": 138,
+            "median_price": 292,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.03,
+            "inventory_by_tier": {
+                "lower": 173,
+                "upper": 965,
+                "floor": 72
+            },
+            "demand_score": 0.88,
+            "sales_velocity": 0.78,
+            "value_score": 0.42
+        },
+        {
+            "id": "prod-035",
+            "date": "2027-03-07T18:00:00",
+            "venue": "Climate Pledge Arena",
+            "city": "Seattle",
+            "state": "WA",
+            "listing_count": 1210,
+            "floor_price": 121,
+            "median_price": 256,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.01,
+            "inventory_by_tier": {
+                "lower": 145,
+                "upper": 811,
+                "floor": 61
+            },
+            "demand_score": 0.79,
+            "sales_velocity": 0.65,
+            "value_score": 0.5
+        },
+        {
+            "id": "prod-036",
+            "date": "2027-03-11T19:30:00",
+            "venue": "Xcel Energy Center",
+            "city": "St. Paul",
+            "state": "MN",
+            "listing_count": 1020,
+            "floor_price": 84,
+            "median_price": 189,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.03,
+            "inventory_by_tier": {
+                "lower": 122,
+                "upper": 683,
+                "floor": 51
+            },
+            "demand_score": 0.64,
+            "sales_velocity": 0.54,
+            "value_score": 0.68
+        },
+        {
+            "id": "prod-037",
+            "date": "2027-03-13T20:00:00",
+            "venue": "Fiserv Forum",
+            "city": "Milwaukee",
+            "state": "WI",
+            "listing_count": 760,
+            "floor_price": 78,
+            "median_price": 172,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.05,
+            "inventory_by_tier": {
+                "lower": 91,
+                "upper": 509,
+                "floor": 38
+            },
+            "demand_score": 0.56,
+            "sales_velocity": 0.47,
+            "value_score": 0.74
+        },
+        {
+            "id": "prod-038",
+            "date": "2027-03-14T18:00:00",
+            "venue": "United Center",
+            "city": "Chicago",
+            "state": "IL",
+            "listing_count": 1610,
+            "floor_price": 156,
+            "median_price": 334,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.04,
+            "inventory_by_tier": {
+                "lower": 193,
+                "upper": 1079,
+                "floor": 81
+            },
+            "demand_score": 0.93,
+            "sales_velocity": 0.86,
+            "value_score": 0.38
+        },
+        {
+            "id": "prod-039",
+            "date": "2027-03-18T19:30:00",
+            "venue": "KeyBank Center",
+            "city": "Buffalo",
+            "state": "NY",
+            "listing_count": 700,
+            "floor_price": 73,
+            "median_price": 166,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.05,
+            "inventory_by_tier": {
+                "lower": 84,
+                "upper": 469,
+                "floor": 35
+            },
+            "demand_score": 0.53,
+            "sales_velocity": 0.44,
+            "value_score": 0.78
+        },
+        {
+            "id": "prod-040",
+            "date": "2027-03-20T20:00:00",
+            "venue": "TD Garden",
+            "city": "Boston",
+            "state": "MA",
+            "listing_count": 1520,
+            "floor_price": 162,
+            "median_price": 342,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.05,
+            "inventory_by_tier": {
+                "lower": 182,
+                "upper": 1018,
+                "floor": 76
+            },
+            "demand_score": 0.91,
+            "sales_velocity": 0.84,
+            "value_score": 0.36
+        },
+        {
+            "id": "prod-041",
+            "date": "2027-03-21T19:00:00",
+            "venue": "TD Garden",
+            "city": "Boston",
+            "state": "MA",
+            "listing_count": 1330,
+            "floor_price": 144,
+            "median_price": 302,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.02,
+            "inventory_by_tier": {
+                "lower": 160,
+                "upper": 891,
+                "floor": 67
+            },
+            "demand_score": 0.86,
+            "sales_velocity": 0.75,
+            "value_score": 0.42
+        },
+        {
+            "id": "prod-042",
+            "date": "2027-03-25T19:30:00",
+            "venue": "Prudential Center",
+            "city": "Newark",
+            "state": "NJ",
+            "listing_count": 1180,
+            "floor_price": 128,
+            "median_price": 268,
+            "sellout_risk": "moderate",
+            "price_trend_7d": 0,
+            "inventory_by_tier": {
+                "lower": 142,
+                "upper": 791,
+                "floor": 59
+            },
+            "demand_score": 0.82,
+            "sales_velocity": 0.7,
+            "value_score": 0.46
+        },
+        {
+            "id": "prod-043",
+            "date": "2027-03-27T20:00:00",
+            "venue": "Madison Square Garden",
+            "city": "New York",
+            "state": "NY",
+            "listing_count": 2100,
+            "floor_price": 236,
+            "median_price": 486,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.08,
+            "inventory_by_tier": {
+                "lower": 252,
+                "upper": 1407,
+                "floor": 105
+            },
+            "demand_score": 0.99,
+            "sales_velocity": 0.97,
+            "value_score": 0.26
+        },
+        {
+            "id": "prod-044",
+            "date": "2027-03-28T19:00:00",
+            "venue": "Madison Square Garden",
+            "city": "New York",
+            "state": "NY",
+            "listing_count": 1980,
+            "floor_price": 208,
+            "median_price": 442,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.06,
+            "inventory_by_tier": {
+                "lower": 238,
+                "upper": 1327,
+                "floor": 99
+            },
+            "demand_score": 0.97,
+            "sales_velocity": 0.93,
+            "value_score": 0.3
+        },
+        {
+            "id": "prod-045",
+            "date": "2027-03-31T19:30:00",
+            "venue": "Wells Fargo Center",
+            "city": "Philadelphia",
+            "state": "PA",
+            "listing_count": 1240,
+            "floor_price": 134,
+            "median_price": 279,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.02,
+            "inventory_by_tier": {
+                "lower": 149,
+                "upper": 831,
+                "floor": 62
+            },
+            "demand_score": 0.84,
+            "sales_velocity": 0.73,
+            "value_score": 0.44
+        },
+        {
+            "id": "prod-046",
+            "date": "2027-04-03T20:00:00",
+            "venue": "Capital One Arena",
+            "city": "Washington",
+            "state": "DC",
+            "listing_count": 1160,
+            "floor_price": 122,
+            "median_price": 261,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.01,
+            "inventory_by_tier": {
+                "lower": 139,
+                "upper": 777,
+                "floor": 58
+            },
+            "demand_score": 0.8,
+            "sales_velocity": 0.67,
+            "value_score": 0.48
+        },
+        {
+            "id": "prod-047",
+            "date": "2027-04-04T18:00:00",
+            "venue": "PPG Paints Arena",
+            "city": "Pittsburgh",
+            "state": "PA",
+            "listing_count": 690,
+            "floor_price": 81,
+            "median_price": 178,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.04,
+            "inventory_by_tier": {
+                "lower": 83,
+                "upper": 462,
+                "floor": 35
+            },
+            "demand_score": 0.58,
+            "sales_velocity": 0.49,
+            "value_score": 0.66
+        },
+        {
+            "id": "prod-048",
+            "date": "2027-04-07T19:30:00",
+            "venue": "Rocket Mortgage FieldHouse",
+            "city": "Cleveland",
+            "state": "OH",
+            "listing_count": 720,
+            "floor_price": 77,
+            "median_price": 174,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.05,
+            "inventory_by_tier": {
+                "lower": 86,
+                "upper": 482,
+                "floor": 36
+            },
+            "demand_score": 0.55,
+            "sales_velocity": 0.46,
+            "value_score": 0.7
+        },
+        {
+            "id": "prod-049",
+            "date": "2027-04-10T20:00:00",
+            "venue": "Little Caesars Arena",
+            "city": "Detroit",
+            "state": "MI",
+            "listing_count": 1080,
+            "floor_price": 112,
+            "median_price": 236,
+            "sellout_risk": "moderate",
+            "price_trend_7d": 0.01,
+            "inventory_by_tier": {
+                "lower": 130,
+                "upper": 724,
+                "floor": 54
+            },
+            "demand_score": 0.76,
+            "sales_velocity": 0.63,
+            "value_score": 0.5
+        },
+        {
+            "id": "prod-050",
+            "date": "2027-04-11T18:00:00",
+            "venue": "Nationwide Arena",
+            "city": "Columbus",
+            "state": "OH",
+            "listing_count": 640,
+            "floor_price": 83,
+            "median_price": 181,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.04,
+            "inventory_by_tier": {
+                "lower": 77,
+                "upper": 429,
+                "floor": 32
+            },
+            "demand_score": 0.57,
+            "sales_velocity": 0.48,
+            "value_score": 0.64
+        },
+        {
+            "id": "prod-051",
+            "date": "2027-04-14T19:30:00",
+            "venue": "Bridgestone Arena",
+            "city": "Nashville",
+            "state": "TN",
+            "listing_count": 980,
+            "floor_price": 129,
+            "median_price": 274,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.03,
+            "inventory_by_tier": {
+                "lower": 118,
+                "upper": 657,
+                "floor": 49
+            },
+            "demand_score": 0.87,
+            "sales_velocity": 0.76,
+            "value_score": 0.4
+        },
+        {
+            "id": "prod-052",
+            "date": "2027-04-18T20:00:00",
+            "venue": "Kia Forum",
+            "city": "Los Angeles",
+            "state": "CA",
+            "listing_count": 1660,
+            "floor_price": 198,
+            "median_price": 418,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.05,
+            "inventory_by_tier": {
+                "lower": 199,
+                "upper": 1112,
+                "floor": 83
+            },
+            "demand_score": 0.95,
+            "sales_velocity": 0.9,
+            "value_score": 0.32
         }
     ],
     "listings_sample": [

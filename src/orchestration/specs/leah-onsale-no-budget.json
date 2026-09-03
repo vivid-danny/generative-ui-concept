@@ -12,15 +12,15 @@
                 }
             }
         ],
-        "reasoning": "Her paid-search entry reads as price-sensitive but she has not given a number, so anything I filter or highlight would be a guess dressed as a recommendation. The honest composition is the full slate in date order, geo-grouped so distance is at least visible, and no highlight. Once budget_entry is implemented this composition should lead with it instead \u2014 asking for the number is strictly better than inferring it, and every other module on the page sharpens the moment she answers.",
+        "reasoning": "Her paid-search entry reads as price-sensitive but she has not given a number, so anything I filter or highlight would be a guess dressed as a recommendation. The honest composition is the upcoming dates in chronological order, geo-grouped so distance is at least visible, and no highlight. Once budget_entry is implemented this composition should lead with it instead — asking for the number is strictly better than inferring it, and every other module on the page sharpens the moment she answers.",
         "headline": null
     },
     "provenance": {
-        "generated_at": "2026-09-02T17:05:00Z",
+        "generated_at": "2026-09-03T00:00:00Z",
         "source": "precomputed",
-        "model": "claude-opus-5",
-        "prompt_version": "v1",
+        "model": "hand-authored (interim refresh; pending live regeneration under prompt v2)",
+        "prompt_version": "v2",
         "context_id": "leah_onsale/no_budget",
-        "raw_response": "{\n  \"layout\": [\n    {\n      \"module\": \"production_list\",\n      \"size\": \"standard\",\n      \"props\": {\n        \"sort\": \"date\",\n        \"highlight\": null,\n        \"group_by_geo\": true,\n        \"max_items\": 8\n      }\n    }\n  ],\n  \"reasoning\": \"Her paid-search entry reads as price-sensitive but she has not given a number, so anything I filter or highlight would be a guess dressed as a recommendation. The honest composition is the full slate in date order, geo-grouped so distance is at least visible, and no highlight. Once budget_entry is implemented this composition should lead with it instead \\u2014 asking for the number is strictly better than inferring it, and every other module on the page sharpens the moment she answers.\",\n  \"headline\": null\n}"
+        "raw_response": "{\n  \"layout\": [\n    {\n      \"module\": \"production_list\",\n      \"size\": \"standard\",\n      \"props\": {\n        \"sort\": \"date\",\n        \"highlight\": null,\n        \"group_by_geo\": true,\n        \"max_items\": 8\n      }\n    }\n  ],\n  \"reasoning\": \"Her paid-search entry reads as price-sensitive but she has not given a number, so anything I filter or highlight would be a guess dressed as a recommendation. The honest composition is the upcoming dates in chronological order, geo-grouped so distance is at least visible, and no highlight. Once budget_entry is implemented this composition should lead with it instead — asking for the number is strictly better than inferring it, and every other module on the page sharpens the moment she answers.\",\n  \"headline\": null\n}"
     }
 }

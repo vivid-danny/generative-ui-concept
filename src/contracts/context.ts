@@ -24,6 +24,8 @@ export const InferredIntentSchema = z.enum([
     'seat_quality_first',
     'location_flexible',
     'gift_buyer',
+    // A crowd / energy seeker: the persona that pulls `demand_score` forward.
+    'experience_first',
     'unknown',
 ])
 

@@ -30,10 +30,13 @@ const allDates = (selection: ReturnType<typeof selectProductions>) =>
     selection.groups.flatMap((group) => group.productions)
 
 describe('selectProductions', () => {
-    it('shows every date when nothing is filtered', () => {
+    it('filters nothing out when there is no filter, capping at max_items', () => {
+        // The tour is longer than the 20-item cap, so "show everything" is bounded
+        // by max_items — but that is truncation, not filtering. filteredOutCount
+        // counts only what a filter removed, so with no filter it stays zero.
         const selection = selectProductions(market, context, props({ max_items: 20 }))
 
-        expect(allDates(selection)).toHaveLength(market.productions.length)
+        expect(allDates(selection)).toHaveLength(Math.min(20, market.productions.length))
         expect(selection.filteredOutCount).toBe(0)
     })
 

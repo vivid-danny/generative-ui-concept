@@ -7,6 +7,12 @@ snapshot capture, and slice 1 does not need listing volume, so the fixture was
 written by hand to a plausible shape rather than scraped. Nothing here came off
 vividseats.com.
 
+The tour is a full ~52-date run (matching Olivia Rodrigo's actual tour length) so
+the orchestrator has real variety to compose around — a range of cities, weeknights
+and weekends, lead times, price tiers, and demand. The first seven productions
+(`prod-001`…`prod-007`) are the original slice-1 anchors, unchanged in their
+inventory/price fields; the rest were appended.
+
 That matters because the source plan (§3.2) distinguishes real inventory from
 derived signals, and three planned modules read entirely from derived fields.
 Until a real capture happens, treat every number below as illustrative:
@@ -20,11 +26,20 @@ Until a real capture happens, treat every number below as illustrative:
 | `productions[].floor_price` / `median_price` | Invented. §3.2 says these should be real once a capture exists. |
 | `productions[].sellout_risk` | **Fabricated** derived field. |
 | `productions[].price_trend_7d` | **Fabricated** derived field. |
-| `productions[].inventory_by_tier` | Computed from `listing_count` by fixed ratios. |
+| `productions[].inventory_by_tier` | Computed from `listing_count` by fixed ratios (~0.12 / 0.67 / 0.05). |
+| `productions[].demand_score` | **Fabricated** derived field. 0–1 fan anticipation, independent of price/inventory. |
+| `productions[].sales_velocity` | **Fabricated** derived field. 0–1 rate of sale, finer than `sellout_risk`. |
+| `productions[].value_score` | **Fabricated** derived field. 0–1 price-for-demand value at the date level. |
 | `listings_sample[].view_score` / `deal_score` | **Fabricated** derived fields. |
+
+The three new signals (`demand_score`, `sales_velocity`, `value_score`) are carried
+over from the earlier `event-decision` prototype's per-event `demand` /
+`salesVelocity` / value model. They are stored, not computed, so the orchestrator
+and future modules read them directly. Day-of-week and lead time are **not** stored
+— derive them from `date` + `captured_at` via `src/orchestration/derive.ts`.
 | `listings_sample` | Unused in slice 1 — `listing_preview` is specified but not implemented. Present so the market contract is exercised in full. |
 
-### One shape worth preserving
+### Shapes worth preserving
 
 Indianapolis has the lowest `floor_price` while St. Louis has the lowest
 `median_price`. That is deliberate: it keeps `highlight: "cheapest"` and
@@ -32,6 +47,42 @@ Indianapolis has the lowest `floor_price` while St. Louis has the lowest
 the same row, two distinct orchestrator choices rendered identically — which
 made the composition look less responsive than it was. A real capture should be
 checked for the same property.
+
+A few dates are authored as deliberately interesting orchestration cases: a couple
+of cheap weeknight "hidden gems" with high demand and high `value_score` (e.g.
+Memphis, Oklahoma City), premium marquee nights that are hot but poor value
+(NYE Philadelphia, Las Vegas, LA, MSG — high `demand_score` / `sales_velocity`,
+low `value_score`), and mid-market weekends that are unremarkable on every axis.
+
+### Authoring invariants (the test suite pins these — preserve on any edit)
+
+- The global-minimum `floor_price` is a **non-Chicago** date (Indianapolis $54) and
+  is a **different date** than the minimum `median_price` (St. Louis $151), so
+  `cheapest` ≠ `best_value` (`select.test.ts`).
+- At least one **Chicago** date sits within the 20 lowest floor prices, and Chicago
+  floors are not the global minimum, so geo-grouping visibly lifts the metro above a
+  price sort (`select.test.ts`).
+- Some dates ≤ $80 and some > $80 (currently 15 under $80), so the budget filter
+  leaves a non-empty proper subset (`select.test.ts`, `validate.test.ts`).
+- The **8 earliest-by-date** productions all have `floor_price` ≤ $250, because the
+  budget-250 spec shows the 8 earliest with no price filter and the eval asserts
+  none exceed budget. Ultra-premium dates are later in the calendar.
+- `prod-002` (Chicago, 2026-12-05) stays 94 days out from `captured_at`.
+
+The generator that produced the tour and checked these invariants is at
+`.context/gen-market.mjs` (gitignored) if the fixture needs regenerating.
+
+## Precomputed specs — hand-refreshed for the expanded market
+
+The three specs in `src/orchestration/specs/leah-onsale-*.json` were originally
+composed by Claude for the 7-date snapshot. Growing the market made their prose
+factually stale (old floor-price figures) and, for budget-80, made the composition
+hide the reachable Chicago night. They were **hand-refreshed this session** (prose
+updated to match the 52-date market; budget-80 `max_items` raised 6 → 12 so the
+$76 Chicago date is visible again). Their provenance reflects this: `model` reads
+`hand-authored`, `prompt_version` is `v2`. This is an interim measure — they should
+be **regenerated for real** via the Stage-3 live orchestration bridge once it is
+available, restoring genuine model provenance.
 
 ## `contexts/*.json`
 

@@ -12,15 +12,15 @@
                 }
             }
         ],
-        "reasoning": "At $250 every date on this tour is already in reach \u2014 the highest floor price in the snapshot is Nashville at $118 \u2014 so a price filter would remove nothing and just imply a constraint she does not have. That changes the question from 'what can I afford' to 'which night is worth it', so I dropped the filter, kept chronological order, and highlighted best value rather than cheapest. Standard rather than hero prominence because with no price pressure the list is a browse, not an answer.",
+        "reasoning": "At $250 every date on this tour is already in reach — even the priciest floor, Madison Square Garden at $236, sits under her ceiling — so a price filter would remove nothing and just imply a constraint she does not have. That turns the question from 'what can I afford' into 'which night is worth it', so I dropped the filter, kept chronological order, and highlighted best value (St. Louis, the lowest typical price on the run) rather than cheapest. Standard rather than hero prominence because with no price pressure the list is a browse, not an answer.",
         "headline": null
     },
     "provenance": {
-        "generated_at": "2026-09-02T17:05:00Z",
+        "generated_at": "2026-09-03T00:00:00Z",
         "source": "precomputed",
-        "model": "claude-opus-5",
-        "prompt_version": "v1",
+        "model": "hand-authored (interim refresh; pending live regeneration under prompt v2)",
+        "prompt_version": "v2",
         "context_id": "leah_onsale/budget_250",
-        "raw_response": "{\n  \"layout\": [\n    {\n      \"module\": \"production_list\",\n      \"size\": \"standard\",\n      \"props\": {\n        \"sort\": \"date\",\n        \"highlight\": \"best_value\",\n        \"group_by_geo\": true,\n        \"max_items\": 8\n      }\n    }\n  ],\n  \"reasoning\": \"At $250 every date on this tour is already in reach \\u2014 the highest floor price in the snapshot is Nashville at $118 \\u2014 so a price filter would remove nothing and just imply a constraint she does not have. That changes the question from 'what can I afford' to 'which night is worth it', so I dropped the filter, kept chronological order, and highlighted best value rather than cheapest. Standard rather than hero prominence because with no price pressure the list is a browse, not an answer.\",\n  \"headline\": null\n}"
+        "raw_response": "{\n  \"layout\": [\n    {\n      \"module\": \"production_list\",\n      \"size\": \"standard\",\n      \"props\": {\n        \"sort\": \"date\",\n        \"highlight\": \"best_value\",\n        \"group_by_geo\": true,\n        \"max_items\": 8\n      }\n    }\n  ],\n  \"reasoning\": \"At $250 every date on this tour is already in reach — even the priciest floor, Madison Square Garden at $236, sits under her ceiling — so a price filter would remove nothing and just imply a constraint she does not have. That turns the question from 'what can I afford' into 'which night is worth it', so I dropped the filter, kept chronological order, and highlighted best value (St. Louis, the lowest typical price on the run) rather than cheapest. Standard rather than hero prominence because with no price pressure the list is a browse, not an answer.\",\n  \"headline\": null\n}"
     }
 }
