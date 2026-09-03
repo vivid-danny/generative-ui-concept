@@ -29,6 +29,8 @@ export default function App({ Component, pageProps, ...rest }: AppProps) {
         <AppCacheProvider {...rest}>
             <Head>
                 <meta name="viewport" content="width=device-width, initial-scale=1" />
+                <link rel="icon" href="/favicon.png" />
+                <link rel="apple-touch-icon" href="/favicon.png" />
                 <title>Generative UI — performer page</title>
             </Head>
             <ThemeProvider theme={theme}>
