@@ -1,0 +1,23 @@
+// <Tab Collection> — Figma 17055:178932.
+
+.tabs {
+    display: flex;
+    // Full-width rule beneath the strip (gray/200-light per the design).
+    border-bottom: 1px solid var(--surface-gray-200-light, #d3d3dc);
+}
+
+.tab {
+    // Each tab carries px-16 py-12; no gap between tabs.
+    padding: var(--spacing-md) var(--spacing-lg);
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -1px;
+    background: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.active {
+    border-bottom-color: var(--surface-primary-main, #ce3197);
+    color: var(--text-primary);
+}

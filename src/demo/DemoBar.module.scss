@@ -1,0 +1,172 @@
+// Demo chrome. Styled deliberately unlike the product — dark, monospaced,
+// pinned — so a viewer never mistakes it for part of the page being argued for.
+//
+// Opens as a left drawer that pushes the page right, rather than a top bar that
+// pushed the product down out of the viewport.
+
+.layout {
+    display: flex;
+    align-items: flex-start;
+}
+
+.drawer {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    flex: 0 0 360px;
+    width: 360px;
+    height: 100vh;
+    overflow-y: auto;
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+}
+
+.content {
+    flex: 1;
+    min-width: 0;
+}
+
+// Stays put while the rest of the drawer scrolls.
+.drawerHeader {
+    position: sticky;
+    top: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid #30363d;
+    background: #0d1117;
+}
+
+.note {
+    color: #e6edf3;
+}
+
+.label {
+    color: #7d8590;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.variants {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+}
+
+.variant {
+    padding: 4px 10px;
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+}
+
+.variantActive {
+    border-color: #ce3197;
+    background: rgba(206, 49, 151, 0.18);
+}
+
+.panel {
+    padding: var(--spacing-lg);
+    background: #161b22;
+    color: #e6edf3;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+    line-height: 1.7;
+}
+
+.panelHeading {
+    margin: var(--spacing-xl) 0 var(--spacing-sm);
+    color: #7d8590;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 11px;
+
+    &:first-child {
+        margin-top: 0;
+    }
+}
+
+.reasoning {
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.kv {
+    margin: 0;
+}
+
+.kv dt {
+    color: #7d8590;
+}
+
+.kv dd {
+    margin: 0 0 var(--spacing-sm);
+}
+
+.notes {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.noteDropped {
+    color: #ff7b72;
+}
+
+.noteRepaired {
+    color: #d29922;
+}
+
+.noteFallback {
+    color: #ff7b72;
+    font-weight: 700;
+}
+
+.raw {
+    max-height: 320px;
+    margin: 0;
+    overflow: auto;
+    padding: var(--spacing-lg);
+    border-radius: 4px;
+    background: #0d1117;
+    line-height: 1.6;
+}
+
+// --- What it composed: the spec's result, brought over from the /diff page ---
+
+.moduleList {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.tally {
+    margin: var(--spacing-md) 0 0;
+}
+
+.renderedGroup {
+    margin-top: var(--spacing-md);
+}
+
+.groupLabel {
+    margin: 0;
+    color: #58a6ff;
+}
+
+.rowList {
+    margin: var(--spacing-2xs) 0 0;
+    padding-left: 18px;
+    list-style: none;
+}
+
+.rowHighlighted {
+    color: #ce3197;
+}
+
+.dim {
+    color: #7d8590;
+}

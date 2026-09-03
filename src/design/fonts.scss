@@ -1,0 +1,48 @@
+// GT Walsheim, self-hosted from /public/fonts.
+//
+// Adapted from vivid-web-athena's src/design-system/legacy/src/styles/_fonts.scss,
+// with the eot/ttf sources dropped and paths repointed locally.
+//
+// The weight numbers matter: the VS design system declares Black as 800, not the
+// 900 the name suggests. Declaring 900 here would leave the 800 requests unmatched
+// and let the browser synthesize a fake bold instead of using the real face.
+
+@font-face {
+    font-family: 'GT Walsheim';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src:
+        url('/fonts/GT-Walsheim-Regular.woff2') format('woff2'),
+        url('/fonts/GT-Walsheim-Regular.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'GT Walsheim';
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src:
+        url('/fonts/GT-Walsheim-Medium.woff2') format('woff2'),
+        url('/fonts/GT-Walsheim-Medium.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'GT Walsheim';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src:
+        url('/fonts/GT-Walsheim-Bold.woff2') format('woff2'),
+        url('/fonts/GT-Walsheim-Bold.woff') format('woff');
+}
+
+@font-face {
+    font-family: 'GT Walsheim';
+    font-style: normal;
+    font-weight: 800;
+    font-display: swap;
+    src:
+        url('/fonts/GT-Walsheim-Black.woff2') format('woff2'),
+        url('/fonts/GT-Walsheim-Black.woff') format('woff');
+}

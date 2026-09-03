@@ -1,0 +1,123 @@
+// <Production Card> — Figma 17055:178943. 812 wide, 8px gap between cards.
+// Token values taken from the node's bound variables rather than sampled.
+
+.card {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    min-height: 80px;
+    // Asymmetric per the Figma node: 12 top/bottom, 16 left, 24 right.
+    padding: var(--spacing-md) var(--spacing-xl) var(--spacing-md) var(--spacing-lg);
+    border: 1px solid var(--surface-gray-100-thin, #efeff6);
+    border-radius: var(--radius-sm);
+    background: var(--surface-white);
+}
+
+.highlighted {
+    border-color: var(--surface-primary-main, #ce3197);
+    box-shadow: 0 0 0 1px var(--surface-primary-main, #ce3197);
+}
+
+// Full-height column with a rule dividing the date from the event details.
+.dateBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    gap: var(--spacing-2xs);
+    min-width: 48px;
+    padding-right: var(--spacing-lg);
+    border-right: 1px solid var(--surface-gray-100-thin, #efeff6);
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.weekday {
+    color: var(--surface-gray-600-deep, #474b5e);
+}
+
+.date {
+    color: var(--surface-primary-main, #ce3197);
+}
+
+.time {
+    color: var(--surface-gray-600-deep, #474b5e);
+}
+
+.details {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--spacing-2xs);
+}
+
+.badges {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-2xs);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2xs);
+    padding: 0 var(--spacing-xs);
+    border-radius: var(--radius-rounded);
+    white-space: nowrap;
+}
+
+.badgeDeal {
+    background: var(--surface-secondary-lightest, #dafafb);
+    color: var(--surface-secondary-darkest, #086e88);
+}
+
+.badgeUrgency {
+    background: var(--surface-primary-lightest, #fbe5f3);
+    color: var(--surface-primary-dark, #8f1564);
+}
+
+.performer {
+    color: var(--text-primary);
+}
+
+.venue {
+    color: var(--surface-gray-600-deep, #474b5e);
+}
+
+.dot {
+    margin: 0 var(--spacing-2xs);
+    color: var(--text-disabled, #a0a2b3);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    flex-shrink: 0;
+}
+
+.leadInPrice {
+    text-align: right;
+    color: var(--text-primary);
+}
+
+.priceLabel {
+    display: block;
+    color: var(--text-secondary);
+}
+
+.cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border: 1px solid var(--surface-primary-main, #ce3197);
+    border-radius: var(--radius-sm);
+    background: var(--surface-white);
+    color: var(--surface-primary-main, #ce3197);
+    cursor: pointer;
+    white-space: nowrap;
+}

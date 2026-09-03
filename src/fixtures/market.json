@@ -1,0 +1,223 @@
+{
+    "performer": {
+        "id": "perf-89217",
+        "name": "Olivia Rodrigo",
+        "image_url": "/performers/olivia-rodrigo.png",
+        "category": "Pop",
+        "tour_name": "Unraveled Tour"
+    },
+    "productions": [
+        {
+            "id": "prod-001",
+            "date": "2026-12-04T19:30:00",
+            "venue": "United Center",
+            "city": "Chicago",
+            "state": "IL",
+            "listing_count": 1043,
+            "floor_price": 89,
+            "median_price": 210,
+            "sellout_risk": "high",
+            "price_trend_7d": -0.04,
+            "inventory_by_tier": {
+                "lower": 125,
+                "upper": 699,
+                "floor": 52
+            }
+        },
+        {
+            "id": "prod-002",
+            "date": "2026-12-05T19:30:00",
+            "venue": "United Center",
+            "city": "Chicago",
+            "state": "IL",
+            "listing_count": 1187,
+            "floor_price": 76,
+            "median_price": 188,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.06,
+            "inventory_by_tier": {
+                "lower": 142,
+                "upper": 795,
+                "floor": 59
+            }
+        },
+        {
+            "id": "prod-003",
+            "date": "2026-12-11T19:30:00",
+            "venue": "Fiserv Forum",
+            "city": "Milwaukee",
+            "state": "WI",
+            "listing_count": 842,
+            "floor_price": 68,
+            "median_price": 165,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.03,
+            "inventory_by_tier": {
+                "lower": 101,
+                "upper": 564,
+                "floor": 42
+            }
+        },
+        {
+            "id": "prod-004",
+            "date": "2026-12-12T19:30:00",
+            "venue": "Gainbridge Fieldhouse",
+            "city": "Indianapolis",
+            "state": "IN",
+            "listing_count": 1560,
+            "floor_price": 54,
+            "median_price": 172,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.08,
+            "inventory_by_tier": {
+                "lower": 187,
+                "upper": 1045,
+                "floor": 78
+            }
+        },
+        {
+            "id": "prod-005",
+            "date": "2026-12-18T19:30:00",
+            "venue": "Enterprise Center",
+            "city": "St. Louis",
+            "state": "MO",
+            "listing_count": 1320,
+            "floor_price": 61,
+            "median_price": 151,
+            "sellout_risk": "low",
+            "price_trend_7d": -0.05,
+            "inventory_by_tier": {
+                "lower": 158,
+                "upper": 884,
+                "floor": 66
+            }
+        },
+        {
+            "id": "prod-006",
+            "date": "2026-12-19T19:30:00",
+            "venue": "Little Caesars Arena",
+            "city": "Detroit",
+            "state": "MI",
+            "listing_count": 968,
+            "floor_price": 72,
+            "median_price": 178,
+            "sellout_risk": "moderate",
+            "price_trend_7d": -0.02,
+            "inventory_by_tier": {
+                "lower": 116,
+                "upper": 649,
+                "floor": 48
+            }
+        },
+        {
+            "id": "prod-007",
+            "date": "2027-01-09T19:30:00",
+            "venue": "Bridgestone Arena",
+            "city": "Nashville",
+            "state": "TN",
+            "listing_count": 640,
+            "floor_price": 118,
+            "median_price": 265,
+            "sellout_risk": "high",
+            "price_trend_7d": 0.03,
+            "inventory_by_tier": {
+                "lower": 77,
+                "upper": 429,
+                "floor": 32
+            }
+        }
+    ],
+    "listings_sample": [
+        {
+            "id": "lst-001",
+            "section": "Floor A",
+            "row": "3",
+            "price": 412,
+            "quantity_available": 2,
+            "view_score": 0.95,
+            "deal_score": 0.42
+        },
+        {
+            "id": "lst-002",
+            "section": "Floor C",
+            "row": "9",
+            "price": 318,
+            "quantity_available": 2,
+            "view_score": 0.88,
+            "deal_score": 0.51
+        },
+        {
+            "id": "lst-003",
+            "section": "101",
+            "row": "12",
+            "price": 246,
+            "quantity_available": 4,
+            "view_score": 0.81,
+            "deal_score": 0.62
+        },
+        {
+            "id": "lst-004",
+            "section": "108",
+            "row": "4",
+            "price": 268,
+            "quantity_available": 2,
+            "view_score": 0.84,
+            "deal_score": 0.58
+        },
+        {
+            "id": "lst-005",
+            "section": "114",
+            "row": "20",
+            "price": 179,
+            "quantity_available": 2,
+            "view_score": 0.72,
+            "deal_score": 0.74
+        },
+        {
+            "id": "lst-006",
+            "section": "201",
+            "row": "8",
+            "price": 132,
+            "quantity_available": 4,
+            "view_score": 0.61,
+            "deal_score": 0.79
+        },
+        {
+            "id": "lst-007",
+            "section": "214",
+            "row": "15",
+            "price": 104,
+            "quantity_available": 2,
+            "view_score": 0.54,
+            "deal_score": 0.83
+        },
+        {
+            "id": "lst-008",
+            "section": "301",
+            "row": "6",
+            "price": 89,
+            "quantity_available": 2,
+            "view_score": 0.38,
+            "deal_score": 0.71
+        },
+        {
+            "id": "lst-009",
+            "section": "312",
+            "row": "18",
+            "price": 89,
+            "quantity_available": 4,
+            "view_score": 0.31,
+            "deal_score": 0.66
+        },
+        {
+            "id": "lst-010",
+            "section": "330",
+            "row": "22",
+            "price": 94,
+            "quantity_available": 2,
+            "view_score": 0.28,
+            "deal_score": 0.55
+        }
+    ],
+    "captured_at": "2026-09-02"
+}

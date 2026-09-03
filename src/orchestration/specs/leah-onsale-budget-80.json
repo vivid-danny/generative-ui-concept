@@ -1,0 +1,29 @@
+{
+    "spec": {
+        "layout": [
+            {
+                "module": "production_list",
+                "size": "hero",
+                "props": {
+                    "filter": {
+                        "max_price": 80
+                    },
+                    "sort": "price",
+                    "highlight": "cheapest",
+                    "group_by_geo": true,
+                    "max_items": 6
+                }
+            }
+        ],
+        "reasoning": "At $80 the answer to 'should I buy now' is really 'where can I actually go'. Only one of the two Chicago nights has anything under her ceiling (12/05 opens at $76; 12/04 starts at $89), while Indianapolis, St. Louis, Milwaukee and Detroit all open in the $54-$72 range. So the list leads the page at hero prominence, sorted by price rather than date, with the geo grouping on so the one reachable hometown date reads separately from the four that need a drive. Cheapest is highlighted because at this budget the binding constraint is the floor price, not the value.",
+        "headline": "Five dates under $80 \u2014 one of them in Chicago"
+    },
+    "provenance": {
+        "generated_at": "2026-09-02T17:05:00Z",
+        "source": "precomputed",
+        "model": "claude-opus-5",
+        "prompt_version": "v1",
+        "context_id": "leah_onsale/budget_80",
+        "raw_response": "{\n  \"layout\": [\n    {\n      \"module\": \"production_list\",\n      \"size\": \"hero\",\n      \"props\": {\n        \"filter\": {\n          \"max_price\": 80\n        },\n        \"sort\": \"price\",\n        \"highlight\": \"cheapest\",\n        \"group_by_geo\": true,\n        \"max_items\": 6\n      }\n    }\n  ],\n  \"reasoning\": \"At $80 the answer to 'should I buy now' is really 'where can I actually go'. Only one of the two Chicago nights has anything under her ceiling (12/05 opens at $76; 12/04 starts at $89), while Indianapolis, St. Louis, Milwaukee and Detroit all open in the $54-$72 range. So the list leads the page at hero prominence, sorted by price rather than date, with the geo grouping on so the one reachable hometown date reads separately from the four that need a drive. Cheapest is highlighted because at this budget the binding constraint is the floor price, not the value.\",\n  \"headline\": \"Five dates under $80 \\u2014 one of them in Chicago\"\n}"
+    }
+}

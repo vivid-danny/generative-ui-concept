@@ -1,0 +1,62 @@
+// SEO frame — Figma 17055:179014. Full-bleed, on the off-white surface, below
+// the listings.
+
+.seo {
+    background: var(--surface-background, #f6f6fb);
+}
+
+.inner {
+    display: flex;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: var(--spacing-2xl) var(--spacing-lg);
+    flex-direction: column;
+    gap: var(--spacing-2xl);
+}
+
+.group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    color: var(--text-primary, #04092c);
+}
+
+.breadcrumb {
+    margin-bottom: var(--spacing-2xs);
+    color: var(--text-secondary, #717488);
+}
+
+.body {
+    max-width: 900px;
+    color: var(--text-secondary, #717488);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th,
+    td {
+        padding: var(--spacing-sm) var(--spacing-lg) var(--spacing-sm) 0;
+        text-align: left;
+        vertical-align: middle;
+    }
+
+    // Figma header: caption/bold 12, gray, 1px #d3d3dc rule beneath.
+    th {
+        color: var(--text-secondary, #717488);
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 18px;
+        border-bottom: 1px solid var(--surface-gray-200-light, #d3d3dc);
+    }
+
+    td {
+        color: var(--text-primary, #04092c);
+        border-bottom: 1px solid var(--surface-gray-100-thin, #efeff6);
+    }
+}
+
+.priceCol {
+    white-space: nowrap;
+}
