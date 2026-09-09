@@ -7,7 +7,8 @@ designed once for everyone. The framework and staging live in the source plan
 
 **Picking this up fresh? Read [`docs/HANDOFF.md`](docs/HANDOFF.md) first** — it has
 current status, the load-bearing decisions, the landmines, open questions, and
-the next batch of work.
+the next batch of work. The next piece of work has its own plan in
+[`docs/PLAN-budget-entry.md`](docs/PLAN-budget-entry.md).
 
 ```bash
 npm install

@@ -9,29 +9,32 @@ guardrails. This document says where the code actually is and what to do next.
 
 ---
 
-## Status: slice 1 complete
+## Status: slice 2 complete — the orchestrator composes live
 
-The performer page shell renders, composed at request time from a validated
-layout spec. 43 tests pass, typecheck is clean, production build succeeds.
+The performer page is composed at request time by `claude-sonnet-5`, from a
+layout spec the model returns and the validator repairs. 70 tests pass, typecheck
+is clean, production build succeeds. Everything through `e86b379` is committed on
+`vivid-danny/genui-concept-build`; nothing is pushed.
 
 ```bash
 npm install
 npm run dev          # http://localhost:3000
-npm test             # 43 tests
+npm test             # 70 tests, none of which call the model
 npm run typecheck
 npm run build
 ```
 
-`Shift+H` toggles the developer drawer. It is hidden by default and opens on the
-left, pushing the page right rather than stacking above it, so you can switch
-context and watch the page change without the panel in the way. It shows the
-context switcher, the orchestrator's reasoning, **what it actually composed**
-(modules placed plus the rows that rendered), provenance, validator notes, and
-the raw model output. State is local and always starts closed — deliberately not
-in the URL, since a query param survived navigation and kept re-opening it.
+**`?live=1` composes live; without it you get the precomputed spec.** Live is
+opt-in so the page stays instant and free unless you ask, and so the same context
+can be shown both ways back to back. A live call costs about **$0.08 and takes
+~20s**; every page load re-composes, so a refresh costs again.
 
-`/harness` (every module at every size) and `/diff` (the three compositions side
-by side with a convergence pass/fail) exist but are deliberately unlinked.
+`Shift+H` toggles the developer drawer: context switcher, the model's reasoning,
+what it actually composed, provenance (source, model, prompt version, tokens,
+cost, latency), validator notes, and the raw response.
+
+`/harness` (every module at every size) and `/diff` (the three compositions with a
+convergence pass/fail) exist and are deliberately unlinked.
 
 ### Danny drives the demo
 
@@ -50,29 +53,19 @@ the performer image now overlaps the header (matching the Figma `rightCol`
 offset), the tabs / filter chips / trust panel exist, the SEO block was built
 after being cut from slice 1, and the developer panel became a left drawer.
 
-### ⚠️ Nothing is committed
-
-The entire build is untracked in git — `git log` shows only "Initial commit".
-Per the source plan §8, commits need Danny's explicit approval, and it has not
-been given. **If the next session starts in a new Conductor workspace, it will
-get an empty repo.** Either work in this workspace, or get approval to commit
-first.
-
----
-
 ## What exists
 
 | Area | Files | Notes |
 | --- | --- | --- |
 | Contracts | `src/contracts/` | The four Zod schemas: context, market, module catalog, layout spec. Frozen apart from two additive amendments — see below. |
-| Orchestration | `src/orchestration/` | `OrchestrationProvider` seam, `PrecomputedProvider`, validator, fallback, 3 specs + provenance |
-| Modules | `src/modules/` | `event_header`, `production_list` implemented; registry; 6 more specified but not implemented |
+| Orchestration | `src/orchestration/` | The seam, `PrecomputedProvider`, **`LiveProvider` + `bridge.ts`** (spawns the Claude Code CLI), validator, fallback, 3 specs, `derive.ts` |
+| Modules | `src/modules/` | `event_header` (chrome) and `production_list` implemented; 7 more specified. Every entry carries a `propsHint` the prompt shows the model |
 | Renderer | `src/renderer/ComposedPage.tsx` | Spec → components, keyed by module id |
 | Shell | `src/shell/` | Navbar, PageShell grid (header / main / rail / SEO slots), Breadcrumbs, PerformerTabs, PerformerFilters, PerformerRail, TrustBanner, SeoContent, Footer, Logo |
 | Design | `src/design/` | Athena tokens copied verbatim, Figma type scale as data, MUI theme, grid constants |
 | Design system | `src/design-system/` | `box`, `typography`, `chip` ported from athena (i18n stripped); local `icons` set (microphone, user, calendar, ticket, shield, heart, rewards) |
 | Fixtures | `src/fixtures/` | Olivia Rodrigo ~52-date tour + 3 Leah contexts. **Read `src/fixtures/README.md`** — it marks which fields are real vs fabricated, and the authoring invariants the tests pin |
-| Prompt | `orchestrator/prompt.md` | v1. Every spec records the `prompt_version` that produced it |
+| Prompt | `orchestrator/prompt.md` | **v3.** Read at call time; provenance records the version that ran |
 | Evals | `orchestrator/eval/cases.test.ts` | Property tests, incl. the anti-convergence check |
 | Demo chrome | `src/demo/` | `DemoBar` drawer, context variants, and `summarize.ts` — "what it composed", shared with `/diff` so the two cannot drift |
 
@@ -143,6 +136,17 @@ things cannot be trusted or debugged.
 
 ---
 
+**4. The bridge's CLI flags (`src/orchestration/bridge.ts`).**
+`--tools "" --restricted --strict-mcp-config` are not incidental. Without them
+every composition also carried Claude Code's tool definitions and every
+configured MCP server's schemas: **53,448 input tokens and $0.57 per call, versus
+15,065 and $0.081 with them.** Nothing is given up — those flags remove
+permission gates and sandboxing that exist to govern tool use, and the
+orchestrator has no tools; it returns JSON. Do not remove them to "restore
+guardrails"; the guardrail that protects the page is `validateLayout`, downstream
+of the model. Note `--restricted` also makes the CLI emit a JSON *array* rather
+than an object, which `resultEntry()` handles.
+
 ## Deliberate deviations from the source plan
 
 Do not "fix" these. Each was a considered call.
@@ -198,6 +202,24 @@ Each of these cost real time. Do not rediscover them.
   it is far more reliable than eyeballing screenshots — it returns the exact
   bound tokens. Use it per node. It also revealed type styles absent from the
   type-scale frame (`Small/Medium`, `Small/Bold`, `Caption/Medium`).
+- **A rejection created inside a test body fails that test**, even when the code
+  under test caught it and every assertion passes. `mockRejectedValue`, an
+  `async` throwing mock body, and a pre-`.catch()`ed rejected promise all do it.
+  Drive the failure from inside the `vi.mock` factory via a `vi.hoisted` box
+  instead — `src/orchestration/live-fallback.test.ts` is the working pattern.
+- **Never delete `.next/dev` while a dev server is running.** It pulls the lock
+  out from under it and every route starts returning 500 with no useful error.
+  Only one `next dev` can hold the lock, so a second instance for a side-by-side
+  test will not start either.
+- **Check which app is on port 3000 before trusting a curl.** `vivid-web-athena`
+  also runs there, and it returns a perfectly good page — just not this one.
+- **The model invents props it has never been shown.** Before the catalog carried
+  `propsHint`, a single live call produced 16 unrecognised props. The near-misses
+  (`sort_by` for `sort`) are fixed by showing the schema; the rest
+  (`focus_metro`, `deprioritize_beyond_region`) are the model telling you a
+  module lacks vocabulary it needs. Read the validator notes as design feedback
+  rather than noise — which is why the hard `--json-schema` constraint the CLI
+  offers is deliberately *not* used yet. It would silence that signal.
 - **The type-scale frame is not the whole scale.** `Body/Medium/Text` is declared
   with weight 400, identical to `body` — name and value disagree. It is
   deliberately not modelled; don't add it without deciding which is right.
@@ -260,66 +282,52 @@ a real regeneration once the live bridge exists — see the README's spec note. 
 is **not** done: no module renders the new signals yet, and `production_list`'s
 sort/highlight were left unchanged — that wiring belongs with the module work below.
 
-## The next batch (slice 2)
+## The next batch (slice 3)
 
-**The gap to close:** slice 1 proves the pipeline and the look, but composition
-currently varies only by *props* — the same single module with different filters.
-The prototype's actual thesis is that **which modules appear, and in what order,
-changes per visitor.** Nothing demonstrates that yet. That is slice 2's job, and
-it is the difference between a nice mock and the argument the source plan wants
-to make.
+**The gap that remains.** Composition still varies only by *props* — the
+orchestrator has exactly one placeable module, so its only decisions are size,
+sort, filter and highlight. The prototype's actual thesis is that **which modules
+appear, and in what order, changes per visitor.** Nothing demonstrates that yet.
+Every module added from here moves that forward.
 
-Suggested order:
+**Next up: `budget_entry`.** Its own plan is in
+[`docs/PLAN-budget-entry.md`](PLAN-budget-entry.md) — read that rather than
+working from this summary.
 
-1. **`budget_entry`** (`src/modules/budget-entry/`). The MVP's one interaction
-   (§4). Turns budget from a URL param into something the visitor states, and
-   re-filters downstream module contents client-side — contents, not composition.
-   Catalog entry and props schema already exist; this is a component plus wiring.
-   Note the `Shift+H` handler already ignores keystrokes in form fields, for this.
-2. **`sellout_urgency`**. Scarcity is real, useful information (§7); the module's
-   job is to read it off `sellout_risk` / `listing_count` / `inventory_by_tier`
-   rather than assert a fixed figure. Worth doing open decision 1 alongside it.
-3. **`price_trend`** — `@mui/x-charts` is what athena uses for sparklines, though
-   it is not yet a dependency here.
-4. **Restore `STRUCTURAL_RULES.minModules` to 3** in `src/orchestration/validate.ts`
-   once three orchestrated modules are implemented. Deviation 5 exists only
-   because of the current module count.
-5. **New precomputed specs.** Compose them genuinely per context — read
-   `orchestrator/prompt.md` and decide, rather than filling in a template. Record
-   provenance (model, prompt version, timestamp, raw response) for each. The
-   existing three in `src/orchestration/specs/` are the pattern.
-6. **Extend the evals.** `orchestrator/eval/cases.test.ts` currently asserts the
-   three variants do not converge. With more modules, add: a price-sensitive
-   entry surfaces a price-lever module above the fold; two personas differ in
-   *which modules appear*, not just props.
-7. **More personas** (§5, Stage 2): a flexible fan browsing months out, a
-   premium view-first buyer, a gift buyer. ⚠️ Check these against the snapshot —
-   the current fixture is one hot onsale 94 days out, which does not support a
-   "browsing 6 months out" persona. Either extend the fixture's timing profiles
-   or constrain the personas to what the data supports.
+After it, in rough order of what the enriched data most wants:
 
-**To do — `production_list` props cannot express distance.** Prompt v3 tells the
-orchestrator to treat geography as a lever, but the module's filter only takes
-`max_price`, `min_view_score`, and one exact `city`. So the model can reason
-about distance and act on it through ordering and inclusion, but cannot say
-"drivable only" in props. Revisit the prop shape when a location-aware module is
-built. Deliberately not adding a distance field, radius, or pre-computed tier —
-the orchestrator gets the raw cities and draws its own conclusion.
+1. **`date_compare`** — 52 dates is where "which night is worth it" earns a
+   module, and `value_score` exists to power it.
+2. **`venue_alternatives`** — in the catalog, not implemented. The location lever
+   has no module, which is why the model reaches for `focus_metro` and
+   `deprioritize_beyond_region` and gets them stripped.
+3. **`sellout_urgency`** — reads scarcity off `sellout_risk` / `listing_count` /
+   `sales_velocity` rather than asserting a figure. Fold in the four hardcoded
+   numbers (open decision 1) while you are there.
+4. **Restore `STRUCTURAL_RULES.minModules` to 3** in
+   `src/orchestration/validate.ts` once three orchestrated modules exist. It sits
+   at 1 only because a floor of 3 would fail every spec today.
+5. **Extend the evals.** `orchestrator/eval/cases.test.ts` asserts the three
+   variants do not converge, but compares spec JSON. Add a check on *rendered
+   rows*, and one that two personas differ in which modules appear rather than
+   only in props.
+6. **Regenerate the precomputed spec library** through the live provider. The
+   three specs are currently hand-authored — their provenance says so honestly —
+   so no precomputed composition is real model output.
 
-Deferred beyond that: ticket-level `listing_preview` (needs decision 3),
-`date_compare`, `view_from_seat_value`, `screen-sm` mobile (Figma `17055:179204`,
-375 wide), the composition-assembly animation, session signals and live
-re-orchestration (Stage 4), real snapshot capture.
+**A trap worth knowing:** the Stage 2 personas in the source plan include someone
+browsing months out. The fixture now spans Dec 2026 – Apr 2027 across ~40 cities,
+so that persona is finally supported; it was not before the data enrichment.
+
+Deferred: ticket-level `listing_preview` (needs a production-page design),
+`view_from_seat_value`, `price_trend`, `screen-sm` mobile (Figma `17055:179204`),
+the composition-assembly animation, session signals and live re-orchestration
+(Stage 4), real snapshot capture.
 
 **Hosting is not near-term.** Vercel only becomes worth considering once the
-local-only experience is solid, and live orchestration cannot go with it. Build
-for `npm run dev` on a laptop; do not add deployment config, environment
-plumbing, or hosting workarounds ahead of that decision.
-
-(The SEO block, originally cut from slice 1, is now built — `src/shell/SeoContent.tsx`,
-fully derived from the snapshot.)
-
----
+local experience is solid, and live orchestration cannot go with it. Build for
+`npm run dev` on a laptop; do not add deployment config or hosting workarounds
+ahead of that decision.
 
 ## Guardrails (source plan §8 — no exceptions)
 
