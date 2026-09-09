@@ -15,6 +15,7 @@ import type { OrchestrationProvider } from '@/orchestration/provider'
 import ComposedPage from '@/renderer/ComposedPage'
 import PageShell from '@/shell/PageShell'
 import PerformerFilters from '@/shell/PerformerFilters'
+import FullTourList from '@/shell/FullTourList'
 import PerformerRail from '@/shell/PerformerRail'
 import PerformerTabs from '@/shell/PerformerTabs'
 import SeoContent from '@/shell/SeoContent'
@@ -62,6 +63,12 @@ export default function Home({ mode, market, context, resolved, summary }: HomeP
                         <PerformerTabs />
                         <PerformerFilters />
                         <ComposedPage spec={resolved.spec} market={market} context={context} />
+                        {/*
+                          Below the composed column, and outside it: a composition
+                          narrows, and the ability to browse the whole tour has to
+                          survive whatever the orchestrator decided.
+                        */}
+                        <FullTourList market={market} context={context} />
                     </div>
                 </PageShell>
             </DemoBar>
