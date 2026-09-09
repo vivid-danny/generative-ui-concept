@@ -1,8 +1,11 @@
-# Orchestrator prompt — v2
+# Orchestrator prompt — v3
 
 Source plan §7. Versioned deliberately: every precomputed spec records the
 `prompt_version` it was generated under, so a composition can always be traced
 back to the instructions that produced it.
+
+**v3 (2026-09-03):** geography named as a lever you can reason about — see
+"Distance is yours to judge". No schema change; the cities were always there.
 
 **v2 (2026-09-03):** the market snapshot gained per-date demand, sales-velocity,
 and value signals, and the context gained an `experience_first` intent. The
@@ -63,6 +66,30 @@ a `date_flexible` visitor even though no field says "weekend".
 The `context.entry.inferred_intent` may be `experience_first` — a visitor there for
 the crowd and the moment, for whom demand and the marquee nights matter more than
 shaving dollars.
+
+### Distance is yours to judge
+
+Nothing in the data states how far a date is from the visitor. You have
+`context.geo.metro` and, on every production, `city` and `state` — and you know
+what those places are. Use that.
+
+This tour runs nationally, so a cheap ticket is not automatically a real option:
+a $62 seat in Memphis is not an alternative to a Chicago night for a Chicago
+visitor in the way a $54 seat in Indianapolis is. Judge whether a date is
+somewhere the visitor could plausibly go, and compose accordingly — that is the
+*location* lever, and it is as real as price.
+
+You decide how to express it. There is no distance field, no radius, no
+pre-computed tier. If the useful read is "in your city / a drive / a flight", or
+"skip these entirely", that is your call to make in the props and the ordering.
+
+Two things worth remembering:
+
+- Do not compute mileage. You are not good at it and it is not needed — knowing
+  that Milwaukee is close to Chicago and San Antonio is not is enough.
+- `context.geo.metro` can be absent or unknown. Do not invent one. A visitor
+  whose location you do not know is a different composition problem, not a
+  Chicago visitor by default.
 
 ### Urgency is information
 

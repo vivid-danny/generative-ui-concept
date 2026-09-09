@@ -8,7 +8,9 @@ import DemoBar from '@/demo/DemoBar'
 import { summarizeComposition, type CompositionSummary } from '@/demo/summarize'
 import { MARKET, variantBySlug, type DemoVariant } from '@/demo/variants'
 import EventHeader from '@/modules/event-header'
+import { LiveProvider } from '@/orchestration/live'
 import { PrecomputedProvider } from '@/orchestration/precomputed'
+import type { OrchestrationProvider } from '@/orchestration/provider'
 import ComposedPage from '@/renderer/ComposedPage'
 import PageShell from '@/shell/PageShell'
 import PerformerFilters from '@/shell/PerformerFilters'
@@ -68,7 +70,13 @@ export default function Home({ variant, market, context, resolved, summary }: Ho
 
 export const getServerSideProps: GetServerSideProps<HomeProps> = async ({ query }) => {
     const variant = variantBySlug(typeof query.variant === 'string' ? query.variant : undefined)
-    const provider = new PrecomputedProvider()
+
+    // Live composition is opt-in via `?live=1`. Default precomputed keeps the
+    // page instant and offline, and lets the same context be shown both ways
+    // back to back — a better demonstration of the seam than a config flag.
+    const provider: OrchestrationProvider =
+        query.live === '1' ? new LiveProvider() : new PrecomputedProvider()
+
     const resolved = await provider.getLayout(variant.context, MARKET)
 
     return {

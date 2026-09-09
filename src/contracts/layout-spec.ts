@@ -44,6 +44,14 @@ export const SpecProvenanceSchema = z.object({
     context_id: z.string().min(1),
     /** The model's unparsed response, verbatim. Null for the static fallback. */
     raw_response: z.string().nullable(),
+    /**
+     * What the call cost and how long it took. Only meaningful for `live`;
+     * optional so the precomputed spec files on disk stay valid unchanged.
+     */
+    cost_usd: z.number().nullable().default(null),
+    duration_ms: z.number().nullable().default(null),
+    /** Input tokens billed for the call — the number that drives the cost. */
+    input_tokens: z.number().nullable().default(null),
 })
 
 export type SpecProvenance = z.infer<typeof SpecProvenanceSchema>

@@ -298,6 +298,14 @@ Suggested order:
    "browsing 6 months out" persona. Either extend the fixture's timing profiles
    or constrain the personas to what the data supports.
 
+**To do — `production_list` props cannot express distance.** Prompt v3 tells the
+orchestrator to treat geography as a lever, but the module's filter only takes
+`max_price`, `min_view_score`, and one exact `city`. So the model can reason
+about distance and act on it through ordering and inclusion, but cannot say
+"drivable only" in props. Revisit the prop shape when a location-aware module is
+built. Deliberately not adding a distance field, radius, or pre-computed tier —
+the orchestrator gets the raw cities and draws its own conclusion.
+
 Deferred beyond that: ticket-level `listing_preview` (needs decision 3),
 `date_compare`, `view_from_seat_value`, `screen-sm` mobile (Figma `17055:179204`,
 375 wide), the composition-assembly animation, session signals and live

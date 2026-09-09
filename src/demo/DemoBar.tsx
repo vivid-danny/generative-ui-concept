@@ -135,6 +135,7 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
                             <dt>source</dt>
                             <dd>
                                 {provenance.source}
+                                {provenance.source === 'live' && ' — composed just now, at request time'}
                                 {provenance.source === 'precomputed' &&
                                     ' — composed during development, not at request time'}
                             </dd>
@@ -144,6 +145,18 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
                             <dd>{provenance.prompt_version ?? '—'}</dd>
                             <dt>generated</dt>
                             <dd>{provenance.generated_at}</dd>
+                            {provenance.duration_ms !== null && (
+                                <>
+                                    <dt>took</dt>
+                                    <dd>
+                                        {(provenance.duration_ms / 1000).toFixed(1)}s
+                                        {provenance.cost_usd !== null &&
+                                            ` · $${provenance.cost_usd.toFixed(4)}`}
+                                        {provenance.input_tokens !== null &&
+                                            ` · ${provenance.input_tokens.toLocaleString('en-US')} in`}
+                                    </dd>
+                                </>
+                            )}
                         </dl>
 
                         <p className={styles.panelHeading}>Validator</p>

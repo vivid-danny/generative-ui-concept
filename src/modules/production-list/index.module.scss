@@ -74,8 +74,23 @@
     gap: var(--spacing-xs);
 }
 
-.filterNote {
-    color: var(--text-secondary);
+// Full-width outlined "see the whole tour" control, sat below the list.
+.showAll {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 1px solid var(--surface-gray-100-thin, #efeff6);
+    border-radius: var(--radius-sm);
+    background: var(--surface-white);
+    color: var(--text-primary, #04092c);
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--surface-primary-main, #ce3197);
+        color: var(--surface-primary-main, #ce3197);
+    }
 }
 
 .empty {

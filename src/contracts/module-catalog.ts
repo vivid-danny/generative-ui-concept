@@ -25,6 +25,16 @@ export interface ModuleDefinition {
     readonly sizes: readonly Size[]
     readonly defaultSize: Size
     readonly propsSchema: z.ZodTypeAny
+    /**
+     * The props, written for the orchestrator, in one short block.
+     *
+     * Deliberately hand-written and kept adjacent to `propsSchema` so drift
+     * shows up in review. Without it the model was inventing prop names —
+     * `sort_by` for `sort`, `budget_cap` for `filter.max_price` — because it
+     * had never been shown the real API. Generate this from the schema instead
+     * once there are enough modules that maintaining it by hand slips.
+     */
+    readonly propsHint: string
     /** Fields of the market snapshot this module needs to render at all. */
     readonly dataRequirements: readonly string[]
     /**
@@ -54,6 +64,7 @@ export const MODULE_CATALOG = {
         sizes: ['fixed'],
         defaultSize: 'fixed',
         propsSchema: z.object({}).strict(),
+        propsHint: 'none — takes no props.',
         dataRequirements: ['performer.name', 'performer.image_url'],
         orchestrated: false,
         implemented: true,
@@ -75,6 +86,13 @@ export const MODULE_CATALOG = {
                 max_items: z.number().int().min(1).max(20).default(8),
             })
             .strict(),
+        propsHint: [
+            'filter?: { max_price?: number, min_view_score?: 0-1, city?: exact city name }',
+            'sort: "date" | "price" | "value"  (default "date"; "value" is lowest typical price)',
+            'highlight: "best_value" | "cheapest" | "soonest" | null  (default null)',
+            'group_by_geo: boolean  (default true; splits the visitor\'s own metro into its own group)',
+            'max_items: integer 1-20  (default 8)',
+        ].join('\n'),
         dataRequirements: ['productions'],
         orchestrated: true,
         implemented: true,
@@ -95,7 +113,48 @@ export const MODULE_CATALOG = {
                 max_items: z.number().int().min(1).max(10).default(5),
             })
             .strict(),
+        propsHint: [
+            'filter?: { max_price?: number, min_view_score?: 0-1, city?: exact city name }',
+            'max_items: integer 1-10  (default 5)',
+        ].join('\n'),
         dataRequirements: ['listings_sample'],
+        orchestrated: true,
+        implemented: false,
+    },
+
+    venue_alternatives: {
+        id: 'venue_alternatives',
+        purpose:
+            'Shows the visitor what a different city would get them — the same tour, a drive away, usually cheaper. Reach for this when the dates near the visitor are expensive, thin, or sold out, and somewhere they could plausibly travel to is materially better. Named in the source plan as the location lever; this catalog had nothing for it, which is why prompt v3 could ask you to reason about distance but gave you nowhere to act on it.',
+        lever: 'location',
+        sizes: ['standard', 'compact'],
+        defaultSize: 'standard',
+        propsSchema: z
+            .object({
+                /**
+                 * Whose location the comparison is drawn from. Defaults to the
+                 * visitor's metro; set it explicitly when comparing against
+                 * somewhere else.
+                 */
+                anchor_metro: z.string().nullable().default(null),
+                /**
+                 * How far to look. Deliberately coarse words rather than a
+                 * mileage number — the snapshot carries no distances, and you
+                 * know from the city names which is which.
+                 */
+                reach: z.enum(['drivable', 'regional', 'anywhere']).default('drivable'),
+                /** What the comparison leads with. */
+                emphasis: z.enum(['savings', 'inventory', 'seat_quality']).default('savings'),
+                max_alternatives: z.number().int().min(1).max(6).default(3),
+            })
+            .strict(),
+        propsHint: [
+            'anchor_metro: string | null  (default null = the visitor\'s own metro)',
+            'reach: "drivable" | "regional" | "anywhere"  (default "drivable")',
+            'emphasis: "savings" | "inventory" | "seat_quality"  (default "savings")',
+            'max_alternatives: integer 1-6  (default 3)',
+        ].join('\n'),
+        dataRequirements: ['productions[].city', 'productions[].floor_price'],
         orchestrated: true,
         implemented: false,
     },
@@ -113,6 +172,10 @@ export const MODULE_CATALOG = {
                 message_tone: z.literal('factual').default('factual'),
             })
             .strict(),
+        propsHint: [
+            'risk: "low" | "moderate" | "high"  (required)',
+            'message_tone: "factual"  (the only value)',
+        ].join('\n'),
         dataRequirements: [
             'productions[].sellout_risk',
             'productions[].listing_count',
@@ -130,6 +193,7 @@ export const MODULE_CATALOG = {
         sizes: ['hero', 'standard', 'compact'],
         defaultSize: 'standard',
         propsSchema: z.object({ window_days: z.number().int().min(1).max(90).default(7) }).strict(),
+        propsHint: 'window_days: integer 1-90  (default 7)',
         dataRequirements: ['productions[].price_trend_7d'],
         orchestrated: true,
         implemented: false,
@@ -143,6 +207,7 @@ export const MODULE_CATALOG = {
         sizes: ['standard'],
         defaultSize: 'standard',
         propsSchema: z.object({ prefill: z.number().positive().nullable().default(null) }).strict(),
+        propsHint: 'prefill: number | null  (default null; a budget to pre-fill the input with)',
         dataRequirements: [],
         orchestrated: true,
         implemented: false,
@@ -158,6 +223,7 @@ export const MODULE_CATALOG = {
         propsSchema: z
             .object({ highlight: z.enum(['best_value', 'cheapest']).default('best_value') })
             .strict(),
+        propsHint: 'highlight: "best_value" | "cheapest"  (default "best_value")',
         dataRequirements: ['productions', 'productions[].value_score'],
         orchestrated: true,
         implemented: false,
@@ -171,6 +237,7 @@ export const MODULE_CATALOG = {
         sizes: ['standard'],
         defaultSize: 'standard',
         propsSchema: z.object({ max_picks: z.number().int().min(1).max(5).default(3) }).strict(),
+        propsHint: 'max_picks: integer 1-5  (default 3)',
         dataRequirements: ['listings_sample[].view_score', 'listings_sample[].deal_score'],
         orchestrated: true,
         implemented: false,

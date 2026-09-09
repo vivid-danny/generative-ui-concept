@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import classNames from 'classnames'
 
 import Typography from '@/design-system/typography'
@@ -24,7 +24,20 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
     size,
     props,
 }) => {
-    const { groups, highlightedId, filteredOutCount } = selectProductions(market, context, props)
+    // A one-way "see the whole tour" escape hatch. The composition intentionally
+    // narrows the list — by budget filter and by max_items — but the visitor
+    // should always be able to fall back to every date. Expanding overrides both:
+    // it drops the filter and lifts the cap, so "all" means the whole tour, not
+    // just what the composition kept.
+    const [showAll, setShowAll] = useState(false)
+    const composed = selectProductions(market, context, props)
+    const total = market.productions.length
+    const composedCount = composed.groups.reduce((count, group) => count + group.productions.length, 0)
+    const hiddenCount = total - composedCount
+
+    const { groups, highlightedId } = showAll
+        ? selectProductions(market, context, { ...props, filter: undefined, max_items: total })
+        : composed
 
     if (groups.length === 0) {
         return (
@@ -84,15 +97,17 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
             ))}
 
             {/*
-              Filtering hides real inventory, so say so. A page that silently
-              drops dates is the kind of thing that erodes trust in a composed
-              page faster than any layout decision.
+              The composition narrows the list, so give the visitor a way back to
+              the whole tour. A page that silently drops dates erodes trust in a
+              composed page faster than any layout decision — the button is that
+              honesty affordance.
             */}
-            {filteredOutCount > 0 && (
-                <Typography variant="small" className={styles.filterNote}>
-                    {filteredOutCount} more {filteredOutCount === 1 ? 'date' : 'dates'} above{' '}
-                    {props.filter?.max_price ? `$${props.filter.max_price}` : 'this filter'} — show all
-                </Typography>
+            {!showAll && hiddenCount > 0 && (
+                <button type="button" className={styles.showAll} onClick={() => setShowAll(true)}>
+                    <Typography variant="smallMedium" component="span">
+                        See all {total} tour dates
+                    </Typography>
+                </button>
             )}
         </section>
     )
