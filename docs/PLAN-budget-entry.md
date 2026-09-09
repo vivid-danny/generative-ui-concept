@@ -19,6 +19,41 @@ rather than to a persona we picked in advance.
 against via `filter.max_price`. What is missing is the component and the path
 from a typed number back into the context.
 
+## What this is for — read before building
+
+Danny's demo is him narrating a visitor to a room, then **typing that context in
+and watching the page compose itself.** The composability is the point: which
+modules appear, in what order. Filters and inputs are well-understood product
+surface and are not what anyone is being shown.
+
+So the priorities, in order:
+
+1. **The budget must arrive as context**, in the same bundle the model reads, so
+   the orchestrator can compose around it.
+2. **`budget_entry` exists mainly to give the orchestrator a second module to
+   choose between.** With one placeable module it can only vary props; with two
+   it starts making real composition decisions. That is the value here.
+3. **The input itself should be plain.** Do not polish it. Spend the effort on
+   the module's rendered state and on whether the orchestrator places it
+   sensibly.
+
+**Where the input lives: the developer console, not the page.** Put the budget
+control in the `Shift+H` drawer next to the context switcher
+(`src/demo/DemoBar.tsx`), and reuse that pattern rather than inventing one. That
+is Danny's control surface — he is setting the visitor's context, not shopping.
+
+`budget_entry` the *module* still renders on the page when the orchestrator places
+it, because a page that asks "what's your budget?" is a real composition choice.
+Keep that rendering simple: a label, a plain input, and a reflection of the
+active budget. No validation choreography, no inline results.
+
+**Where this is heading.** Eventually the console becomes a single freeform text
+box — Danny types a sentence and the model infers the context from it. Real
+visitors also arrive with *partial* context, so nothing downstream may assume a
+complete one. Two consequences for this slice: do not build a structured
+multi-field form that a text box would throw away, and make sure a missing budget
+stays a first-class case rather than an error.
+
 ## The one real design decision
 
 When the visitor enters a budget, where does the number go?
@@ -29,14 +64,20 @@ follows from the context it already receives.
 
 Why this over client state:
 
-- It reuses the pattern already there. `?variant=` and `?live=1` work this way,
-  and `variantBySlug` is the seam to extend.
-- Modules stay pure functions of `(market, context, props)`. A React context
-  holding a live budget would be the first piece of cross-module client state in
-  the codebase, and it is not needed yet.
-- The URL becomes shareable, which is useful when Danny is driving.
+- **A budget is part of who the visitor is, not a filter control.** It therefore
+  belongs in the context bundle the model reads. The page already builds its
+  context from the address bar, so the URL puts it there for free.
+- Modules stay pure functions of `(market, context, props)`. Holding a live
+  budget in React state would be the first cross-module client state in the
+  codebase, and it would live in two places — the browser and the context we
+  send the model — which then have to be kept in sync.
 - `specKeyFor()` already buckets on `stated_budget`, so a typed budget selects a
   different precomputed spec — the composition changes, not just the contents.
+- It is the safer order. Adding instant in-page updating later is easy; starting
+  with client state and later needing the model to see it means untangling two
+  sources of truth.
+
+Not a reason: shareable URLs. This runs on one laptop.
 
 The cost is a page navigation rather than an instant local update. On a dev server
 with the precomputed provider that is a fraction of a second. If it feels sluggish
@@ -78,10 +119,11 @@ A module component, same shape as the other two — `ModuleComponentProps<Budget
 from `src/modules/types.ts`, registered in `src/modules/registry.ts`, and
 `implemented: true` in the catalog.
 
-Renders a labelled number input, prefilled from `props.prefill ?? context.stated_budget`,
-and a submit that navigates to the same URL with `budget` set (preserving
-`variant`, `live` and `bar`). Something like "What's your budget?" per the
-catalog's purpose line.
+Renders a label from the catalog's purpose ("What's your budget?"), a plain
+number input prefilled from `props.prefill ?? context.stated_budget`, and a
+submit that navigates with `budget` set (preserving `variant`, `live` and `bar`).
+
+Plain is the requirement, not a compromise — see "What this is for" above.
 
 Two things to get right rather than clever:
 
@@ -96,14 +138,21 @@ Visual language per `docs/HANDOFF.md`: DS primitives from `src/design-system/`,
 tokens and type scale from `src/design/`, and match the Figma exactly where it
 gives a value rather than approximating.
 
-### 3. Make it placeable
+### 3. Budget control in the drawer
+
+`src/demo/DemoBar.tsx`, beside the context switcher. Same visual language as the
+variant buttons; a small input and a submit that navigates with `budget` set.
+This is the control Danny actually uses while narrating, and it works whether or
+not the orchestrator chose to place `budget_entry` on the page.
+
+### 4. Make it placeable
 
 - `implemented: true` on the catalog entry — that alone puts it in front of the
   orchestrator, since `catalogForPrompt()` filters on it.
 - Two orchestrated modules now exist. `STRUCTURAL_RULES.minModules` can stay at 1
   until a third arrives; raising it to 2 is optional and low value.
 
-### 4. Specs and evals
+### 5. Specs and evals
 
 - The `no_budget` spec's reasoning already says it *should* lead with
   `budget_entry` once implemented — that is now true, so recompose that spec.
@@ -115,7 +164,7 @@ gives a value rather than approximating.
   That is the first eval that checks *which modules appear* rather than props —
   the property the prototype ultimately rests on.
 
-### 5. Tests
+### 6. Tests
 
 Follow the existing split: unit-test the logic, verify the component visually via
 `/harness`.
@@ -134,6 +183,7 @@ Follow the existing split: unit-test the logic, verify the component visually vi
 | `src/modules/registry.ts` | register it |
 | `src/contracts/module-catalog.ts` | `implemented: true` |
 | `src/demo/variants.ts` | budget override from the URL |
+| `src/demo/DemoBar.tsx` | budget control beside the context switcher |
 | `pages/index.tsx` | read `query.budget` |
 | `src/orchestration/specs/leah-onsale-no-budget.json` | recompose live |
 | `orchestrator/eval/cases.test.ts` | module-presence assertions |
@@ -143,8 +193,9 @@ Follow the existing split: unit-test the logic, verify the component visually vi
 
 1. `npm run dev`. Load `/?variant=no-budget` — `budget_entry` should appear once
    the spec is recomposed.
-2. Enter 140, submit. The URL gains `?budget=140`, the list narrows to dates with
-   a floor at or under it, and the module reflects the active budget back.
+2. `Shift+H`, enter 140 in the drawer, submit. The URL gains `?budget=140`, the
+   list narrows to dates with a floor at or under it, and the module reflects the
+   active budget back. This is the path Danny uses — check it first.
 3. Enter 5. The page should stay coherent — clamped or ignored, never an empty
    list with no explanation.
 4. Submit with `?live=1` present and confirm it survives the navigation, and that
@@ -160,3 +211,7 @@ Follow the existing split: unit-test the logic, verify the component visually vi
 Re-orchestrating on every keystroke, debounced live calls, persisting the budget
 across sessions, and any change to `production_list`'s props. The list already
 filters on `filter.max_price`; this module supplies the number, nothing more.
+
+Also out of scope, deliberately: any polish on the input. No masks, no live
+validation, no animated states, no multi-field context form. The freeform text
+box that replaces this console is coming, and would discard all of it.
