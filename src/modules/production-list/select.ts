@@ -14,6 +14,12 @@ export interface ProductionListProps {
     highlight: 'best_value' | 'cheapest' | 'soonest' | null
     group_by_geo: boolean
     max_items: number
+    /**
+     * The section's own heading, set by the orchestrator when it places this
+     * module more than once. Presentation only — it does not affect selection,
+     * which is why nothing in this file reads it.
+     */
+    heading?: string | null
 }
 
 export interface ProductionGroup {

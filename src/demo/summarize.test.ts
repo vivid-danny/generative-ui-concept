@@ -77,3 +77,68 @@ describe('summarizeComposition', () => {
         }
     })
 })
+
+describe('summarizeComposition with repeated sections', () => {
+    const section = (heading: string, city?: string) => ({
+        module: 'production_list',
+        size: 'standard' as const,
+        props: {
+            heading,
+            sort: 'date',
+            highlight: null,
+            group_by_geo: false,
+            max_items: 20,
+            ...(city ? { filter: { city } } : {}),
+        },
+    })
+
+    const spec = {
+        layout: [section('In Chicago', 'Chicago'), section('Worth the drive', 'Milwaukee')],
+        reasoning: 'sections',
+        headline: null,
+    }
+
+    it('summarises every instance, not just the first', () => {
+        // Reading only the first list would show a fraction of the page in the
+        // panel, which is the one place the composition gets inspected.
+        const summary = summarizeComposition(spec, market, context)
+
+        expect(summary.groups.map((group) => group.label)).toEqual([
+            'In Chicago',
+            'Worth the drive',
+        ])
+    })
+
+    it('labels each section by its own heading', () => {
+        const summary = summarizeComposition(spec, market, context)
+
+        expect(summary.groups[0].rows.every((row) => row.city === 'Chicago')).toBe(true)
+        expect(summary.groups[1].rows.every((row) => row.city === 'Milwaukee')).toBe(true)
+    })
+
+    it('counts a date once even if two sections show it', () => {
+        const overlapping = {
+            ...spec,
+            layout: [section('In Chicago', 'Chicago'), section('Also Chicago', 'Chicago')],
+        }
+        const summary = summarizeComposition(overlapping, market, context)
+        const chicagoDates = market.productions.filter((p) => p.city === 'Chicago').length
+
+        expect(summary.shown).toBe(chicagoDates)
+    })
+
+    it('counts a date as filtered out only when no section admits it', () => {
+        const summary = summarizeComposition(spec, market, context)
+        const admitted = market.productions.filter(
+            (p) => p.city === 'Chicago' || p.city === 'Milwaukee',
+        ).length
+
+        expect(summary.filteredOut).toBe(market.productions.length - admitted)
+    })
+
+    it('lists a repeated module once per instance', () => {
+        const summary = summarizeComposition(spec, market, context)
+
+        expect(summary.modules).toHaveLength(2)
+    })
+})

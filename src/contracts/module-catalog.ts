@@ -84,6 +84,15 @@ export const MODULE_CATALOG = {
                 highlight: z.enum(['best_value', 'cheapest', 'soonest']).nullable().default(null),
                 group_by_geo: z.boolean().default(true),
                 max_items: z.number().int().min(1).max(20).default(8),
+                /**
+                 * The section's own heading, e.g. "Worth the drive".
+                 *
+                 * Required in practice whenever this module is placed more than
+                 * once: several lists on one page are unreadable without a line
+                 * saying what each one is. When absent, the module falls back to
+                 * its built-in "N shows near X / all dates" headings.
+                 */
+                heading: z.string().min(1).max(60).nullable().default(null),
             })
             .strict(),
         propsHint: [
@@ -92,6 +101,13 @@ export const MODULE_CATALOG = {
             'highlight: "best_value" | "cheapest" | "soonest" | null  (default null)',
             'group_by_geo: boolean  (default true; splits the visitor\'s own metro into its own group)',
             'max_items: integer 1-20  (default 8)',
+            'heading: string | null  (default null = use the built-in headings)',
+            '',
+            'You may place this module more than once to build sections — e.g. one',
+            'filtered to the visitor\'s city, one for dates within driving range, one',
+            'for the rest of the tour. Up to 3 instances. Every instance must then',
+            'set `heading`, and should set `group_by_geo: false` so its own heading',
+            'is the only one.',
         ].join('\n'),
         dataRequirements: ['productions'],
         orchestrated: true,

@@ -23,9 +23,28 @@ interface ComposedPageProps {
     context: Context
 }
 
+/**
+ * A module's identity across re-orchestrations.
+ *
+ * The module id alone was enough until a module could be placed more than once.
+ * Now that `production_list` can appear as several sections, the id is no longer
+ * unique, so the heading joins it: "the drivable-dates list" keeps its identity
+ * even if the orchestrator reorders the page or changes its filter.
+ *
+ * The index is only a last resort, for a repeated module with no heading — which
+ * the validator drops, so it should not arrive here. Falling back to it keeps
+ * React from warning on duplicate keys if one ever does.
+ */
+function moduleKey(entry: { module: string; props: Record<string, unknown> }, index: number): string {
+    const heading = entry.props.heading
+    return typeof heading === 'string' && heading.trim() !== ''
+        ? `${entry.module}:${heading}`
+        : `${entry.module}:${index}`
+}
+
 export const ComposedPage: React.FC<ComposedPageProps> = ({ spec, market, context }) => (
     <>
-        {spec.layout.map((entry) => {
+        {spec.layout.map((entry, index) => {
             // Unreachable for a validated spec — the validator drops unknown and
             // unimplemented modules. Guarded anyway so a renderer bug degrades to
             // a missing module rather than a crashed page.
@@ -35,7 +54,7 @@ export const ComposedPage: React.FC<ComposedPageProps> = ({ spec, market, contex
 
             return (
                 <Module
-                    key={entry.module}
+                    key={moduleKey(entry, index)}
                     market={market}
                     context={context}
                     size={entry.size ?? 'standard'}

@@ -38,6 +38,19 @@ export const STRUCTURAL_RULES = {
     minModules: 1,
     maxModules: 6,
     maxHero: 1,
+    /**
+     * How many times one module may appear.
+     *
+     * Repeats were forbidden outright at first, on the assumption that one
+     * module meant one page region. The model disagreed: handed a national tour,
+     * it placed `production_list` three times — the visitor's city, then
+     * drivable dates, then the rest — which is a good way to express geography
+     * with the vocabulary it has. Two of the three were being dropped and the
+     * page rendered a third of what the reasoning described.
+     *
+     * Capped at 3 because past that a page is a wall of lists.
+     */
+    maxInstances: 3,
 } as const
 
 export const FALLBACK_LAYOUT: LayoutSpec = LayoutSpecSchema.parse(fallbackLayoutJson)
@@ -168,7 +181,7 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
 
     const spec = parsed.data
     const kept: LayoutSpec['layout'] = []
-    const seen = new Set<string>()
+    const instanceCount = new Map<string, number>()
     let heroCount = 0
 
     for (const entry of spec.layout) {
@@ -194,8 +207,13 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
             })
             continue
         }
-        if (seen.has(entry.module)) {
-            notes.push({ level: 'dropped', module: entry.module, reason: 'duplicate of an earlier entry' })
+        const instances = (instanceCount.get(entry.module) ?? 0) + 1
+        if (instances > STRUCTURAL_RULES.maxInstances) {
+            notes.push({
+                level: 'dropped',
+                module: entry.module,
+                reason: `placed more than ${STRUCTURAL_RULES.maxInstances} times`,
+            })
             continue
         }
 
@@ -232,8 +250,38 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
         }
 
         if (size === 'hero') heroCount++
-        seen.add(entry.module)
+        instanceCount.set(entry.module, instances)
         kept.push({ module: entry.module, size, props })
+    }
+
+    // Several lists stacked on one page are unreadable without a line saying
+    // what each one is, so a repeated module has to name its sections. This is a
+    // post-pass because whether a module repeated is only known once every entry
+    // has been seen.
+    //
+    // An un-headed instance is dropped rather than given a synthesised heading:
+    // writing the section's copy is the orchestrator's job, and a validator
+    // inventing it would hide the mistake instead of surfacing it. If that
+    // leaves a single instance, it falls back to the module's built-in headings,
+    // which read correctly again once there is only one list.
+    const repeated = new Set(
+        [...instanceCount.entries()].filter(([, count]) => count > 1).map(([module]) => module),
+    )
+    if (repeated.size > 0) {
+        for (let index = kept.length - 1; index >= 0; index--) {
+            const entry = kept[index]
+            if (!repeated.has(entry.module)) continue
+
+            const heading = (entry.props as { heading?: unknown }).heading
+            if (typeof heading === 'string' && heading.trim() !== '') continue
+
+            kept.splice(index, 1)
+            notes.push({
+                level: 'dropped',
+                module: entry.module,
+                reason: 'placed more than once without a `heading` — each section needs its own',
+            })
+        }
     }
 
     if (kept.length > STRUCTURAL_RULES.maxModules) {

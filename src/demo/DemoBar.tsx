@@ -167,8 +167,8 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
 
                         <p className={styles.panelHeading}>What it composed</p>
                         <ul className={styles.moduleList}>
-                            {summary.modules.map((module) => (
-                                <li key={module.module}>
+                            {summary.modules.map((module, index) => (
+                                <li key={`${module.module}:${index}`}>
                                     {module.module} <span className={styles.dim}>· {module.size}</span>
                                 </li>
                             ))}

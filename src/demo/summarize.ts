@@ -67,33 +67,70 @@ export function summarizeComposition(
         size: entry.size ?? 'standard',
     }))
 
-    const listEntry = spec.layout.find((entry) => entry.module === 'production_list')
-    if (!listEntry) {
+    // Every instance, not just the first. Once the orchestrator can place
+    // `production_list` as several sections, summarising only one would show a
+    // third of the page and report the wrong counts — and this panel is what
+    // gets read to understand what the composition actually did.
+    const listEntries = spec.layout.filter((entry) => entry.module === 'production_list')
+    if (listEntries.length === 0) {
         return { modules, groups: [], shown: 0, total: market.productions.length, filteredOut: 0 }
     }
 
-    const selection = selectProductions(
-        market,
-        context,
-        listEntry.props as unknown as ProductionListProps,
-    )
+    const groups: RenderedGroup[] = []
+    const shownIds = new Set<string>()
 
-    const groups: RenderedGroup[] = selection.groups.map((group) => ({
-        label: group.label,
-        rows: group.productions.map((production) => ({
-            id: production.id,
-            date: ROW_DATE.format(new Date(production.date)),
-            city: production.city,
-            floorPrice: production.floor_price,
-            isHighlighted: production.id === selection.highlightedId,
-        })),
-    }))
+    for (const entry of listEntries) {
+        const props = entry.props as unknown as ProductionListProps
+        const selection = selectProductions(market, context, props)
+
+        for (const group of selection.groups) {
+            groups.push({
+                // A section's own heading names it; the generated label is the
+                // fallback for a single unheaded list.
+                label: props.heading ?? group.label,
+                rows: group.productions.map((production) => {
+                    shownIds.add(production.id)
+                    return {
+                        id: production.id,
+                        date: ROW_DATE.format(new Date(production.date)),
+                        city: production.city,
+                        floorPrice: production.floor_price,
+                        isHighlighted: production.id === selection.highlightedId,
+                    }
+                }),
+            })
+        }
+    }
+
+    // Counted by distinct date, so a date appearing in two sections is not
+    // double-counted against the tour total.
+    const shown = shownIds.size
+
+    // `filteredOut` means "removed by a filter", which is what the panel claims
+    // — not "not shown", which would also count `max_items` truncation and make
+    // that label false. Across sections a date counts as filtered out only if no
+    // section's filter would admit it, so re-running each selection with the cap
+    // lifted gives the set that survived filtering. Reuses `selectProductions`
+    // rather than duplicating the filter predicate, which would then be free to
+    // drift from the one that actually renders.
+    const admitted = new Set<string>()
+    for (const entry of listEntries) {
+        const props = entry.props as unknown as ProductionListProps
+        const uncapped = selectProductions(market, context, {
+            ...props,
+            max_items: market.productions.length,
+        })
+        for (const group of uncapped.groups) {
+            for (const production of group.productions) admitted.add(production.id)
+        }
+    }
+    const filteredOut = market.productions.length - admitted.size
 
     return {
         modules,
         groups,
-        shown: groups.reduce((count, group) => count + group.rows.length, 0),
+        shown,
         total: market.productions.length,
-        filteredOut: selection.filteredOutCount,
+        filteredOut,
     }
 }

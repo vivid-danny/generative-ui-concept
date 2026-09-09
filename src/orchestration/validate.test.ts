@@ -157,14 +157,83 @@ describe('validateLayout', () => {
         expect(result.notes).toEqual([])
     })
 
-    it('drops a duplicate module', () => {
+    // Repeats used to be forbidden. The model instead uses `production_list` as a
+    // repeatable section — city, then drivable, then the rest — which is a
+    // reasonable way to express geography, so they are allowed with limits.
+    it('allows a module to repeat when each instance names its section', () => {
+        const section = (heading: string, city?: string) => ({
+            module: 'production_list',
+            size: 'standard',
+            props: { heading, group_by_geo: false, ...(city ? { filter: { city } } : {}) },
+        })
+
         const result = validateLayout(
-            { ...validSpec, layout: [...validSpec.layout, ...validSpec.layout] },
+            {
+                ...validSpec,
+                layout: [
+                    section('In Chicago', 'Chicago'),
+                    section('Worth the drive', 'Milwaukee'),
+                    section('Rest of the tour'),
+                ],
+            },
+            market,
+        )
+
+        expect(result.usedFallback).toBe(false)
+        expect(result.spec.layout).toHaveLength(3)
+        expect(result.spec.layout.map((entry) => entry.props.heading)).toEqual([
+            'In Chicago',
+            'Worth the drive',
+            'Rest of the tour',
+        ])
+        expect(result.notes).toEqual([])
+    })
+
+    it('drops instances past the limit', () => {
+        const section = (heading: string) => ({
+            module: 'production_list',
+            props: { heading },
+        })
+
+        const result = validateLayout(
+            {
+                ...validSpec,
+                layout: [section('one'), section('two'), section('three'), section('four')],
+            },
+            market,
+        )
+
+        expect(result.spec.layout).toHaveLength(STRUCTURAL_RULES.maxInstances)
+        expect(result.notes.some((note) => note.reason.includes('more than 3 times'))).toBe(true)
+    })
+
+    it('drops a repeated instance that does not name its section', () => {
+        // Two lists both falling back to "N shows near Chicago / all dates"
+        // would be unreadable, so an un-headed repeat goes.
+        const result = validateLayout(
+            {
+                ...validSpec,
+                layout: [
+                    { module: 'production_list', props: { heading: 'In Chicago' } },
+                    { module: 'production_list', props: {} },
+                ],
+            },
             market,
         )
 
         expect(result.spec.layout).toHaveLength(1)
-        expect(result.notes[0].reason).toContain('duplicate')
+        expect(result.spec.layout[0].props.heading).toBe('In Chicago')
+        expect(result.notes.some((note) => note.reason.includes('without a `heading`'))).toBe(true)
+    })
+
+    it('leaves a single unheaded instance alone', () => {
+        // One list reads correctly with the built-in headings, so requiring a
+        // heading only applies once there is more than one section.
+        const result = validateLayout(validSpec, market)
+
+        expect(result.spec.layout).toHaveLength(1)
+        expect(result.spec.layout[0].props.heading).toBeNull()
+        expect(result.notes).toEqual([])
     })
 
     it('repairs a size the module does not offer', () => {

@@ -61,7 +61,22 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
             {groups.map((group) => (
                 <div key={group.key} className={styles.group}>
                     <div className={styles.groupHeader}>
-                        {group.key === 'near' ? (
+                        {/*
+                          An explicit heading wins. The built-in "N shows near X"
+                          and "tour dates" headings assume this is the only list
+                          on the page; once the orchestrator places several
+                          sections, each names itself.
+                        */}
+                        {props.heading ? (
+                            <Typography variant="titleSm" component="h2" className={styles.allHeader}>
+                                <span>{props.heading}</span>
+                                <span className={styles.sep}>•</span>
+                                <span className={styles.count}>
+                                    {group.productions.length}{' '}
+                                    {group.productions.length === 1 ? 'Show' : 'Shows'}
+                                </span>
+                            </Typography>
+                        ) : group.key === 'near' ? (
                             <Typography variant="titleSm" component="h2" className={styles.geoHeader}>
                                 <span>
                                     {group.productions.length}{' '}
@@ -102,7 +117,13 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
               composed page faster than any layout decision — the button is that
               honesty affordance.
             */}
-            {!showAll && hiddenCount > 0 && (
+            {/*
+              Suppressed for a named section. The escape hatch offers "all 52
+              dates", which contradicts a list the orchestrator deliberately
+              scoped — and with three sections on the page there were three
+              identical buttons. A single unnamed list still gets it.
+            */}
+            {!props.heading && !showAll && hiddenCount > 0 && (
                 <button type="button" className={styles.showAll} onClick={() => setShowAll(true)}>
                     <Typography variant="smallMedium" component="span">
                         See all {total} tour dates
