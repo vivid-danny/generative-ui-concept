@@ -62,6 +62,17 @@ export const ContextSchema = z.object({
     returning_visitor: z.boolean(),
     session_signals: z.array(SessionSignalSchema).default([]),
     /**
+     * A sentence describing this visitor, written by whoever is driving the
+     * demo — "she's in Chicago, has about $80, wants to go with friends".
+     *
+     * Context rather than a parameter on purpose: a description of who is
+     * landing belongs in the same bundle the orchestrator reads, alongside the
+     * structured fields, not beside it. Eventually this becomes the *only*
+     * input — a single text box replacing the structured context entirely — so
+     * nothing downstream should assume the structured fields are populated.
+     */
+    brief: z.string().nullable().default(null),
+    /**
      * Free-form budget ceiling in dollars, when the visitor has stated one.
      * Not in the §3.1 sketch, but the MVP's one interaction (`budget_entry`)
      * needs somewhere to put its value, and it belongs to the visitor.

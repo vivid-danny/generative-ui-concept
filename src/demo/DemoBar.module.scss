@@ -13,8 +13,8 @@
     position: sticky;
     top: 0;
     z-index: 20;
-    flex: 0 0 360px;
-    width: 360px;
+    flex: 0 0 432px;
+    width: 432px;
     height: 100vh;
     overflow-y: auto;
     background: #0d1117;
@@ -168,5 +168,36 @@
 }
 
 .dim {
+    color: #7d8590;
+}
+
+// The typed brief, echoed back so it is obvious what the model was given.
+.brief {
+    margin: 0;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-left: 2px solid #58a6ff;
+    background: rgba(88, 166, 255, 0.08);
+    color: #e6edf3;
+    font-style: normal;
+}
+
+.briefForm {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+
+.briefInput {
+    width: 100%;
+    padding: var(--spacing-sm);
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    background: #0d1117;
+    color: #e6edf3;
+    font: inherit;
+    resize: vertical;
+}
+
+.briefInput::placeholder {
     color: #7d8590;
 }

@@ -3,7 +3,8 @@ import type { Market } from '@/contracts/market'
 import { SpecProvenanceSchema, type ResolvedLayout } from '@/contracts/layout-spec'
 import { MODULE_CATALOG, type ModuleId } from '@/contracts/module-catalog'
 
-import { callModel } from './bridge'
+import { callModel, readPromptVersion } from './bridge'
+import { cacheKey, readCached, writeCached } from './cache'
 import { PrecomputedProvider, specKeyFor } from './precomputed'
 import type { OrchestrationProvider } from './provider'
 import { validateLayout } from './validate'
@@ -58,28 +59,44 @@ function catalogForPrompt(): string {
  * so a module can never be offered to the model that the registry cannot render.
  */
 export function buildMessage(context: Context, market: Market): string {
-    return `Compose the page for this visitor.
+    // The brief leads when there is one. It is the operator's own description of
+    // the visitor and carries intent the structured fields cannot — and it is
+    // where this is heading, since eventually it will be the only input.
+    const sections = [`Compose the page for this visitor.`]
 
-## Modules you may place
+    if (context.brief) {
+        sections.push(
+            `## Who is landing (described by the person running this)
+
+> ${context.brief}
+
+Treat this as the primary account of the visitor. The structured context below
+may be sparse or partly stale; where the two disagree, the description wins. Do
+not invent structured values to fill gaps — compose for what you actually know.`,
+        )
+    }
+
+    sections.push(
+        `## Modules you may place
 
 ${catalogForPrompt()}
 
 Other modules exist in the catalog but are not implemented yet — do not place
-them. \`event_header\` is page chrome and is never yours to place.
-
-## Context (who is landing)
+them. \`event_header\` is page chrome and is never yours to place.`,
+        `## Context (who is landing)
 
 \`\`\`json
 ${JSON.stringify(context, null, 2)}
-\`\`\`
-
-## Market snapshot (the inventory that exists)
+\`\`\``,
+        `## Market snapshot (the inventory that exists)
 
 \`\`\`json
 ${JSON.stringify(market, null, 2)}
-\`\`\`
+\`\`\``,
+        `Reply with the layout spec object and nothing else — no prose, no code fence.`,
+    )
 
-Reply with the layout spec object and nothing else — no prose, no code fence.`
+    return sections.join('\n\n')
 }
 
 /**
@@ -139,12 +156,52 @@ export function extractLayoutSpec(text: string): unknown | null {
     return null
 }
 
+export interface LiveProviderOptions {
+    /** Names the cache bucket, and shows up in the panel. */
+    mode?: string
+    /** Skip the cache and pay for a new composition. The re-run button. */
+    fresh?: boolean
+}
+
 export class LiveProvider implements OrchestrationProvider {
     readonly name = 'Live (composed at request time by Claude)'
     readonly isLive = true
 
+    constructor(private readonly options: LiveProviderOptions = {}) {}
+
     async getLayout(context: Context, market: Market): Promise<ResolvedLayout> {
         const contextId = specKeyFor(context)
+        const mode = this.options.mode ?? 'live'
+
+        // Keyed on the prompt version so editing the prompt invalidates every
+        // entry — a composition attributed to a prompt that no longer exists
+        // would be worse than no cache.
+        const key = cacheKey({
+            mode,
+            brief: context.brief,
+            contextId,
+            promptVersion: await readPromptVersion(),
+            marketCapturedAt: market.captured_at,
+        })
+
+        if (!this.options.fresh) {
+            const cached = await readCached(key)
+            if (cached) {
+                return {
+                    ...cached,
+                    // The original provenance is kept as-is — including what the
+                    // call cost — so the panel never implies this was free. The
+                    // note is what tells you it is a replay.
+                    notes: [
+                        {
+                            level: 'repaired',
+                            reason: `replayed from cache (composed ${cached.provenance.generated_at}); re-run for a fresh composition`,
+                        },
+                        ...cached.notes,
+                    ],
+                }
+            }
+        }
 
         try {
             const call = await callModel(buildMessage(context, market))
@@ -160,7 +217,7 @@ export class LiveProvider implements OrchestrationProvider {
             }
 
             const { spec, notes } = validateLayout(raw, market)
-            return {
+            const resolved: ResolvedLayout = {
                 spec,
                 notes,
                 provenance: SpecProvenanceSchema.parse({
@@ -175,6 +232,9 @@ export class LiveProvider implements OrchestrationProvider {
                     input_tokens: call.inputTokens,
                 }),
             }
+
+            await writeCached(key, resolved)
+            return resolved
         } catch (error) {
             return this.fallback(
                 context,

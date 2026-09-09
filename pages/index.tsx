@@ -6,8 +6,9 @@ import type { ResolvedLayout } from '@/contracts/layout-spec'
 import type { Market } from '@/contracts/market'
 import DemoBar from '@/demo/DemoBar'
 import { summarizeComposition, type CompositionSummary } from '@/demo/summarize'
-import { MARKET, variantBySlug, type DemoVariant } from '@/demo/variants'
+import { MARKET, isModeSlug, modeFor, DEFAULT_MODE, type DemoMode } from '@/demo/modes'
 import EventHeader from '@/modules/event-header'
+import { BaseProvider } from '@/orchestration/base'
 import { LiveProvider } from '@/orchestration/live'
 import { PrecomputedProvider } from '@/orchestration/precomputed'
 import type { OrchestrationProvider } from '@/orchestration/provider'
@@ -33,17 +34,17 @@ import styles from './index.module.scss'
  */
 
 interface HomeProps {
-    variant: DemoVariant
+    mode: DemoMode
     market: Market
     context: Context
     resolved: ResolvedLayout
     summary: CompositionSummary
 }
 
-export default function Home({ variant, market, context, resolved, summary }: HomeProps) {
+export default function Home({ mode, market, context, resolved, summary }: HomeProps) {
     return (
         <>
-            <DemoBar active={variant} resolved={resolved} summary={summary}>
+            <DemoBar active={mode} resolved={resolved} summary={summary}>
                 <PageShell
                     header={
                         <EventHeader
@@ -69,23 +70,29 @@ export default function Home({ variant, market, context, resolved, summary }: Ho
 }
 
 export const getServerSideProps: GetServerSideProps<HomeProps> = async ({ query }) => {
-    const variant = variantBySlug(typeof query.variant === 'string' ? query.variant : undefined)
+    const slug = isModeSlug(typeof query.mode === 'string' ? query.mode : undefined)
+        ? (query.mode as typeof DEFAULT_MODE)
+        : DEFAULT_MODE
+    const brief = typeof query.brief === 'string' ? query.brief : null
+    const mode = modeFor(slug, brief)
 
-    // Live composition is opt-in via `?live=1`. Default precomputed keeps the
-    // page instant and offline, and lets the same context be shown both ways
-    // back to back — a better demonstration of the seam than a config flag.
-    const provider: OrchestrationProvider =
-        query.live === '1' ? new LiveProvider() : new PrecomputedProvider()
+    // Base makes no call at all. Eval and custom go to the model, but only when
+    // there is a brief to compose from and no cached answer — see
+    // `src/orchestration/cache.ts`.
+    const provider =
+        mode.brief === null
+            ? new BaseProvider()
+            : new LiveProvider({ mode: mode.slug, fresh: query.fresh === '1' })
 
-    const resolved = await provider.getLayout(variant.context, MARKET)
+    const resolved = await provider.getLayout(mode.context, MARKET)
 
     return {
         props: {
-            variant,
+            mode,
             market: MARKET,
-            context: variant.context,
+            context: mode.context,
             resolved,
-            summary: summarizeComposition(resolved.spec, MARKET, variant.context),
+            summary: summarizeComposition(resolved.spec, MARKET, mode.context),
         },
     }
 }

@@ -3,7 +3,8 @@ import type { GetServerSideProps } from 'next'
 
 import type { ResolvedLayout } from '@/contracts/layout-spec'
 import { summarizeComposition, type CompositionSummary } from '@/demo/summarize'
-import { MARKET, VARIANTS } from '@/demo/variants'
+import { MARKET } from '@/demo/modes'
+import { PERSONAS, type Persona } from '@/fixtures/personas'
 import { PrecomputedProvider } from '@/orchestration/precomputed'
 
 /**
@@ -92,7 +93,7 @@ export const getServerSideProps: GetServerSideProps<DiffProps> = async () => {
     const provider = new PrecomputedProvider()
 
     const rows = await Promise.all(
-        VARIANTS.map(async (variant) => {
+        PERSONAS.map(async (variant: Persona) => {
             const resolved = await provider.getLayout(variant.context, MARKET)
 
             return {

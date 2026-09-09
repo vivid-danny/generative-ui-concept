@@ -23,6 +23,14 @@ const bridge = vi.hoisted(() => ({
     reply: null as unknown,
 }))
 
+// The cache is real code that writes to disk. Left unmocked, one test's
+// composition gets served to the next and the mock is never consulted.
+vi.mock('./cache', () => ({
+    cacheKey: () => 'test-key',
+    readCached: vi.fn(async () => null),
+    writeCached: vi.fn(async () => undefined),
+}))
+
 vi.mock('./bridge', () => ({
     callModel: vi.fn(async () => {
         if (bridge.mode === 'throw') throw new Error('could not run `claude`')

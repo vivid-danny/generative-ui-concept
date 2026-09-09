@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import Link from 'next/link'
 import classNames from 'classnames'
 
@@ -6,7 +7,7 @@ import type { ResolvedLayout } from '@/contracts/layout-spec'
 
 import styles from './DemoBar.module.scss'
 import type { CompositionSummary } from './summarize'
-import { VARIANTS, type DemoVariant } from './variants'
+import { MODE_SLUGS, type DemoMode, type ModeSlug } from './modes'
 
 /**
  * Demo chrome: the context switcher and the provenance panel. Not part of the
@@ -28,12 +29,18 @@ import { VARIANTS, type DemoVariant } from './variants'
  */
 
 interface DemoBarProps {
-    active: DemoVariant
+    active: DemoMode
     resolved: ResolvedLayout
     /** What the spec actually produced, next to the reasoning that asked for it. */
     summary: CompositionSummary
     /** The page itself — rendered beside the drawer so opening it pushes right. */
     children: React.ReactNode
+}
+
+const MODE_LABEL: Record<ModeSlug, string> = {
+    base: 'Base',
+    eval: 'Eval',
+    custom: 'Custom',
 }
 
 const NOTE_CLASS = {
@@ -43,10 +50,37 @@ const NOTE_CLASS = {
 } as const
 
 const TOGGLE_KEY = 'h'
+const DRAWER_KEY = 'genui:drawer'
 
 export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, children }) => {
     const { provenance, notes, spec } = resolved
+    // Remembered for the session rather than held in the URL. Switching mode is
+    // a full navigation, so pure local state closed the drawer every time you
+    // used it; a query param had the opposite problem — hiding it and then
+    // switching mode brought it straight back. sessionStorage does neither.
     const [isOpen, setIsOpen] = useState(false)
+
+    useEffect(() => {
+        setIsOpen(window.sessionStorage.getItem(DRAWER_KEY) === 'open')
+    }, [])
+
+    const toggle = () =>
+        setIsOpen((open) => {
+            const next = !open
+            window.sessionStorage.setItem(DRAWER_KEY, next ? 'open' : 'closed')
+            return next
+        })
+    const router = useRouter()
+    // The textarea's own value. The composed brief lives in the URL, so this is
+    // only the in-progress edit.
+    const [draft, setDraft] = useState(active.brief ?? '')
+
+    const submitBrief = (event: React.FormEvent) => {
+        event.preventDefault()
+        const brief = draft.trim()
+        if (!brief) return
+        router.push(`/?mode=custom&brief=${encodeURIComponent(brief)}`)
+    }
 
     useEffect(() => {
         const onKeyDown = (event: KeyboardEvent) => {
@@ -61,7 +95,7 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
             if (target && ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName)) return
 
             event.preventDefault()
-            setIsOpen((open) => !open)
+            toggle()
         }
 
         window.addEventListener('keydown', onKeyDown)
@@ -73,21 +107,57 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
             {isOpen && (
                 <aside className={styles.drawer} aria-label="Demo controls">
                     <div className={styles.drawerHeader}>
-                        <span className={styles.label}>Context</span>
+                        <span className={styles.label}>Mode</span>
                         <div className={styles.variants}>
-                            {VARIANTS.map((variant) => (
+                            {MODE_SLUGS.map((slug) => (
                                 <Link
-                                    key={variant.slug}
-                                    href={`/?variant=${variant.slug}`}
+                                    key={slug}
+                                    href={slug === 'custom' && draft.trim() ? `/?mode=custom&brief=${encodeURIComponent(draft.trim())}` : `/?mode=${slug}`}
                                     className={classNames(styles.variant, {
-                                        [styles.variantActive]: variant.slug === active.slug,
+                                        [styles.variantActive]: slug === active.slug,
                                     })}
                                 >
-                                    {variant.label}
+                                    {MODE_LABEL[slug]}
                                 </Link>
                             ))}
                         </div>
-                        <span className={styles.note}>{active.note}</span>
+
+                        {/*
+                          What the page was actually given. The whole argument
+                          rests on the difference between composing for someone
+                          and not, so the panel should never leave that implicit.
+                        */}
+                        <span className={styles.label}>Given to the page</span>
+                        <span className={styles.note}>{active.given}</span>
+                        {active.brief && <blockquote className={styles.brief}>{active.brief}</blockquote>}
+
+                        {active.slug === 'custom' && (
+                            <form className={styles.briefForm} onSubmit={submitBrief}>
+                                <textarea
+                                    className={styles.briefInput}
+                                    value={draft}
+                                    onChange={(event) => setDraft(event.target.value)}
+                                    rows={4}
+                                    placeholder="Describe who is landing. Plain sentences — the model reads this."
+                                    aria-label="Visitor brief"
+                                />
+                                <button type="submit" className={styles.variant} disabled={!draft.trim()}>
+                                    Compose
+                                </button>
+                            </form>
+                        )}
+
+                        {active.brief && (
+                            <Link
+                                href={`/?mode=${active.slug}${
+                                    active.slug === 'custom' ? `&brief=${encodeURIComponent(active.brief)}` : ''
+                                }&fresh=1`}
+                                className={styles.variant}
+                            >
+                                Re-run (new call)
+                            </Link>
+                        )}
+
                         <span className={styles.label}>shift+h to hide</span>
                     </div>
 

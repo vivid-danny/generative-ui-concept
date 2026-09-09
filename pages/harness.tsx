@@ -1,7 +1,7 @@
 import React from 'react'
 
 import { MODULE_CATALOG, type ModuleId } from '@/contracts/module-catalog'
-import { MARKET, DEFAULT_VARIANT } from '@/demo/variants'
+import { MARKET, BASE_CONTEXT } from '@/demo/modes'
 import { getModuleComponent } from '@/modules/registry'
 
 /**
@@ -33,7 +33,7 @@ const labelStyle: React.CSSProperties = {
 }
 
 export default function Harness() {
-    const context = DEFAULT_VARIANT.context
+    const context = BASE_CONTEXT
 
     return (
         <div style={containerStyle}>

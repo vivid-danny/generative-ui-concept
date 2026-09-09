@@ -6,3 +6,6 @@ next-env.d.ts
 .DS_Store
 logs/
 .env*.local
+
+# Generated compositions - cached model output, not source.
+.cache/

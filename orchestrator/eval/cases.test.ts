@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { MARKET, VARIANTS } from '@/demo/variants'
+import { MARKET } from '@/demo/modes'
+import { PERSONAS as VARIANTS, type Persona } from '@/fixtures/personas'
 import { selectProductions, type ProductionListProps } from '@/modules/production-list/select'
 import { PrecomputedProvider } from '@/orchestration/precomputed'
 
@@ -22,7 +23,7 @@ const provider = new PrecomputedProvider()
 
 async function resolveAll() {
     return Promise.all(
-        VARIANTS.map(async (variant) => ({
+        VARIANTS.map(async (variant: Persona) => ({
             variant,
             resolved: await provider.getLayout(variant.context, MARKET),
         })),
