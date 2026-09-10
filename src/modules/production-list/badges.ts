@@ -100,10 +100,15 @@ export const BADGES: Record<BadgeId, BadgeDefinition> = {
  *
  * Both are the component's call, not the orchestrator's: how much fits on a row
  * and what reads first is form, and a card carrying five badges stops being
- * scannable no matter how relevant each one is. Scarcity leads because a date
- * running out is the most consequential thing a row can say.
+ * scannable no matter how relevant each one is. Two, because three was already
+ * crowding the row.
+ *
+ * The cap is why `RENDER_ORDER` matters more than it looks — on a busy date it
+ * decides which two signals survive. Roughly by how much each one should change
+ * a decision: a date running out, then how fast it is moving, then value, then
+ * that it is newly added. Popularity is last — interesting, rarely decisive.
  */
-export const MAX_BADGES_PER_ROW = 3
+export const MAX_BADGES_PER_ROW = 2
 
 const RENDER_ORDER: BadgeId[] = [
     'tickets_left',

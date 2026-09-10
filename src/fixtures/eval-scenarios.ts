@@ -26,11 +26,13 @@ export const EVAL_SCENARIOS: EvalScenario[] = [
     {
         slug: 'budget-distance-popularity',
         label: 'Budget vs. distance vs. the big night',
-        levers: 'price · location · popularity',
+        levers: 'price · location · popularity · date',
         brief: [
             "She's in Chicago and can spend about $80 a ticket.",
-            'She would rather see a packed, high-energy show than get the cheapest seat,',
-            'and she can drive a few hours on a weekend but not fly.',
+            'She would rather see a packed, high-energy show than get the cheapest seat —',
+            'the kind of night where the room is full and everyone knows the words —',
+            'and she keeps checking whether the big dates are going to sell out before she decides.',
+            'She can drive a few hours on a weekend but not fly.',
             'The onsale is a couple of hours old.',
         ].join(' '),
     },

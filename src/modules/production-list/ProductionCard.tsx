@@ -99,17 +99,16 @@ export const ProductionCard: React.FC<ProductionCardProps> = ({
             </div>
 
             <div className={styles.actions}>
-                <div className={styles.leadInPrice}>
-                    <Typography variant="caption" component="span" className={styles.priceLabel}>
-                        from
-                    </Typography>
-                    <Typography variant="smallBold" component="span">
-                        ${production.floor_price}
-                    </Typography>
-                </div>
+                {/*
+                  The CTA carries the get-in price. "Find Tickets" told a visitor
+                  nothing they did not know from being on this page, and folding
+                  the price into the button frees the slot to its left for
+                  something that earns it. Left empty deliberately — what goes
+                  there is a decision of its own.
+                */}
                 <button type="button" className={styles.cta}>
-                    <Typography variant="small" component="span">
-                        Find Tickets
+                    <Typography variant="smallMedium" component="span">
+                        From ${production.floor_price}
                     </Typography>
                 </button>
             </div>

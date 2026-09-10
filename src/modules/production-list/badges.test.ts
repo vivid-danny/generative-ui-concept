@@ -55,7 +55,7 @@ describe('badgesFor', () => {
         expect(counts.size).toBeGreaterThan(1)
     })
 
-    it('caps how many one row can show', () => {
+    it('caps a row at two, so a busy date is not a badge sentence', () => {
         for (const production of market.productions) {
             expect(badgesFor(production, BADGE_IDS).length).toBeLessThanOrEqual(
                 MAX_BADGES_PER_ROW,
@@ -69,6 +69,19 @@ describe('badgesFor', () => {
         )!
 
         expect(badgesFor(busy, BADGE_IDS)[0].id).toBe('tickets_left')
+    })
+
+    it('drops the least decisive signal when a row qualifies for three', () => {
+        // With the cap at two, RENDER_ORDER decides which survive. A date that
+        // is running out, moving fast and heavily viewed should say the first
+        // two things, not the popularity one.
+        const crowded = market.productions.find(
+            (p) => p.sellout_risk === 'high' && p.sales_velocity >= 0.7 && p.fans_viewed_24h >= 1500,
+        )!
+        const shown = badgesFor(crowded, BADGE_IDS).map((badge) => badge.id)
+
+        expect(shown).toEqual(['tickets_left', 'selling_fast'])
+        expect(shown).not.toContain('fans_viewed')
     })
 
     it('puts a real number in the copy rather than a score', () => {

@@ -59,24 +59,22 @@ function catalogForPrompt(): string {
  * so a module can never be offered to the model that the registry cannot render.
  */
 export function buildMessage(context: Context, market: Market): string {
-    // The brief leads when there is one. It is the operator's own description of
-    // the visitor and carries intent the structured fields cannot — and it is
-    // where this is heading, since eventually it will be the only input.
-    const sections = [`Compose the page for this visitor.`]
+    // Ordered stable-first, volatile-last, because prompt caching matches on a
+    // prefix: anything that changes between calls invalidates everything after
+    // it. The market snapshot is by far the largest part of this message and the
+    // least likely to change, so it leads; the brief varies every time and goes
+    // last. Putting the brief first — as this did — meant a new brief paid to
+    // re-send 9,000 tokens of inventory that had not moved.
+    const sections = [
+        `Compose the page for this visitor. The inventory comes first, then what you
+may place, then who is landing.`,
+        // Minified rather than pretty-printed: indentation cost ~3,000 tokens a
+        // call and the model reads it identically.
+        `## Market snapshot (the inventory that exists)
 
-    if (context.brief) {
-        sections.push(
-            `## Who is landing (described by the person running this)
-
-> ${context.brief}
-
-Treat this as the primary account of the visitor. The structured context below
-may be sparse or partly stale; where the two disagree, the description wins. Do
-not invent structured values to fill gaps — compose for what you actually know.`,
-        )
-    }
-
-    sections.push(
+\`\`\`json
+${JSON.stringify(market)}
+\`\`\``,
         `## Modules you may place
 
 ${catalogForPrompt()}
@@ -88,11 +86,24 @@ them. \`event_header\` is page chrome and is never yours to place.`,
 \`\`\`json
 ${JSON.stringify(context, null, 2)}
 \`\`\``,
-        `## Market snapshot (the inventory that exists)
+    ]
 
-\`\`\`json
-${JSON.stringify(market, null, 2)}
-\`\`\``,
+    // The brief is the operator's own account of the visitor and carries intent
+    // the structured fields cannot. Last, both because it is the most volatile
+    // part and because it should be the freshest thing in mind.
+    if (context.brief) {
+        sections.push(
+            `## Who is landing, described by the person running this
+
+> ${context.brief}
+
+Treat this as the primary account of the visitor. The structured context above
+may be sparse or partly stale; where the two disagree, the description wins. Do
+not invent structured values to fill gaps — compose for what you actually know.`,
+        )
+    }
+
+    sections.push(
         `Reply with the layout spec object and nothing else — no prose, no code fence.`,
     )
 

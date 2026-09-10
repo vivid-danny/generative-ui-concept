@@ -112,6 +112,11 @@ and every visitor demonstrates neither.
 }
 ```
 
+`reasoning` is a **single JSON string**, not an array — one paragraph, however
+long. A run has already been lost to a reply that opened it as a string and
+closed it with `"]`, which parses as nothing at all. If you have several points
+to make, make them in sentences inside the one string.
+
 `reasoning` is required. Write it for a human reading over your shoulder: what in
 the context drove this composition. It is the demo's "why this page" reveal and
 the first thing consulted when a composition looks wrong.

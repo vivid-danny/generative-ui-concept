@@ -1,5 +1,6 @@
 import { z } from 'zod'
 
+import { ProductionTraitSchema, SelloutRiskSchema } from '@/contracts/market'
 import { BADGE_IDS } from '@/modules/production-list/badges'
 
 /**
@@ -54,6 +55,19 @@ const FilterSchema = z
         max_price: z.number().positive().optional(),
         min_view_score: z.number().min(0).max(1).optional(),
         city: z.string().optional(),
+        /**
+         * The dimensions that turn a section heading into something real.
+         *
+         * "Likely to sell out" or "the shows everyone wants" were copy over an
+         * unfiltered list until these existed — the orchestrator could name a
+         * collection it had no way to actually assemble.
+         */
+        min_demand_score: z.number().min(0).max(1).optional(),
+        min_value_score: z.number().min(0).max(1).optional(),
+        min_sales_velocity: z.number().min(0).max(1).optional(),
+        sellout_risk: SelloutRiskSchema.optional(),
+        /** Only dates carrying this trait — e.g. the tour finale. */
+        has_trait: ProductionTraitSchema.optional(),
     })
     .strict()
 
@@ -82,7 +96,7 @@ export const MODULE_CATALOG = {
         propsSchema: z
             .object({
                 filter: FilterSchema.optional(),
-                sort: z.enum(['date', 'price', 'value']).default('date'),
+                sort: z.enum(['date', 'price', 'value', 'demand']).default('date'),
                 highlight: z.enum(['best_value', 'cheapest', 'soonest']).nullable().default(null),
                 group_by_geo: z.boolean().default(true),
                 max_items: z.number().int().min(1).max(20).default(8),
@@ -111,8 +125,19 @@ export const MODULE_CATALOG = {
             })
             .strict(),
         propsHint: [
-            'filter?: { max_price?: number, min_view_score?: 0-1, city?: exact city name }',
-            'sort: "date" | "price" | "value"  (default "date"; "value" is lowest typical price)',
+            'filter?: {',
+            '    max_price?: number, city?: exact city name, min_view_score?: 0-1,',
+            '    min_demand_score?: 0-1     how much fans want this night',
+            '    min_value_score?: 0-1      price against what you get',
+            '    min_sales_velocity?: 0-1   how fast it is moving right now',
+            '    sellout_risk?: "low" | "moderate" | "high"',
+            '    has_trait?: "tour_opener" | "tour_finale" | "special_guest" | "hometown_show"',
+            '  }',
+            '  Use these to build a collection the heading can honestly name — a',
+            '  "likely to sell out" section wants `sellout_risk: "high"` behind it,',
+            '  not just the words.',
+            'sort: "date" | "price" | "value" | "demand"  (default "date")',
+            '  "value" and "demand" sort by those scores, best first.',
             'highlight: "best_value" | "cheapest" | "soonest" | null  (default null)',
             'group_by_geo: boolean  (default true; splits the visitor\'s own metro into its own group)',
             'max_items: integer 1-20  (default 8)',
@@ -124,8 +149,12 @@ export const MODULE_CATALOG = {
             '  so naming "selling_fast" marks the dates selling fast, not all of them.',
             '  Choose by what this visitor is weighing — value signals for a',
             '  price-sensitive browse, "fans_viewed" for someone chasing the big night,',
-            '  "tickets_left" where running out is the real risk. Two or three is plenty;',
-            '  allowing all five makes every row noisy.',
+            '  "tickets_left" where running out is the real risk.',
+            '  Two or three is plenty; allowing all five makes every row noisy, and a',
+            '  row shows at most two anyway. Roughly by how much each tends to change a',
+            '  buying decision: tickets_left > selling_fast > deals_available >',
+            '  newly_released > fans_viewed. Allow the ones that matter here, not the',
+            '  ones that are true.',
             '',
             'You may place this module more than once to build sections — e.g. one',
             'filtered to the visitor\'s city, one for dates within driving range, one',

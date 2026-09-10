@@ -1,5 +1,5 @@
 import type { Context } from '@/contracts/context'
-import type { Market, Production } from '@/contracts/market'
+import type { Market, Production, ProductionTrait, SelloutRisk } from '@/contracts/market'
 
 import type { BadgeId } from './badges'
 
@@ -11,8 +11,17 @@ import type { BadgeId } from './badges'
  */
 
 export interface ProductionListProps {
-    filter?: { max_price?: number; min_view_score?: number; city?: string }
-    sort: 'date' | 'price' | 'value'
+    filter?: {
+        max_price?: number
+        min_view_score?: number
+        city?: string
+        min_demand_score?: number
+        min_value_score?: number
+        min_sales_velocity?: number
+        sellout_risk?: SelloutRisk
+        has_trait?: ProductionTrait
+    }
+    sort: 'date' | 'price' | 'value' | 'demand'
     highlight: 'best_value' | 'cheapest' | 'soonest' | null
     group_by_geo: boolean
     max_items: number
@@ -46,8 +55,12 @@ export interface Selection {
 const BY_SORT: Record<ProductionListProps['sort'], (a: Production, b: Production) => number> = {
     date: (a, b) => a.date.localeCompare(b.date),
     price: (a, b) => a.floor_price - b.floor_price,
-    // "Value" is what a typical seat costs, not the cheapest one available.
-    value: (a, b) => a.median_price - b.median_price,
+    // Both read the score, best first. They used to sort on `median_price`,
+    // which predated `value_score` and `demand_score` — so "sort by value"
+    // quietly meant "sort by typical price", which is not what the orchestrator
+    // would assume when it asks for it.
+    value: (a, b) => b.value_score - a.value_score,
+    demand: (a, b) => b.demand_score - a.demand_score,
 }
 
 const BY_HIGHLIGHT: Record<
@@ -55,7 +68,7 @@ const BY_HIGHLIGHT: Record<
     (a: Production, b: Production) => number
 > = {
     cheapest: (a, b) => a.floor_price - b.floor_price,
-    best_value: (a, b) => a.median_price - b.median_price,
+    best_value: (a, b) => b.value_score - a.value_score,
     soonest: (a, b) => a.date.localeCompare(b.date),
 }
 
@@ -69,6 +82,19 @@ export function selectProductions(
     const matching = market.productions.filter((production) => {
         if (filter?.max_price !== undefined && production.floor_price > filter.max_price) return false
         if (filter?.city !== undefined && production.city !== filter.city) return false
+        if (filter?.min_demand_score !== undefined && production.demand_score < filter.min_demand_score)
+            return false
+        if (filter?.min_value_score !== undefined && production.value_score < filter.min_value_score)
+            return false
+        if (
+            filter?.min_sales_velocity !== undefined &&
+            production.sales_velocity < filter.min_sales_velocity
+        )
+            return false
+        if (filter?.sellout_risk !== undefined && production.sellout_risk !== filter.sellout_risk)
+            return false
+        if (filter?.has_trait !== undefined && !production.traits.includes(filter.has_trait))
+            return false
         return true
     })
 

@@ -24,11 +24,15 @@ const CLI = process.env.ORCHESTRATOR_CLI ?? 'claude'
 const MODEL = process.env.ORCHESTRATOR_MODEL ?? 'claude-sonnet-5'
 
 /**
- * Generous on purpose: measured calls run 6–10s, but the model sometimes thinks
- * for longer, and timing out a call that would have succeeded is worse than a
- * slow page in a demo nobody else is waiting on.
+ * Generous on purpose: timing out a call that would have succeeded is worse than
+ * a slow page in a demo nobody else is waiting on — and it still costs whatever
+ * the model had already spent.
+ *
+ * Raised from 60s after a run died at the ceiling. Measured composition calls
+ * have crept from ~10s to ~40s as the catalog and the market snapshot have
+ * grown, so the headroom was thinner than it looked.
  */
-const TIMEOUT_MS = 60_000
+const TIMEOUT_MS = 180_000
 
 const PROMPT_PATH = path.join(process.cwd(), 'orchestrator', 'prompt.md')
 
@@ -139,6 +143,12 @@ export async function callModel(message: string): Promise<BridgeResult> {
                 '',
                 '--restricted',
                 '--strict-mcp-config',
+                // Composing a page is picking a few modules from a list and
+                // filling in props — not hard reasoning. The default was
+                // whatever the CLI chooses, and a run took 105s; naming a level
+                // at least makes it a decision rather than an inheritance.
+                '--effort',
+                'medium',
             ],
             { stdio: ['pipe', 'pipe', 'pipe'] },
         )

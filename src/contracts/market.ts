@@ -13,6 +13,13 @@ import { z } from 'zod'
 
 export const SelloutRiskSchema = z.enum(['low', 'moderate', 'high'])
 
+export const ProductionTraitSchema = z.enum([
+    'tour_opener',
+    'tour_finale',
+    'special_guest',
+    'hometown_show',
+])
+
 export const InventoryByTierSchema = z.object({
     lower: z.number().int().nonnegative(),
     upper: z.number().int().nonnegative(),
@@ -70,6 +77,15 @@ export const ProductionSchema = z.object({
      * newly released, which is both redundant and less true.
      */
     announced_days_ago: z.number().int().nonnegative(),
+    /**
+     * DERIVED — fabricated. What is notable about this particular night.
+     *
+     * Enumerated rather than free text: a trait makes a claim about the event,
+     * so the vocabulary is ours (docs/COMPOSABILITY.md). These are the part of
+     * `value_score` the scalar cannot express — "the final night of the tour" is
+     * a section a person would click, and no number says that.
+     */
+    traits: z.array(ProductionTraitSchema).default([]),
 })
 
 export const ListingSchema = z.object({
@@ -105,3 +121,4 @@ export type Market = z.infer<typeof MarketSchema>
 export type Production = z.infer<typeof ProductionSchema>
 export type Listing = z.infer<typeof ListingSchema>
 export type SelloutRisk = z.infer<typeof SelloutRiskSchema>
+export type ProductionTrait = z.infer<typeof ProductionTraitSchema>

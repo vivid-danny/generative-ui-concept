@@ -144,3 +144,110 @@ describe('selectProductions', () => {
         expect(visibleIds).toContain(selection.highlightedId)
     })
 })
+
+describe('selectProductions — demand, value and trait collections', () => {
+    const all = (selection: ReturnType<typeof selectProductions>) =>
+        selection.groups.flatMap((group) => group.productions)
+
+    const pick = (overrides: Partial<ProductionListProps>) =>
+        all(selectProductions(market, context, props({ group_by_geo: false, max_items: 52, ...overrides })))
+
+    it('scopes to high-demand dates', () => {
+        const shown = pick({ filter: { min_demand_score: 0.9 } })
+
+        expect(shown.length).toBeGreaterThan(0)
+        expect(shown.every((p) => p.demand_score >= 0.9)).toBe(true)
+        expect(shown.length).toBeLessThan(market.productions.length)
+    })
+
+    it('scopes to good-value dates', () => {
+        const shown = pick({ filter: { min_value_score: 0.85 } })
+
+        expect(shown.length).toBeGreaterThan(0)
+        expect(shown.every((p) => p.value_score >= 0.85)).toBe(true)
+    })
+
+    it('scopes to dates likely to sell out', () => {
+        // The section heading "Likely to sell out" was copy over an unfiltered
+        // list until this existed.
+        const shown = pick({ filter: { sellout_risk: 'high' } })
+
+        expect(shown.length).toBeGreaterThan(0)
+        expect(shown.every((p) => p.sellout_risk === 'high')).toBe(true)
+    })
+
+    it('scopes to dates moving fastest', () => {
+        const shown = pick({ filter: { min_sales_velocity: 0.85 } })
+
+        expect(shown.every((p) => p.sales_velocity >= 0.85)).toBe(true)
+    })
+
+    it('scopes to a trait, so a heading can name it', () => {
+        const shown = pick({ filter: { has_trait: 'tour_finale' } })
+
+        expect(shown).toHaveLength(1)
+        expect(shown[0].traits).toContain('tour_finale')
+    })
+
+    it('combines a trait with other criteria', () => {
+        const shown = pick({ filter: { has_trait: 'hometown_show', max_price: 220 } })
+
+        expect(shown.every((p) => p.traits.includes('hometown_show') && p.floor_price <= 220)).toBe(
+            true,
+        )
+    })
+
+    it('returns nothing when a collection has no members, rather than falling back', () => {
+        // Better an empty section the module reports than a heading over dates
+        // that do not match it.
+        const shown = pick({ filter: { min_demand_score: 1, sellout_risk: 'low' } })
+
+        expect(shown).toHaveLength(0)
+    })
+})
+
+describe('selectProductions — value and demand sorts', () => {
+    const ordered = (overrides: Partial<ProductionListProps>) =>
+        selectProductions(market, context, props({ group_by_geo: false, max_items: 52, ...overrides }))
+            .groups.flatMap((group) => group.productions)
+
+    it('sorts by value score, best first', () => {
+        // These used to sort on median_price, which predated value_score — so
+        // "sort by value" quietly meant "sort by typical price".
+        const scores = ordered({ sort: 'value' }).map((p) => p.value_score)
+
+        expect(scores).toEqual([...scores].sort((a, b) => b - a))
+    })
+
+    it('sorts by demand score, best first', () => {
+        const scores = ordered({ sort: 'demand' }).map((p) => p.demand_score)
+
+        expect(scores).toEqual([...scores].sort((a, b) => b - a))
+    })
+
+    it('highlights on value score rather than typical price', () => {
+        const selection = selectProductions(
+            market,
+            context,
+            props({ highlight: 'best_value', group_by_geo: false, max_items: 52 }),
+        )
+        const best = [...market.productions].sort((a, b) => b.value_score - a.value_score)[0]
+
+        expect(selection.highlightedId).toBe(best.id)
+    })
+
+    it('still distinguishes best value from cheapest', () => {
+        const byValue = selectProductions(
+            market,
+            context,
+            props({ highlight: 'best_value', group_by_geo: false, max_items: 52 }),
+        )
+        const byPrice = selectProductions(
+            market,
+            context,
+            props({ highlight: 'cheapest', group_by_geo: false, max_items: 52 }),
+        )
+
+        expect(byValue.highlightedId).not.toBe(byPrice.highlightedId)
+    })
+})

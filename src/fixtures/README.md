@@ -32,6 +32,7 @@ Until a real capture happens, treat every number below as illustrative:
 | `productions[].value_score` | **Fabricated** derived field. 0–1 price-for-demand value at the date level. |
 | `listings_sample[].view_score` / `deal_score` | **Fabricated** derived fields. |
 | `productions[].fans_viewed_24h` | **Fabricated.** A real count, not a score, because the badge says "20 Fans Viewed" and a number on screen has to be a number in the data. Correlated with `demand_score` so the two hang together. |
+| `productions[].traits` | **Fabricated.** What is notable about a night — `tour_opener`, `tour_finale`, `special_guest`, `hometown_show`. Enumerated, because a trait makes a claim about the event. The tour opens in Chicago and closes on an LA hometown night; five dates carry a named opener. |
 | `productions[].announced_days_ago` | **Fabricated.** Per production, not per visit — five cities are late additions (2–6 days) against a tour announced 3–6 weeks ago, so "Newly Released" means something on some cards and not others. |
 
 The three new signals (`demand_score`, `sales_velocity`, `value_score`) are carried
