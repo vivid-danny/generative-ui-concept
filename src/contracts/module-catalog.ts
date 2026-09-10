@@ -2,7 +2,7 @@ import { z } from 'zod'
 
 import { ProductionTraitSchema, SelloutRiskSchema } from '@/contracts/market'
 import { BADGE_IDS } from '@/modules/production-list/badges'
-import { CARD_SIGNALS } from '@/modules/production-list/trend'
+import { CARD_SIGNAL_IDS } from '@/modules/production-list/card-signal'
 import { STAT_IDS } from '@/modules/market-signals/signals'
 
 /**
@@ -166,7 +166,7 @@ export const MODULE_CATALOG = {
                  * so it is the section saying "compare these on price
                  * movement", not a label a few dates happen to earn.
                  */
-                card_signal: z.enum(CARD_SIGNALS).nullable().default(null),
+                card_signal: z.enum(CARD_SIGNAL_IDS).nullable().default(null),
             })
             .strict(),
         propsHint: [
@@ -191,10 +191,18 @@ export const MODULE_CATALOG = {
             '  for more is not an error, it is just trimmed — but three dates read as a',
             '  recommendation and eight read as a list, so choose the count you mean.',
             'heading: string | null  (default null = use the built-in headings)',
-            'card_signal: "price_trend" | null  (default null)',
-            '  A signal in the slot beside each row\'s price, e.g. "↓ 4% this week". Shows',
-            '  on every date in the section or none — reach for it when this visitor is',
-            '  weighing when to buy rather than which date.',
+            'card_signal: null | one of                    (default null)',
+            '    "price_trend"            "↓ 4% this week" — the same date, last week',
+            '    "price_gap_to_cheapest"  "$18 over cheapest" — the other dates here',
+            '    "typical_seat_price"     "Typical seat ~$210" — the rest of this date',
+            '  The slot beside each row\'s "From $76" button, and its job is to give that',
+            '  number a reference point. On its own the get-in price is one listing, often',
+            '  the worst seat in the building: it does not say whether $76 is cheap for',
+            '  this tour, cheap against the other dates shown, or anything about what a',
+            '  seat someone would actually want costs. Each option answers a different',
+            '  one of those, so pick the comparison this visitor needs.',
+            '  Shows on every date in the section or none — that is what makes the rows',
+            '  comparable, and it is why there is no "only where interesting" option.',
             'badges: array of ["deals_available" | "selling_fast" | "tickets_left" |',
             '  "fans_viewed" | "newly_released"]  (default ["deals_available", "tickets_left"])',
             '  An allowlist, not an instruction: a date shows a badge only if you',

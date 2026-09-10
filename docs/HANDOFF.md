@@ -63,9 +63,12 @@ replayed composition keeps its original cost in the panel, so it never looks fre
 - Choose **which badges a section may surface**, from five DS badges. An
   allowlist, not an instruction: a row shows one only if the section allowed it
   *and* the date qualifies, so rows share a vocabulary without being identical.
-- Fill the slot beside each row's CTA with a **per-row price trend**
-  (`card_signal`) — section-level, so a section either compares its dates on
-  price movement or it does not.
+- Choose **which reference point the row's get-in price gets**, via
+  `card_signal` — the same date last week (`price_trend`), the other dates the
+  section is showing (`price_gap_to_cheapest`), or the rest of the listings on
+  that date (`typical_seat_price`). Section-level, so it renders on every row or
+  none. That is the slot's stated purpose: "From $76" is one listing, often the
+  worst seat in the building, and each option gives it a different reference.
 - Compose the rail card by **picking which of eight stats appear, in order**.
   Every stat makes a claim about the tour, so its wording and its number are
   ours (`src/modules/market-signals/signals.ts`). Its title is fixed at
@@ -448,10 +451,15 @@ more effort or more data.
 
 Roughly in order:
 
-1. **A second `card_signal`.** The slot beside the CTA now holds a price trend,
-   and the prop is an enum precisely so it can hold something else — inventory
-   depth, a view-quality signal, the typical price against the get-in. One more
-   value makes the choice itself meaningful.
+1. **Read whether the model now uses `card_signal`.** It declined it in four of
+   five runs while there was one value, which was the model correctly following
+   a `propsHint` that reserved `price_trend` for a visitor weighing *when* to
+   buy — our brief is someone weighing *which date*. There are now three values
+   and a stated purpose, so the next run says whether the surface was
+   under-specified or genuinely unwanted. Candidates considered and cut are in
+   the exploration worktree's `docs/CARD-SIGNAL-CANDIDATES.md`; the shortlist
+   worth revisiting is a tour-level `price_vs_typical`, which flattens inside a
+   price-filtered section and so is strongest in a broad one.
 2. **`listing_preview`.** The one wanted module still missing, and the only one
    that pairs with a chosen date rather than the tour. Needs top-listings-per-
    event data, which the snapshot does not carry.

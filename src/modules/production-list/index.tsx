@@ -5,6 +5,7 @@ import Typography from '@/design-system/typography'
 import { ChevronDownIcon } from '@/design-system/icons'
 
 import type { ModuleComponentProps } from '../types'
+import { cardSignalFor } from './card-signal'
 import ProductionCard from './ProductionCard'
 import { selectProductions, type ProductionListProps } from './select'
 import styles from './index.module.scss'
@@ -46,6 +47,12 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
     // section coming back empty is feedback about the composition, not something
     // the visitor needs to know.
     if (groups.length === 0) return null
+
+    // Every row this section renders, across geo groups. The set the signals
+    // compare against is the section's own — two sections can each have their
+    // own cheapest date, which is right, because the slot compares within the
+    // list a visitor is actually scanning.
+    const shown = groups.flatMap((group) => group.productions)
 
     return (
         <section
@@ -102,7 +109,7 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
                                 performerName={market.performer.name}
                                 isTopPick={production.id === topPickId}
                                 eligibleBadges={props.badges}
-                                signal={props.card_signal}
+                                signal={cardSignalFor(production, props.card_signal, shown)}
                             />
                         ))}
                     </div>

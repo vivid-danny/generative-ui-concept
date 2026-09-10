@@ -51,7 +51,7 @@ more than novelty.
   about the tour appear and in what order; the sentence, the number and the
   card's title are all ours.
 - Sort, size, filter fields
-- Which secondary signal a section leads with (`card_signal`)
+- Which reference point a row's price gets (`card_signal`)
 
 `top_pick` is the interesting edge. The model names a production id, which is
 free text in the schema sense — but the validator checks it against the snapshot
@@ -60,6 +60,13 @@ out of an enumerated set: the dates that exist. **A free-text field the validato
 can check against reality behaves like a selective one.** The generative-looking
 part, the recommendation's *reason*, stays in `reasoning` where nothing on the
 card has to be true of it.
+
+A slot needs a stated purpose, not just a type. `card_signal` sat unused in four
+of five runs while it had one value, and the fix was not more options — it was
+saying what the slot is *for*: giving the get-in price a reference point. An
+enum with one value is a boolean in disguise, and a knob with no stated purpose
+reads as decoration. Both were true at once, and the purpose is the half that
+also tells you which options belong.
 
 A useful corollary from the rail card: an **ordered** selective list carries more
 intent than a set. The model saying "demand first, then price" is an editorial

@@ -16,9 +16,27 @@
     background: var(--surface-white);
 }
 
+// The top-pick outline is a gradient, which a border-color can't express. The
+// ring is a masked pseudo-element rather than a 2px gradient border, because a
+// 2px border would push the row's content in by 1px relative to every other
+// card. Inset -1px with a 2px band reproduces exactly the span the old 1px
+// border plus 1px box-shadow covered, and leaves the card's box untouched.
 .topPickCard {
-    border-color: var(--surface-primary-main, #ce3197);
-    box-shadow: 0 0 0 1px var(--surface-primary-main, #ce3197);
+    border-color: transparent;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        border-radius: calc(var(--radius-sm) + 1px);
+        padding: 2px;
+        background: linear-gradient(89deg, #1a1ddc 0%, #92138c 100%);
+        mask:
+            linear-gradient(#000 0 0) content-box,
+            linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        pointer-events: none;
+    }
 }
 
 // A tab on the card's top border, right-aligned — so the label reads as
@@ -30,17 +48,17 @@
 // Overridden here rather than added to the type scale, because this is one
 // card's treatment and not a style the design system declares.
 //
-// The overhang is a px value, not a percentage, and that matters: the padding
-// makes the tab 23px tall, so a half-straddle would reach 11.5px into the 8px
-// gap `.rows` leaves and paint over the card above. 6px keeps 2px of clearance.
-// Compact sections tighten that gap to 4px and shorten the shift to match — the
-// tighter rhythm is the point of compact, so the tab bends, not the list.
+// The overhang is a fixed length, not a percentage, and that matters: the
+// padding makes the tab 23px tall, so a half-straddle would reach 11.5px into
+// the 8px gap `.rows` leaves and paint over the card above. -0.35rem keeps a
+// little over 2px of clearance. Compact sections tighten that gap to 4px and
+// shorten the overhang to match — the tighter rhythm is the point of compact,
+// so the tab bends, not the list.
 .topPick {
     position: absolute;
-    top: 0;
-    right: var(--spacing-lg);
-    transform: translateY(var(--top-pick-shift, -6px));
-    padding: var(--spacing-xs) var(--spacing-sm);
+    top: var(--top-pick-top, -0.35rem);
+    right: 1.35rem;
+    padding: var(--spacing-xs) var(--spacing-md);
     border-radius: var(--radius-sm);
     background: var(--surface-primary-main, #ce3197);
     color: var(--text-contrast);
@@ -148,15 +166,15 @@
     white-space: nowrap;
 }
 
-// A price that has come down is the only one of the three worth colouring —
-// it is good news for the buyer. Up and steady stay neutral: making "prices
-// rose" red would be pressure dressed as information.
-.signalDown {
+// Only good news for the buyer gets colour — a price that has come down, or
+// the cheapest date in the section. Everything else stays neutral: colouring
+// "prices rose" red would be pressure dressed as information, and colouring
+// every row would make the colour mean nothing.
+.signalGood {
     color: var(--status-success-dark);
 }
 
-.signalUp,
-.signalFlat {
+.signalNeutral {
     color: var(--text-secondary);
 }
 

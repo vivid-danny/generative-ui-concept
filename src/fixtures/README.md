@@ -52,7 +52,7 @@ and is now the summed `fans_viewed_24h`.
 
 ### Shapes worth preserving
 
-Indianapolis has the lowest `floor_price` while St. Louis has the lowest
+Indianapolis has the lowest `floor_price` while Chicago's 12/05 has the lowest
 `median_price`, and neither is the best `value_score`. That is deliberate. It
 was originally about keeping `highlight: "cheapest"` and `"best_value"` on
 different rows; those enums are gone, but the property matters more now, not
@@ -60,6 +60,30 @@ less — a model-named `top_pick` is only interesting if the date it recommends 
 differ from the obvious one. If cheapest, best value and most in demand all
 collapse onto the same row, every recommendation looks like the same
 recommendation. A real capture should be checked for the same property.
+
+**The spread between `floor_price` and `median_price` varies by date, and that
+is load-bearing.** It used to be a near-constant multiple — 2.05 to 3.19,
+standard deviation 0.18 — because the generator multiplied rather than because
+anyone decided tour pricing works that way. A constant ratio makes
+`typical_seat_price` a restatement of the number already in the button, so the
+signal looks informative and says nothing. The multiples now run **1.30 to
+3.20**, standard deviation 0.54, on this read: the higher the demand, the
+*narrower* the spread, because on a marquee night the cheap end has already been
+bought and the surviving floor price is already a real seat; on a quiet night the
+upper deck is wide open and the floor price is a genuine nosebleed. Five named
+exceptions break the correlation with `demand_score`, because a signal that just
+restates demand is not worth a slot:
+
+| Date | Adjustment | Why |
+| --- | --- | --- |
+| `prod-004` Indianapolis | +0.45 | Deep unsold upper deck on a quiet night — the widest spread on the tour, and why the cheapest get-in is not the cheapest seat. |
+| `prod-052` LA, Kia Forum | +0.75 | A marquee night that bucks the base read: enormous cheap inventory still unsold. |
+| `prod-027` Palm Springs | −0.85 | A small room priced alike throughout, despite low demand. |
+| `prod-005` St. Louis | −0.55 | Honest pricing on a cheap date. |
+| `prod-013` Memphis | −0.30 | Same, less pronounced. |
+
+The script that applied this lives at `.context/gen-spread.mjs`, which is
+git-ignored like `gen-market.mjs` — the table above is the durable record.
 
 A few dates are authored as deliberately interesting orchestration cases: a couple
 of cheap weeknight "hidden gems" with high demand and high `value_score` (e.g.
@@ -70,8 +94,17 @@ low `value_score`), and mid-market weekends that are unremarkable on every axis.
 ### Authoring invariants (the test suite pins these — preserve on any edit)
 
 - The global-minimum `floor_price` is a **non-Chicago** date (Indianapolis $54) and
-  is a **different date** than the minimum `median_price` (St. Louis $151), so
-  `cheapest` ≠ `best_value` (`select.test.ts`).
+  is a **different date** than the minimum `median_price` (Chicago 12/05, $123),
+  so the cheapest get-in and the cheapest typical seat are never the same row
+  (`select.test.ts`, `card-signal.test.ts`).
+- **The get-in ordering inverts against the typical-seat ordering on at least one
+  pair.** Indianapolis is `From $54 · Typical seat ~$175`; Chicago 12/05 is
+  `From $76 · Typical seat ~$125`. The button column and the signal column
+  disagree about which date is cheaper, which is the entire reason
+  `typical_seat_price` exists — remove the inversion and the signal becomes
+  decoration (`card-signal.test.ts`).
+- Every date has `median_price > floor_price`, and the multiple stays inside
+  1.3–3.2 (`card-signal.test.ts`).
 - At least one **Chicago** date sits within the 20 lowest floor prices, and Chicago
   floors are not the global minimum, so geo-grouping visibly lifts the metro above a
   price sort (`select.test.ts`).

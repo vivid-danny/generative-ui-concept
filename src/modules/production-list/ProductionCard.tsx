@@ -5,7 +5,7 @@ import Typography from '@/design-system/typography'
 import type { Production } from '@/contracts/market'
 
 import { badgesFor, type BadgeId, type BadgeTone } from './badges'
-import { cardSignalFor, type CardSignal } from './trend'
+import type { CardSignalValue, SignalTone } from './card-signal'
 import styles from './ProductionCard.module.scss'
 
 /**
@@ -41,17 +41,20 @@ export interface ProductionCardProps {
      */
     eligibleBadges?: readonly BadgeId[]
     /**
-     * The signal this section shows beside the CTA, if any. Section-level, so
-     * every row in a list gets the same one or none.
+     * The signal beside the CTA, already resolved.
+     *
+     * The module hands over a label rather than a signal id, because most of
+     * the signals compare this row against the others in the section and the
+     * card only ever sees one row. Section-level, so every row in a list gets
+     * one or none.
      */
-    signal?: CardSignal | null
+    signal?: CardSignalValue | null
 }
 
-/** Trend direction -> the card's own styling. Form, so it lives here. */
-const TREND_CLASS: Record<'down' | 'up' | 'flat', string> = {
-    down: styles.signalDown,
-    up: styles.signalUp,
-    flat: styles.signalFlat,
+/** Signal tone -> the card's own styling. Form, so it lives here. */
+const SIGNAL_CLASS: Record<SignalTone, string> = {
+    good: styles.signalGood,
+    neutral: styles.signalNeutral,
 }
 
 /** Badge tone -> the card's own styling. Form, so it lives here. */
@@ -76,7 +79,7 @@ export const ProductionCard: React.FC<ProductionCardProps> = ({
     const date = new Date(production.date)
     // Which badges the section allowed, narrowed to the ones true of this date.
     const badges = badgesFor(production, eligibleBadges)
-    const signalValue = cardSignalFor(production, signal)
+
 
     return (
         <article className={classNames(styles.card, { [styles.topPickCard]: isTopPick })}>
@@ -138,13 +141,13 @@ export const ProductionCard: React.FC<ProductionCardProps> = ({
                   section decides what fills it — the same fact on every row, or
                   nothing at all.
                 */}
-                {signalValue && (
+                {signal && (
                     <Typography
                         variant="caption"
                         component="span"
-                        className={classNames(styles.signal, TREND_CLASS[signalValue.direction])}
+                        className={classNames(styles.signal, SIGNAL_CLASS[signal.tone])}
                     >
-                        {signalValue.label}
+                        {signal.label}
                     </Typography>
                 )}
                 <button type="button" className={styles.cta}>

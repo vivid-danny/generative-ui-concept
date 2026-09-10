@@ -4,7 +4,7 @@ import type { Market, Production, ProductionTrait, SelloutRisk } from '@/contrac
 import { daysOut, isWeekend } from '@/orchestration/derive'
 
 import type { BadgeId } from './badges'
-import type { CardSignal } from './trend'
+import type { CardSignal } from './card-signal'
 
 /**
  * Turns a validated `production_list` props object into the exact rows to
