@@ -45,14 +45,34 @@ replayed composition keeps its original cost in the panel, so it never looks fre
 ### What the orchestrator can do now
 
 - Place `production_list` **up to three times as sections**, each naming itself
-  via `heading`. Given a national tour it built "Home turf: United Center,
-  Chicago", "Milwaukee — an easy weekend drive" and "Indianapolis — a bit
-  further, well worth it", with no validator repairs.
-- Reason about **geography from city names alone** (prompt v3). No distance
-  field, no tiers — it knows Memphis is a flight from Chicago.
-- Read a **freeform brief** that overrides the structured context. Given one
-  naming Cleveland against a Chicago fixture, it composed around Rocket Mortgage
-  FieldHouse and said why.
+  via `heading`.
+- Scope a section by **price, city, demand, value, sales velocity, sellout risk,
+  or a date's traits** — so a heading like "likely to sell out" has a real
+  collection behind it rather than words over an unfiltered list.
+- Sort by `date`, `price`, `value` or `demand`, and highlight one row.
+- Choose **which badges a section may surface**, from five DS badges. An
+  allowlist, not an instruction: a row shows one only if the section allowed it
+  *and* the date qualifies, so rows share a vocabulary without being identical.
+- Reason about **geography from city names alone** — no distance field, no tiers.
+- Read a **freeform brief** that overrides the structured context.
+
+### What it costs
+
+About **$0.04 and 34 seconds** a call, after three changes worth knowing about:
+
+- The market snapshot is minified. Indentation was ~3,000 tokens a call.
+- The message is ordered stable-first, volatile-last, because prompt caching
+  matches on a prefix and the brief was sitting ahead of 9,000 tokens of
+  inventory that never changes.
+- `--effort medium`. This was the big one — tokens fell 19% while cost fell 76%,
+  so most of the saving was the model no longer thinking harder than the task
+  needs.
+
+**Watch the quality tradeoff.** At medium effort it scoped the drive-away
+sections by city alone, where a high-effort run had also filtered on the
+visitor's $80 ceiling. If compositions start reading carelessly, `--effort high`
+now costs ~$0.10 rather than the $0.179 it did before, since the token cuts are
+independent of effort.
 
 ### What it cannot compose away
 
@@ -332,49 +352,57 @@ sort/highlight were left unchanged — that wiring belongs with the module work 
 
 ## Next steps
 
-**Where the thinking landed.** Danny's demo is him narrating a visitor to a room,
-typing that context in, and watching the page assemble. The composability is what
-he is showing — filters and inputs are understood product surface. So the value
-is in **how many modules the orchestrator has to choose between**, and in the
-quality of its choices. Polishing inputs is explicitly not the priority.
+**How to decide what to build: read the eval output.** The loop is data → a
+surface that exposes it → a line in the prompt or catalog describing it →
+guardrails → one eval run → read what the model reached for that does not exist.
+That last part is the sequencing signal, and it has been right every time so far:
+the invented `focus_metro` prop is what led to sections, and the invented
+`sort_by` is what led to `propsHint`.
 
-Right now it has one placeable module used up to three times. That already
-produces real geography. More modules is what makes "which modules appear" the
-visible story.
+**What the latest run exposed.** The brief says she "can drive a few hours **on a
+weekend** but not fly." The model has no way to act on that — there is no
+weekend or lead-time dimension in the filter, and `src/orchestration/derive.ts`
+already computes `isWeekend`, `isWeeknight` and `daysOut` but is consumed by
+nothing except its own test. That is the smallest gap with the clearest evidence
+behind it.
 
-1. **Author the real eval scenarios and read the output.** One brief exists
-   (`src/fixtures/eval-scenarios.ts`) and it works. The next step is scenarios
-   that put budget, distance, popularity and date flexibility in genuine tension,
-   then running them **one at a time** and reading the gaps. This is how to
-   sequence what to build — the validator notes are design feedback, not noise.
-   A useful trick: offer the model the *whole* catalog rather than the
-   implemented subset, and you learn whether it reaches for a module before you
-   build it.
-2. **`date_compare`** — 52 dates is where "which night is worth it" earns a
-   module, and `value_score` exists to power it.
-3. **`venue_alternatives`** — in the catalog, not implemented. Might turn out
-   unnecessary now that `production_list` can section by geography; the eval will
-   say.
-4. **`budget_entry`** — see `docs/PLAN-budget-entry.md`, which was reframed after
-   the demo conversation: the module matters as a second thing to choose between,
-   the input does not need polish, and the control belongs in the drawer.
-5. **Restore `STRUCTURAL_RULES.minModules` to 3** once three orchestrated modules
-   exist. It sits at 1 only because a floor of 3 would fail every spec today.
-6. **Extend the evals to compare rendered output**, and to assert two contexts
-   differ in *which modules appear* rather than only in props. Nothing tests that
-   yet, and it is the property the prototype rests on.
-7. **Regenerate the committed spec library** through the live provider — the
-   three specs in `src/orchestration/specs/` are hand-authored and say so.
+Then, roughly in order:
 
-**Hosting is not near-term.** Vercel only becomes worth considering once the local
-experience is solid, and live orchestration cannot go with it. Build for
-`npm run dev` on a laptop.
+1. **Weekend and lead time as filter dimensions.** Wire `derive.ts` into
+   `selectProductions` and add the criteria to `FilterSchema`. A "weekend nights
+   within driving distance" collection is exactly the shape the brief asks for
+   and cannot currently be built.
+2. **The slot freed beside the CTA.** The card's price moved into the button and
+   left a gap. What earns it is an open design question — median price, a
+   view-quality signal, inventory depth — and deciding it is the point, not
+   filling it.
+3. **Card variants beyond badges.** The composability Danny is most interested
+   in: which secondary signal a section's cards lead with. Per
+   `docs/COMPOSABILITY.md`, section-level and enumerated, never per row.
+4. **Restore `STRUCTURAL_RULES.minModules` to 3** once three orchestrated modules
+   exist. Still 1, because a floor of 3 would fail every spec — there is one
+   placeable module, used up to three times.
+5. **Extend the evals to compare rendered output**, and to assert that two
+   contexts differ in *which modules appear* rather than only in props.
 
-Deferred: ticket-level `listing_preview` (needs a production-page design),
-`view_from_seat_value`, `price_trend`, `sellout_urgency`, `screen-sm` mobile
-(Figma `17055:179204`), the composition-assembly animation, session signals and
-live re-orchestration (Stage 4), real snapshot capture, and replacing the mode
-buttons with a single text box.
+**Still unsurfaced data:** `inventory_by_tier` and `listings_sample`'s
+`deal_score` are read by nothing at all. `price_trend_7d` reaches the page only
+through the "Deals Available" badge. Each is a candidate surface, but let the
+eval say which is wanted rather than building on inventory alone.
+
+**A small honesty bug in the panel.** The drawer showed "replayed from cache" on
+a composition made seconds earlier — Next's dev server appears to invoke
+`getServerSideProps` twice on a cold compile, so the first call pays and caches
+and the second replays. Only one call is billed, but the note misleads.
+
+**Hosting is not near-term.** Vercel only becomes worth considering once the
+local experience is solid, and live orchestration cannot go with it.
+
+Deferred: `budget_entry` (see `docs/PLAN-budget-entry.md`), `date_compare`,
+`venue_alternatives` — which may be unnecessary now that a list can section by
+geography — `sellout_urgency`, ticket-level `listing_preview`, `screen-sm` mobile,
+the assembly animation, session signals and live re-orchestration, real snapshot
+capture.
 
 ## Guardrails (source plan §8 — no exceptions)
 

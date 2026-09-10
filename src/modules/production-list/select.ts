@@ -1,6 +1,8 @@
 import type { Context } from '@/contracts/context'
 import type { Market, Production, ProductionTrait, SelloutRisk } from '@/contracts/market'
 
+import { daysOut, isWeekend } from '@/orchestration/derive'
+
 import type { BadgeId } from './badges'
 
 /**
@@ -20,6 +22,9 @@ export interface ProductionListProps {
         min_sales_velocity?: number
         sellout_risk?: SelloutRisk
         has_trait?: ProductionTrait
+        day_type?: 'weekend' | 'weeknight'
+        max_days_out?: number
+        min_days_out?: number
     }
     sort: 'date' | 'price' | 'value' | 'demand'
     highlight: 'best_value' | 'cheapest' | 'soonest' | null
@@ -46,6 +51,11 @@ export interface ProductionGroup {
 
 export interface Selection {
     groups: ProductionGroup[]
+    /**
+     * True when an earlier section had already claimed dates. Lets an empty
+     * section explain itself honestly rather than blaming the filter.
+     */
+    claimedByAnotherSection?: boolean
     /** Production id the composition wants noticed, if any. */
     highlightedId: string | null
     /** How many dates the filter removed. Shown so the page never lies by omission. */
@@ -76,10 +86,22 @@ export function selectProductions(
     market: Market,
     context: Context,
     props: ProductionListProps,
+    /**
+     * Dates an earlier section already showed.
+     *
+     * A date must not appear twice on one page — a "weekend road trip" section
+     * repeating the visitor's home-city night makes the page look like it is
+     * padding. This is enforced here rather than asked of the orchestrator,
+     * because a rule the model can reason its way around is not a hard rule.
+     * The renderer accumulates the set in section order, so the first section to
+     * claim a date keeps it, which matches the deliberate hero-first ordering.
+     */
+    exclude?: ReadonlySet<string>,
 ): Selection {
     const { filter, sort, highlight, group_by_geo: groupByGeo, max_items: maxItems } = props
 
     const matching = market.productions.filter((production) => {
+        if (exclude?.has(production.id)) return false
         if (filter?.max_price !== undefined && production.floor_price > filter.max_price) return false
         if (filter?.city !== undefined && production.city !== filter.city) return false
         if (filter?.min_demand_score !== undefined && production.demand_score < filter.min_demand_score)
@@ -95,6 +117,19 @@ export function selectProductions(
             return false
         if (filter?.has_trait !== undefined && !production.traits.includes(filter.has_trait))
             return false
+        // Derived from the date rather than stored: the calendar is not a
+        // property of the inventory, and a fixture that hardcoded weekdays
+        // would go wrong the moment the dates moved.
+        if (filter?.day_type !== undefined) {
+            const weekend = isWeekend(production.date)
+            if (filter.day_type === 'weekend' && !weekend) return false
+            if (filter.day_type === 'weeknight' && weekend) return false
+        }
+        if (filter?.max_days_out !== undefined || filter?.min_days_out !== undefined) {
+            const out = daysOut(production.date, market.captured_at)
+            if (filter.max_days_out !== undefined && out > filter.max_days_out) return false
+            if (filter.min_days_out !== undefined && out < filter.min_days_out) return false
+        }
         return true
     })
 
@@ -127,6 +162,47 @@ export function selectProductions(
     return {
         groups,
         highlightedId,
-        filteredOutCount: market.productions.length - matching.length,
+        // Counted against what this section could have shown, so a date claimed
+        // by an earlier section is not reported as something the filter removed.
+        filteredOutCount: market.productions.length - (exclude?.size ?? 0) - matching.length,
+        claimedByAnotherSection: exclude !== undefined && exclude.size > 0,
     }
+}
+
+/**
+ * The exclusion set for each entry in a layout, in render order.
+ *
+ * Lives here rather than in the renderer because working out which dates a
+ * section will claim means running that section's selection, and that is this
+ * module's business. The renderer and the demo panel both consume it, so
+ * computing it once in one place is what keeps the page and the panel telling
+ * the same story.
+ *
+ * Returns an array aligned to `layout` — `undefined` for entries that are not
+ * production lists, so callers can index straight into it.
+ */
+export function resolveExclusions(
+    layout: readonly { module: string; props: Record<string, unknown> }[],
+    market: Market,
+    context: Context,
+): (ReadonlySet<string> | undefined)[] {
+    const claimed = new Set<string>()
+
+    return layout.map((entry) => {
+        if (entry.module !== 'production_list') return undefined
+
+        // What this section sees, given everything claimed before it.
+        const exclude = new Set(claimed)
+        const selection = selectProductions(
+            market,
+            context,
+            entry.props as unknown as ProductionListProps,
+            exclude,
+        )
+        for (const group of selection.groups) {
+            for (const production of group.productions) claimed.add(production.id)
+        }
+
+        return exclude
+    })
 }

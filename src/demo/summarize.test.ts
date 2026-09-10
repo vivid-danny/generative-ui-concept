@@ -142,3 +142,92 @@ describe('summarizeComposition with repeated sections', () => {
         expect(summary.modules).toHaveLength(2)
     })
 })
+
+describe('summarizeComposition — no date twice, empty sections reported', () => {
+    const section = (heading: string, props: Record<string, unknown> = {}) => ({
+        module: 'production_list',
+        size: 'standard' as const,
+        props: {
+            heading,
+            sort: 'date',
+            highlight: null,
+            group_by_geo: false,
+            max_items: 20,
+            ...props,
+        },
+    })
+
+    it('does not show the same date in two sections', () => {
+        // The bug this exists for: a "weekend road trip" section repeated the
+        // visitor's own Chicago night, which makes the page look like padding.
+        const spec = {
+            layout: [
+                section('In Chicago', { filter: { city: 'Chicago' } }),
+                section('Weekend trips', { filter: { day_type: 'weekend', max_price: 80 } }),
+            ],
+            reasoning: 'overlapping filters',
+            headline: null,
+        }
+        const summary = summarizeComposition(spec, market, context)
+        const ids = summary.groups.flatMap((group) => group.rows.map((row) => row.id))
+
+        expect(new Set(ids).size).toBe(ids.length)
+    })
+
+    it('gives the date to the first section that claims it', () => {
+        const spec = {
+            layout: [
+                section('First claim', { filter: { city: 'Chicago' } }),
+                section('Second', { filter: { city: 'Chicago' } }),
+            ],
+            reasoning: 'both want Chicago',
+            headline: null,
+        }
+        const summary = summarizeComposition(spec, market, context)
+
+        expect(summary.groups.map((group) => group.label)).toEqual(['First claim'])
+    })
+
+    it('reports a section left empty because another took its dates', () => {
+        const spec = {
+            layout: [
+                section('First claim', { filter: { city: 'Chicago' } }),
+                section('Second', { filter: { city: 'Chicago' } }),
+            ],
+            reasoning: 'both want Chicago',
+            headline: null,
+        }
+        const summary = summarizeComposition(spec, market, context)
+
+        expect(summary.emptySections).toEqual([
+            { heading: 'Second', reason: 'already shown above' },
+        ])
+    })
+
+    it('distinguishes an empty section from one whose filter matched nothing', () => {
+        const spec = {
+            layout: [section('Impossible', { filter: { max_price: 1 } })],
+            reasoning: 'nothing is this cheap',
+            headline: null,
+        }
+        const summary = summarizeComposition(spec, market, context)
+
+        expect(summary.emptySections).toEqual([{ heading: 'Impossible', reason: 'no matches' }])
+    })
+
+    it('does not count a claimed date against the filter', () => {
+        // `filteredOut` says "removed by a filter". A date another section is
+        // already showing was not filtered out of the page.
+        const spec = {
+            layout: [
+                section('First', { filter: { city: 'Chicago' } }),
+                section('Rest', {}),
+            ],
+            reasoning: 'first claims Chicago',
+            headline: null,
+        }
+        const summary = summarizeComposition(spec, market, context)
+
+        expect(summary.filteredOut).toBe(0)
+    })
+})

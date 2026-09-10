@@ -251,3 +251,65 @@ describe('selectProductions — value and demand sorts', () => {
         expect(byValue.highlightedId).not.toBe(byPrice.highlightedId)
     })
 })
+
+describe('selectProductions — weekend and lead time', () => {
+    const pick = (overrides: Partial<ProductionListProps>) =>
+        selectProductions(market, context, props({ group_by_geo: false, max_items: 52, ...overrides }))
+            .groups.flatMap((group) => group.productions)
+
+    // Fri=5, Sat=6, Sun=0 — read off the local date, matching derive.ts.
+    const dayOf = (production: { date: string }) => new Date(production.date).getDay()
+    const isWeekendDay = (production: { date: string }) => [5, 6, 0].includes(dayOf(production))
+
+    it('scopes to weekend nights', () => {
+        // The gap the eval exposed: the brief said she could travel "on a
+        // weekend" and there was no way to build that collection.
+        const shown = pick({ filter: { day_type: 'weekend' } })
+
+        expect(shown.length).toBeGreaterThan(0)
+        expect(shown.every(isWeekendDay)).toBe(true)
+    })
+
+    it('scopes to weeknights', () => {
+        const shown = pick({ filter: { day_type: 'weeknight' } })
+
+        expect(shown.length).toBeGreaterThan(0)
+        expect(shown.every((production) => !isWeekendDay(production))).toBe(true)
+    })
+
+    it('splits the tour between the two, losing nothing', () => {
+        const weekend = pick({ filter: { day_type: 'weekend' } }).length
+        const weeknight = pick({ filter: { day_type: 'weeknight' } }).length
+
+        expect(weekend + weeknight).toBe(market.productions.length)
+    })
+
+    it('scopes to dates within a lead time', () => {
+        const shown = pick({ filter: { max_days_out: 120 } })
+        const captured = new Date(`${market.captured_at}T00:00:00`)
+
+        expect(shown.length).toBeGreaterThan(0)
+        expect(shown.length).toBeLessThan(market.productions.length)
+        for (const production of shown) {
+            const out = (new Date(production.date).getTime() - captured.getTime()) / 86_400_000
+            expect(out).toBeLessThanOrEqual(121)
+        }
+    })
+
+    it('scopes to dates beyond a lead time', () => {
+        const soon = pick({ filter: { max_days_out: 120 } }).map((p) => p.id)
+        const later = pick({ filter: { min_days_out: 121 } }).map((p) => p.id)
+
+        expect(soon.some((id) => later.includes(id))).toBe(false)
+        expect(soon.length + later.length).toBe(market.productions.length)
+    })
+
+    it('combines a weekend with distance and budget, which is what the brief asks for', () => {
+        const shown = pick({
+            filter: { day_type: 'weekend', city: 'Milwaukee', max_price: 80 },
+        })
+
+        expect(shown.every((p) => isWeekendDay(p) && p.city === 'Milwaukee' && p.floor_price <= 80))
+            .toBe(true)
+    })
+})

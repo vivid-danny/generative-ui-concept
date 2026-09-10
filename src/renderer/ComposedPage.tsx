@@ -5,6 +5,7 @@ import type { LayoutSpec } from '@/contracts/layout-spec'
 import type { Market } from '@/contracts/market'
 import { isModuleId } from '@/contracts/module-catalog'
 import { getModuleComponent } from '@/modules/registry'
+import { resolveExclusions } from '@/modules/production-list/select'
 
 /**
  * Spec -> components. The renderer is dumb (source plan §2, principle 3): it
@@ -42,7 +43,12 @@ function moduleKey(entry: { module: string; props: Record<string, unknown> }, in
         : `${entry.module}:${index}`
 }
 
-export const ComposedPage: React.FC<ComposedPageProps> = ({ spec, market, context }) => (
+export const ComposedPage: React.FC<ComposedPageProps> = ({ spec, market, context }) => {
+    // Worked out once, in render order, so a date claimed by an earlier section
+    // cannot appear again further down the page.
+    const exclusions = resolveExclusions(spec.layout, market, context)
+
+    return (
     <>
         {spec.layout.map((entry, index) => {
             // Unreachable for a validated spec — the validator drops unknown and
@@ -60,10 +66,12 @@ export const ComposedPage: React.FC<ComposedPageProps> = ({ spec, market, contex
                     size={entry.size ?? 'standard'}
                     props={entry.props}
                     headline={spec.headline}
+                    excludeItemIds={exclusions[index]}
                 />
             )
         })}
     </>
-)
+    )
+}
 
 export default ComposedPage

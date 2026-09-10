@@ -16,4 +16,12 @@ export interface ModuleComponentProps<P = Record<string, unknown>> {
     props: P
     /** Page-level framing line from the spec, if the orchestrator wrote one. */
     headline: string | null
+    /**
+     * Items an earlier section on this page already showed.
+     *
+     * A layout-level concern rather than a prop: whether a date is still
+     * available to a section depends on its siblings, which the orchestrator
+     * cannot be asked to track and should not have to.
+     */
+    excludeItemIds?: ReadonlySet<string>
 }

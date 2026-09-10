@@ -23,25 +23,27 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
     context,
     size,
     props,
+    excludeItemIds,
 }) => {
     // No "see all" escape hatch here. The composition does narrow the list — by
     // budget filter and by max_items — and the visitor still has to be able to
     // reach every date, but that guarantee lives in the shell's FullTourList,
     // which no composition can remove. A copy inside the module just meant two
     // identical buttons stacked on the base variant.
-    const { groups, highlightedId } = selectProductions(market, context, props)
+    const { groups, highlightedId } = selectProductions(
+        market,
+        context,
+        props,
+        excludeItemIds,
+    )
 
-    if (groups.length === 0) {
-        return (
-            <section className={styles.module}>
-                <div className={styles.empty}>
-                    <Typography variant="body">
-                        No dates match this filter. Try raising the budget.
-                    </Typography>
-                </div>
-            </section>
-        )
-    }
+    // An empty section renders nothing at all. An empty state here would be
+    // furniture explaining its own absence — the composition simply asked for a
+    // collection that has no members, and the page reads better without the
+    // apology. The panel reports it instead, which is where it is useful: a
+    // section coming back empty is feedback about the composition, not something
+    // the visitor needs to know.
+    if (groups.length === 0) return null
 
     return (
         <section

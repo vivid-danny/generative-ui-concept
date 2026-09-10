@@ -174,6 +174,16 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
                             ))}
                         </ul>
 
+                        {summary.emptySections.length > 0 && (
+                            <ul className={styles.notes}>
+                                {summary.emptySections.map((section) => (
+                                    <li key={section.heading} className={styles.noteRepaired}>
+                                        {`empty: ${section.heading} — ${section.reason}`}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+
                         <p className={styles.tally}>
                             {summary.shown} of {summary.total} dates shown
                             {summary.filteredOut > 0 && (

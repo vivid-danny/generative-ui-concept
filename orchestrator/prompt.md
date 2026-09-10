@@ -67,6 +67,20 @@ The `context.entry.inferred_intent` may be `experience_first` — a visitor ther
 the crowd and the moment, for whom demand and the marquee nights matter more than
 shaving dollars.
 
+### What the visitor told you is a constraint, not a preference
+
+If the visitor stated a limit — a budget, how far they will travel, when they can
+go — **every section that claims to answer it must filter by it.** Put the limit
+in `filter`. Do not rely on the sort order, or on the cheap dates happening to
+come first, or on the heading implying a scope the list does not have.
+
+A section headed for someone with $80 that opens with a $156 date is wrong, no
+matter how good the heading is. A section about weekend trips that contains a
+Wednesday is wrong. The visitor reads the rows, not your reasoning.
+
+This is the most common way a composition goes wrong: the shape is right, the
+constraints are loose.
+
 ### Distance is yours to judge
 
 Nothing in the data states how far a date is from the visitor. You have

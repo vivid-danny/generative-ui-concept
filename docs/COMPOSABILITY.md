@@ -58,6 +58,50 @@ list are exactly what destroys comparability.
 
 A card variant is a variant, not a freeform canvas.
 
+## Inventiveness over consistency, for now
+
+There is a live tension between a tighter composition and a more inventive one,
+and we have chosen inventive.
+
+The prompt once carried a closing instruction to re-read the brief and check each
+section held to it. With it, every section came back carrying all of the
+visitor's constraints — correct, and a little samey. Without it, the model
+invented a section we had not imagined: "The biggest nights on the tour, for
+reference", deliberately unfiltered, showing $236 New York and $214 LA to a
+visitor with an $80 ceiling, framed as aspirational rather than buyable. That is
+a better idea than anything in the prompt, and it came from leaving room.
+
+So the line is out. **Put it back when the model starts making poorer choices**
+— the likely trigger is more modules and more props, where the added optionality
+crowds out care. The symptom to watch for is constraints going loose while the
+shape stays plausible: a section headed for someone on a budget that quietly
+opens with a date they cannot afford.
+
+Two things make that reversible cheaply. The line is one paragraph in
+`orchestrator/prompt.md`, and the rules that must not bend are enforced in code
+rather than asked for in the prompt — see the next section.
+
+## Hard rules go in code, not the prompt
+
+A rule the model can reason its way around is not a rule. Two now live in code:
+
+- **No date appears twice on a page.** Enforced by an exclusion set the renderer
+  accumulates in section order (`resolveExclusions` in
+  `src/modules/production-list/select.ts`), not by asking the orchestrator to
+  track what it has already used. It fixed an existing composition — the same
+  spec that had repeated a Chicago date rendered clean without a new call.
+- **A module may repeat at most three times, and each instance must name
+  itself.** `STRUCTURAL_RULES` in `src/orchestration/validate.ts`.
+
+The test for where a rule belongs: if the page would be wrong when the rule is
+broken, enforce it in code. If it is a judgment about what serves this visitor,
+put it in the prompt and let the model weigh it.
+
+Note what this leaves the model free to do. The constraint rule in the prompt
+says every section *that claims to answer* a stated limit must filter by it — and
+the model found the gap, writing a section that declines to make that claim. That
+is not a loophole to close; it is the model using the room the rule left it.
+
 ## What this means in practice
 
 When adding a module or a prop, ask in order:

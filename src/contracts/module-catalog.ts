@@ -68,6 +68,19 @@ const FilterSchema = z
         sellout_risk: SelloutRiskSchema.optional(),
         /** Only dates carrying this trait — e.g. the tour finale. */
         has_trait: ProductionTraitSchema.optional(),
+        /**
+         * Fri–Sun, or Mon–Thu. Derived from the date rather than stored, since
+         * the calendar is not a property of the inventory — see
+         * `src/orchestration/derive.ts`.
+         *
+         * Added because the eval brief said the visitor could travel "on a
+         * weekend" and the orchestrator had no way to act on it: it could write
+         * a heading about weekends over a list containing Wednesdays.
+         */
+        day_type: z.enum(['weekend', 'weeknight']).optional(),
+        /** Soonest and furthest out, in days from the snapshot date. */
+        max_days_out: z.number().int().positive().optional(),
+        min_days_out: z.number().int().nonnegative().optional(),
     })
     .strict()
 
@@ -132,10 +145,12 @@ export const MODULE_CATALOG = {
             '    min_sales_velocity?: 0-1   how fast it is moving right now',
             '    sellout_risk?: "low" | "moderate" | "high"',
             '    has_trait?: "tour_opener" | "tour_finale" | "special_guest" | "hometown_show"',
+            '    day_type?: "weekend" | "weeknight"   Fri-Sun, or Mon-Thu',
+            '    min_days_out?, max_days_out?: integer days from today',
             '  }',
-            '  Use these to build a collection the heading can honestly name — a',
-            '  "likely to sell out" section wants `sellout_risk: "high"` behind it,',
-            '  not just the words.',
+            '  A section is only really that collection if the filter says so — a',
+            '  "likely to sell out" section wants `sellout_risk: "high"` behind it, not',
+            '  just the words.',
             'sort: "date" | "price" | "value" | "demand"  (default "date")',
             '  "value" and "demand" sort by those scores, best first.',
             'highlight: "best_value" | "cheapest" | "soonest" | null  (default null)',
@@ -144,17 +159,9 @@ export const MODULE_CATALOG = {
             'heading: string | null  (default null = use the built-in headings)',
             'badges: array of ["deals_available" | "selling_fast" | "tickets_left" |',
             '  "fans_viewed" | "newly_released"]  (default ["deals_available", "tickets_left"])',
-            '  Which signals this section may surface. An allowlist, not an instruction:',
-            '  a date shows a badge only if you allowed it AND it is true of that date,',
-            '  so naming "selling_fast" marks the dates selling fast, not all of them.',
-            '  Choose by what this visitor is weighing — value signals for a',
-            '  price-sensitive browse, "fans_viewed" for someone chasing the big night,',
-            '  "tickets_left" where running out is the real risk.',
-            '  Two or three is plenty; allowing all five makes every row noisy, and a',
-            '  row shows at most two anyway. Roughly by how much each tends to change a',
-            '  buying decision: tickets_left > selling_fast > deals_available >',
-            '  newly_released > fans_viewed. Allow the ones that matter here, not the',
-            '  ones that are true.',
+            '  An allowlist, not an instruction: a date shows a badge only if you',
+            '  allowed it AND it is true of that date. Allow two or three that match',
+            '  what this visitor is weighing, not every one that happens to be true.',
             '',
             'You may place this module more than once to build sections — e.g. one',
             'filtered to the visitor\'s city, one for dates within driving range, one',

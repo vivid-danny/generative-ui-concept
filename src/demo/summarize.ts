@@ -1,7 +1,11 @@
 import type { Context } from '@/contracts/context'
 import type { LayoutSpec } from '@/contracts/layout-spec'
 import type { Market } from '@/contracts/market'
-import { selectProductions, type ProductionListProps } from '@/modules/production-list/select'
+import {
+    resolveExclusions,
+    selectProductions,
+    type ProductionListProps,
+} from '@/modules/production-list/select'
 
 /**
  * Turns a resolved spec into "what it actually composed" — the summary the
@@ -29,6 +33,12 @@ export interface RenderedGroup {
 
 export interface CompositionSummary {
     modules: { module: string; size: string }[]
+    /**
+     * Sections the orchestrator asked for that have no members, and why. Not
+     * shown to the visitor — an empty section renders nothing — so this is the
+     * only place the composition's misses are visible.
+     */
+    emptySections: { heading: string; reason: 'no matches' | 'already shown above' }[]
     groups: RenderedGroup[]
     /** Rows on the page. */
     shown: number
@@ -73,15 +83,38 @@ export function summarizeComposition(
     // gets read to understand what the composition actually did.
     const listEntries = spec.layout.filter((entry) => entry.module === 'production_list')
     if (listEntries.length === 0) {
-        return { modules, groups: [], shown: 0, total: market.productions.length, filteredOut: 0 }
+        return {
+            modules,
+            emptySections: [],
+            groups: [],
+            shown: 0,
+            total: market.productions.length,
+            filteredOut: 0,
+        }
     }
+
+    // The same exclusions the renderer applies, so the panel describes the page
+    // that is actually on screen rather than one section's view of it.
+    const exclusions = resolveExclusions(spec.layout, market, context)
+    const exclusionFor = new Map(
+        spec.layout.map((entry, index) => [entry, exclusions[index]] as const),
+    )
 
     const groups: RenderedGroup[] = []
     const shownIds = new Set<string>()
+    const emptySections: CompositionSummary['emptySections'] = []
 
     for (const entry of listEntries) {
         const props = entry.props as unknown as ProductionListProps
-        const selection = selectProductions(market, context, props)
+        const selection = selectProductions(market, context, props, exclusionFor.get(entry))
+
+        if (selection.groups.length === 0) {
+            emptySections.push({
+                heading: props.heading ?? '(unnamed section)',
+                reason: selection.claimedByAnotherSection ? 'already shown above' : 'no matches',
+            })
+            continue
+        }
 
         for (const group of selection.groups) {
             groups.push({
@@ -116,10 +149,12 @@ export function summarizeComposition(
     const admitted = new Set<string>()
     for (const entry of listEntries) {
         const props = entry.props as unknown as ProductionListProps
-        const uncapped = selectProductions(market, context, {
-            ...props,
-            max_items: market.productions.length,
-        })
+        const uncapped = selectProductions(
+            market,
+            context,
+            { ...props, max_items: market.productions.length },
+            exclusionFor.get(entry),
+        )
         for (const group of uncapped.groups) {
             for (const production of group.productions) admitted.add(production.id)
         }
@@ -128,6 +163,7 @@ export function summarizeComposition(
 
     return {
         modules,
+        emptySections,
         groups,
         shown,
         total: market.productions.length,
