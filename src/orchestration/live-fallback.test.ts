@@ -41,6 +41,7 @@ vi.mock('./bridge', () => ({
 }))
 
 import { LiveProvider } from './live'
+import { readCached } from './cache'
 
 const market = MarketSchema.parse(marketJson)
 const context = ContextSchema.parse(leahBudget80)
@@ -133,5 +134,47 @@ describe('LiveProvider', () => {
         const resolved = await new LiveProvider().getLayout(context, market)
 
         expect(resolved.spec.layout.length).toBeGreaterThan(0)
+    })
+})
+
+describe('LiveProvider — replaying a cached composition', () => {
+    it('re-validates on the way out, so a rule added in code repairs what was already paid for', async () => {
+        // The composition as it was stored: a named section that also asked for
+        // geo grouping, which prints its heading above every group. The repair
+        // for that landed after this spec was cached, and re-running the call to
+        // pick it up would cost real money.
+        vi.mocked(readCached).mockResolvedValueOnce({
+            spec: {
+                layout: [
+                    {
+                        module: 'production_list',
+                        size: 'hero',
+                        props: { heading: 'Packed nights, under $80', group_by_geo: true },
+                    },
+                ],
+                reasoning: 'stored earlier',
+                headline: null,
+            },
+            notes: [],
+            provenance: {
+                generated_at: '2026-09-10T19:11:11.672Z',
+                source: 'live',
+                model: 'claude-sonnet-5',
+                prompt_version: 'v4',
+                context_id: 'eval',
+                cost_usd: 0.15,
+                duration_ms: 159555,
+                input_tokens: 16506,
+            },
+        } as never)
+
+        const resolved = await new LiveProvider().getLayout(context, market)
+
+        expect(resolved.spec.layout[0].props.group_by_geo).toBe(false)
+        // The replay note still comes first, and the cost is still the original
+        // call's — a repaired replay must not read as a free fresh composition.
+        expect(resolved.notes[0].reason).toContain('replayed from cache')
+        expect(resolved.notes.some((note) => note.reason.includes('group_by_geo'))).toBe(true)
+        expect(resolved.provenance.cost_usd).toBe(0.15)
     })
 })

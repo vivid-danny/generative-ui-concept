@@ -204,8 +204,18 @@ export class LiveProvider implements OrchestrationProvider {
         if (!this.options.fresh) {
             const cached = await readCached(key)
             if (cached) {
+                // Re-validated on the way out, not trusted as stored. A rule
+                // added in code should repair the compositions already paid for
+                // rather than waiting for the next call — the no-duplicate-dates
+                // fix worked that way because exclusions are computed at render,
+                // and this makes the same true of prop repairs. Idempotent on a
+                // spec that already passed, so a replay with no rule changes
+                // reports nothing new.
+                const revalidated = validateLayout(cached.spec, market)
+
                 return {
                     ...cached,
+                    spec: revalidated.spec,
                     // The original provenance is kept as-is — including what the
                     // call cost — so the panel never implies this was free. The
                     // note is what tells you it is a replay.
@@ -215,6 +225,7 @@ export class LiveProvider implements OrchestrationProvider {
                             reason: `replayed from cache (composed ${cached.provenance.generated_at}); re-run for a fresh composition`,
                         },
                         ...cached.notes,
+                        ...revalidated.notes,
                     ],
                 }
             }

@@ -147,6 +147,37 @@ function repairProps(
  * snapshot — the case §3.4 misses. A `max_price` under every floor price passes
  * its schema and renders an empty module, which reads as a broken page.
  */
+/**
+ * Repairs where two props contradict each other, whatever the market says.
+ *
+ * `heading` and `group_by_geo` are the case that showed up: an explicit heading
+ * names the whole section, geo-grouping names each group, and the card's header
+ * prints the section heading once per group — so setting both renders the same
+ * title twice, above a one-row group and again above a seven-row group. That is
+ * a wrong page rather than a weak judgment, so it is impossible here rather than
+ * discouraged in the system prompt (docs/COMPOSABILITY.md).
+ *
+ * The heading wins because it is the more specific intent: the model wrote a
+ * line about what this section is, and it means to be read once.
+ */
+function repairContradictions(moduleId: ModuleId, props: Record<string, unknown>): string[] {
+    const repairs: string[] = []
+
+    if (moduleId !== 'production_list') return repairs
+
+    const heading = props.heading
+    const named = typeof heading === 'string' && heading.trim() !== ''
+
+    if (named && props.group_by_geo === true) {
+        props.group_by_geo = false
+        repairs.push(
+            'set `group_by_geo: false` (a section with its own `heading` would print that heading above every geo group)',
+        )
+    }
+
+    return repairs
+}
+
 function repairAgainstMarket(
     moduleId: ModuleId,
     props: Record<string, unknown>,
@@ -264,6 +295,7 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
             })
             continue
         }
+        repairs.push(...repairContradictions(entry.module, props))
         repairs.push(...repairAgainstMarket(entry.module, props, market))
         for (const repair of repairs) {
             notes.push({ level: 'repaired', module: entry.module, reason: repair })

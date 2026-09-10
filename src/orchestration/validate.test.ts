@@ -142,6 +142,39 @@ describe('validateLayout', () => {
         ])
     })
 
+    it('turns off geo grouping on a section that names itself', () => {
+        // Otherwise the card's header prints the section heading once per group:
+        // the same title above the metro group and again above the rest.
+        const result = validateLayout(
+            {
+                ...validSpec,
+                layout: [
+                    {
+                        module: 'production_list',
+                        props: { heading: 'Packed nights, under $80', group_by_geo: true },
+                    },
+                ],
+            },
+            market,
+        )
+
+        expect(result.spec.layout[0].props.group_by_geo).toBe(false)
+        expect(result.notes[0].level).toBe('repaired')
+        expect(result.notes[0].reason).toContain('group_by_geo')
+    })
+
+    it('leaves geo grouping alone on an unnamed section', () => {
+        // One list on the page with no heading of its own is exactly what the
+        // built-in "N Shows Near Chicago" headings are for.
+        const result = validateLayout(
+            { ...validSpec, layout: [{ module: 'production_list', props: { group_by_geo: true } }] },
+            market,
+        )
+
+        expect(result.spec.layout[0].props.group_by_geo).toBe(true)
+        expect(result.notes).toEqual([])
+    })
+
     it('strips a bad card signal back to null rather than dropping the section', () => {
         const result = validateLayout(
             {
