@@ -26,28 +26,33 @@ import type { ResolvedLayout } from '@/contracts/layout-spec'
 const CACHE_DIR = path.join(process.cwd(), '.cache', 'compositions')
 
 export interface CacheKeyParts {
+    /** Names the bucket, and shows up in the panel. */
     mode: string
-    /** The freeform brief, if any - the main thing that varies. */
-    brief: string | null
-    /** Whatever else distinguishes this request's context. */
-    contextId: string
-    promptVersion: string | null
-    /** Snapshot date, so a re-captured fixture invalidates. */
-    marketCapturedAt: string
+    /**
+     * The exact user message that would be sent. Hashing what actually goes to
+     * the model is what makes the cache honest: it covers the brief, the
+     * context, the market snapshot, the module catalog and every `propsHint` in
+     * one value, so editing any of them produces a different key.
+     *
+     * An earlier version enumerated a few fields — brief, prompt version,
+     * snapshot date — and quietly went stale. Adding fields to the fixture and a
+     * new prop to the catalog changed neither, so a composition made before
+     * either existed was replayed as if current.
+     */
+    message: string
+    /**
+     * The system prompt's full text, not its version number. A prompt edited
+     * without bumping its heading would otherwise keep serving compositions
+     * made under the old instructions.
+     */
+    promptText: string | null
 }
 
 export function cacheKey(parts: CacheKeyParts): string {
-    // JSON rather than a joined string: the brief is prose, so any plain
-    // separator appears inside a value and two different key sets can flatten to
-    // the same material. `("a b", "c")` and `("a", "b c")` are the small case;
-    // two different briefs colliding is the one that would actually mislead.
-    const material = JSON.stringify([
-        parts.mode,
-        parts.contextId,
-        parts.brief,
-        parts.promptVersion,
-        parts.marketCapturedAt,
-    ])
+    // JSON rather than a joined string: the message is prose, so any plain
+    // separator appears inside a value and two different key sets could flatten
+    // to the same material.
+    const material = JSON.stringify([parts.mode, parts.message, parts.promptText])
 
     return createHash('sha256').update(material).digest('hex').slice(0, 16)
 }

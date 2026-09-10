@@ -82,6 +82,19 @@
     color: var(--text-primary);
 }
 
+// Popularity and time-limited badges. Colours follow the DS badge sheet
+// (10571:85566): popularity reads as informational blue, time-limited as a
+// quieter neutral than the value and scarcity treatments above.
+.badgePopularity {
+    background: var(--status-info-light, #e0ebff);
+    color: var(--status-info-dark, #00308f);
+}
+
+.badgeTime {
+    background: var(--surface-gray-100-thin, #efeff6);
+    color: var(--surface-gray-600-deep, #474b5e);
+}
+
 .venue {
     color: var(--surface-gray-600-deep, #474b5e);
 }

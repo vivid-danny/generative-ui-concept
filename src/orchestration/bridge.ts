@@ -93,6 +93,15 @@ function totalInputTokens(usage: CliEnvelope['usage']): number | null {
  * the prompt that actually ran, rather than a constant that can drift from the
  * file.
  */
+/** The system prompt verbatim, for cache keying. Null if unreadable. */
+export async function readPromptText(): Promise<string | null> {
+    try {
+        return await readFile(PROMPT_PATH, 'utf8')
+    } catch {
+        return null
+    }
+}
+
 export async function readPromptVersion(): Promise<string | null> {
     try {
         const text = await readFile(PROMPT_PATH, 'utf8')

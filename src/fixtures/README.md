@@ -31,6 +31,8 @@ Until a real capture happens, treat every number below as illustrative:
 | `productions[].sales_velocity` | **Fabricated** derived field. 0–1 rate of sale, finer than `sellout_risk`. |
 | `productions[].value_score` | **Fabricated** derived field. 0–1 price-for-demand value at the date level. |
 | `listings_sample[].view_score` / `deal_score` | **Fabricated** derived fields. |
+| `productions[].fans_viewed_24h` | **Fabricated.** A real count, not a score, because the badge says "20 Fans Viewed" and a number on screen has to be a number in the data. Correlated with `demand_score` so the two hang together. |
+| `productions[].announced_days_ago` | **Fabricated.** Per production, not per visit — five cities are late additions (2–6 days) against a tour announced 3–6 weeks ago, so "Newly Released" means something on some cards and not others. |
 
 The three new signals (`demand_score`, `sales_velocity`, `value_score`) are carried
 over from the earlier `event-decision` prototype's per-event `demand` /

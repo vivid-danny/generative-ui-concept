@@ -4,6 +4,7 @@ import classNames from 'classnames'
 import Typography from '@/design-system/typography'
 import type { Production } from '@/contracts/market'
 
+import { badgesFor, type BadgeId, type BadgeTone } from './badges'
 import styles from './ProductionCard.module.scss'
 
 /**
@@ -28,23 +29,34 @@ export interface ProductionCardProps {
     performerName: string
     /** Marks the one row the composition wants the visitor to notice. */
     isHighlighted?: boolean
+    /**
+     * Badges the section allowed. The row still only shows the ones true of it,
+     * so an allowlist never becomes a label every card wears.
+     */
+    eligibleBadges?: readonly BadgeId[]
+}
+
+/** Badge tone -> the card's own styling. Form, so it lives here. */
+const TONE_CLASS: Record<BadgeTone, string> = {
+    value: styles.badgeDeal,
+    scarcity: styles.badgeUrgency,
+    popularity: styles.badgePopularity,
+    time: styles.badgeTime,
 }
 
 const WEEKDAY = new Intl.DateTimeFormat('en-US', { weekday: 'short' })
 const MONTH_DAY = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' })
 const TIME = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' })
 
-/** Prices are dropping fast enough to be worth telling the visitor about. */
-const DEAL_TREND_THRESHOLD = -0.03
-
 export const ProductionCard: React.FC<ProductionCardProps> = ({
     production,
     performerName,
     isHighlighted = false,
+    eligibleBadges = [],
 }) => {
     const date = new Date(production.date)
-    const showDealBadge = production.price_trend_7d <= DEAL_TREND_THRESHOLD
-    const showUrgencyBadge = production.sellout_risk === 'high'
+    // Which badges the section allowed, narrowed to the ones true of this date.
+    const badges = badgesFor(production, eligibleBadges)
 
     return (
         <article className={classNames(styles.card, { [styles.highlighted]: isHighlighted })}>
@@ -61,27 +73,18 @@ export const ProductionCard: React.FC<ProductionCardProps> = ({
             </div>
 
             <div className={styles.details}>
-                {(showDealBadge || showUrgencyBadge) && (
+                {badges.length > 0 && (
                     <div className={styles.badges}>
-                        {showDealBadge && (
+                        {badges.map((badge) => (
                             <Typography
+                                key={badge.id}
                                 variant="captionMedium"
                                 component="span"
-                                className={classNames(styles.badge, styles.badgeDeal)}
+                                className={classNames(styles.badge, TONE_CLASS[badge.tone])}
                             >
-                                <span aria-hidden>💰</span> Deals Available
+                                <span aria-hidden>{badge.icon}</span> {badge.label(production)}
                             </Typography>
-                        )}
-                        {showUrgencyBadge && (
-                            <Typography
-                                variant="captionMedium"
-                                component="span"
-                                className={classNames(styles.badge, styles.badgeUrgency)}
-                            >
-                                <span aria-hidden>🔥</span>{' '}
-                                {production.listing_count.toLocaleString('en-US')} Tickets Left
-                            </Typography>
-                        )}
+                        ))}
                     </div>
                 )}
 

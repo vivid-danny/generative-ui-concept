@@ -25,7 +25,9 @@
             },
             "demand_score": 0.88,
             "sales_velocity": 0.82,
-            "value_score": 0.6
+            "value_score": 0.6,
+            "fans_viewed_24h": 3220,
+            "announced_days_ago": 28
         },
         {
             "id": "prod-002",
@@ -45,7 +47,9 @@
             },
             "demand_score": 0.9,
             "sales_velocity": 0.7,
-            "value_score": 0.68
+            "value_score": 0.68,
+            "fans_viewed_24h": 3837,
+            "announced_days_ago": 37
         },
         {
             "id": "prod-003",
@@ -65,7 +69,9 @@
             },
             "demand_score": 0.6,
             "sales_velocity": 0.5,
-            "value_score": 0.72
+            "value_score": 0.72,
+            "fans_viewed_24h": 1509,
+            "announced_days_ago": 30
         },
         {
             "id": "prod-004",
@@ -85,7 +91,9 @@
             },
             "demand_score": 0.55,
             "sales_velocity": 0.45,
-            "value_score": 0.9
+            "value_score": 0.9,
+            "fans_viewed_24h": 1332,
+            "announced_days_ago": 21
         },
         {
             "id": "prod-005",
@@ -105,7 +113,9 @@
             },
             "demand_score": 0.5,
             "sales_velocity": 0.4,
-            "value_score": 0.95
+            "value_score": 0.95,
+            "fans_viewed_24h": 1185,
+            "announced_days_ago": 23
         },
         {
             "id": "prod-006",
@@ -125,7 +135,9 @@
             },
             "demand_score": 0.65,
             "sales_velocity": 0.55,
-            "value_score": 0.65
+            "value_score": 0.65,
+            "fans_viewed_24h": 1694,
+            "announced_days_ago": 39
         },
         {
             "id": "prod-007",
@@ -145,7 +157,9 @@
             },
             "demand_score": 0.85,
             "sales_velocity": 0.7,
-            "value_score": 0.35
+            "value_score": 0.35,
+            "fans_viewed_24h": 2760,
+            "announced_days_ago": 24
         },
         {
             "id": "prod-008",
@@ -165,7 +179,9 @@
             },
             "demand_score": 0.52,
             "sales_velocity": 0.44,
-            "value_score": 0.88
+            "value_score": 0.88,
+            "fans_viewed_24h": 1219,
+            "announced_days_ago": 5
         },
         {
             "id": "prod-009",
@@ -185,7 +201,9 @@
             },
             "demand_score": 0.58,
             "sales_velocity": 0.5,
-            "value_score": 0.7
+            "value_score": 0.7,
+            "fans_viewed_24h": 1436,
+            "announced_days_ago": 2
         },
         {
             "id": "prod-010",
@@ -205,7 +223,9 @@
             },
             "demand_score": 0.57,
             "sales_velocity": 0.48,
-            "value_score": 0.62
+            "value_score": 0.62,
+            "fans_viewed_24h": 1474,
+            "announced_days_ago": 30
         },
         {
             "id": "prod-011",
@@ -225,7 +245,9 @@
             },
             "demand_score": 0.95,
             "sales_velocity": 0.9,
-            "value_score": 0.3
+            "value_score": 0.3,
+            "fans_viewed_24h": 3595,
+            "announced_days_ago": 33
         },
         {
             "id": "prod-012",
@@ -245,7 +267,9 @@
             },
             "demand_score": 0.7,
             "sales_velocity": 0.58,
-            "value_score": 0.6
+            "value_score": 0.6,
+            "fans_viewed_24h": 1837,
+            "announced_days_ago": 23
         },
         {
             "id": "prod-013",
@@ -265,7 +289,9 @@
             },
             "demand_score": 0.5,
             "sales_velocity": 0.42,
-            "value_score": 0.92
+            "value_score": 0.92,
+            "fans_viewed_24h": 1113,
+            "announced_days_ago": 21
         },
         {
             "id": "prod-014",
@@ -285,7 +311,9 @@
             },
             "demand_score": 0.82,
             "sales_velocity": 0.72,
-            "value_score": 0.45
+            "value_score": 0.45,
+            "fans_viewed_24h": 2703,
+            "announced_days_ago": 21
         },
         {
             "id": "prod-015",
@@ -305,7 +333,9 @@
             },
             "demand_score": 0.75,
             "sales_velocity": 0.62,
-            "value_score": 0.55
+            "value_score": 0.55,
+            "fans_viewed_24h": 2145,
+            "announced_days_ago": 27
         },
         {
             "id": "prod-016",
@@ -325,7 +355,9 @@
             },
             "demand_score": 0.55,
             "sales_velocity": 0.46,
-            "value_score": 0.8
+            "value_score": 0.8,
+            "fans_viewed_24h": 1118,
+            "announced_days_ago": 27
         },
         {
             "id": "prod-017",
@@ -345,7 +377,9 @@
             },
             "demand_score": 0.66,
             "sales_velocity": 0.56,
-            "value_score": 0.63
+            "value_score": 0.63,
+            "fans_viewed_24h": 2098,
+            "announced_days_ago": 22
         },
         {
             "id": "prod-018",
@@ -365,7 +399,9 @@
             },
             "demand_score": 0.9,
             "sales_velocity": 0.8,
-            "value_score": 0.4
+            "value_score": 0.4,
+            "fans_viewed_24h": 2969,
+            "announced_days_ago": 36
         },
         {
             "id": "prod-019",
@@ -385,7 +421,9 @@
             },
             "demand_score": 0.48,
             "sales_velocity": 0.4,
-            "value_score": 0.85
+            "value_score": 0.85,
+            "fans_viewed_24h": 1118,
+            "announced_days_ago": 33
         },
         {
             "id": "prod-020",
@@ -405,7 +443,9 @@
             },
             "demand_score": 0.78,
             "sales_velocity": 0.66,
-            "value_score": 0.5
+            "value_score": 0.5,
+            "fans_viewed_24h": 2569,
+            "announced_days_ago": 33
         },
         {
             "id": "prod-021",
@@ -425,7 +465,9 @@
             },
             "demand_score": 0.83,
             "sales_velocity": 0.74,
-            "value_score": 0.44
+            "value_score": 0.44,
+            "fans_viewed_24h": 2915,
+            "announced_days_ago": 34
         },
         {
             "id": "prod-022",
@@ -445,7 +487,9 @@
             },
             "demand_score": 0.46,
             "sales_velocity": 0.38,
-            "value_score": 0.86
+            "value_score": 0.86,
+            "fans_viewed_24h": 827,
+            "announced_days_ago": 23
         },
         {
             "id": "prod-023",
@@ -465,7 +509,9 @@
             },
             "demand_score": 0.72,
             "sales_velocity": 0.6,
-            "value_score": 0.56
+            "value_score": 0.56,
+            "fans_viewed_24h": 2481,
+            "announced_days_ago": 39
         },
         {
             "id": "prod-024",
@@ -485,7 +531,9 @@
             },
             "demand_score": 0.6,
             "sales_velocity": 0.5,
-            "value_score": 0.64
+            "value_score": 0.64,
+            "fans_viewed_24h": 1285,
+            "announced_days_ago": 27
         },
         {
             "id": "prod-025",
@@ -505,7 +553,9 @@
             },
             "demand_score": 0.68,
             "sales_velocity": 0.57,
-            "value_score": 0.6
+            "value_score": 0.6,
+            "fans_viewed_24h": 2184,
+            "announced_days_ago": 29
         },
         {
             "id": "prod-026",
@@ -525,7 +575,9 @@
             },
             "demand_score": 0.96,
             "sales_velocity": 0.92,
-            "value_score": 0.32
+            "value_score": 0.32,
+            "fans_viewed_24h": 3411,
+            "announced_days_ago": 31
         },
         {
             "id": "prod-027",
@@ -545,7 +597,9 @@
             },
             "demand_score": 0.54,
             "sales_velocity": 0.45,
-            "value_score": 0.66
+            "value_score": 0.66,
+            "fans_viewed_24h": 1063,
+            "announced_days_ago": 2
         },
         {
             "id": "prod-028",
@@ -565,7 +619,9 @@
             },
             "demand_score": 0.98,
             "sales_velocity": 0.95,
-            "value_score": 0.28
+            "value_score": 0.28,
+            "fans_viewed_24h": 3494,
+            "announced_days_ago": 30
         },
         {
             "id": "prod-029",
@@ -585,7 +641,9 @@
             },
             "demand_score": 0.94,
             "sales_velocity": 0.88,
-            "value_score": 0.34
+            "value_score": 0.34,
+            "fans_viewed_24h": 3536,
+            "announced_days_ago": 31
         },
         {
             "id": "prod-030",
@@ -605,7 +663,9 @@
             },
             "demand_score": 0.8,
             "sales_velocity": 0.66,
-            "value_score": 0.46
+            "value_score": 0.46,
+            "fans_viewed_24h": 2524,
+            "announced_days_ago": 21
         },
         {
             "id": "prod-031",
@@ -625,7 +685,9 @@
             },
             "demand_score": 0.92,
             "sales_velocity": 0.85,
-            "value_score": 0.36
+            "value_score": 0.36,
+            "fans_viewed_24h": 3074,
+            "announced_days_ago": 34
         },
         {
             "id": "prod-032",
@@ -645,7 +707,9 @@
             },
             "demand_score": 0.7,
             "sales_velocity": 0.58,
-            "value_score": 0.52
+            "value_score": 0.52,
+            "fans_viewed_24h": 2216,
+            "announced_days_ago": 2
         },
         {
             "id": "prod-033",
@@ -665,7 +729,9 @@
             },
             "demand_score": 0.67,
             "sales_velocity": 0.56,
-            "value_score": 0.58
+            "value_score": 0.58,
+            "fans_viewed_24h": 1929,
+            "announced_days_ago": 25
         },
         {
             "id": "prod-034",
@@ -685,7 +751,9 @@
             },
             "demand_score": 0.88,
             "sales_velocity": 0.78,
-            "value_score": 0.42
+            "value_score": 0.42,
+            "fans_viewed_24h": 3208,
+            "announced_days_ago": 28
         },
         {
             "id": "prod-035",
@@ -705,7 +773,9 @@
             },
             "demand_score": 0.79,
             "sales_velocity": 0.65,
-            "value_score": 0.5
+            "value_score": 0.5,
+            "fans_viewed_24h": 2825,
+            "announced_days_ago": 24
         },
         {
             "id": "prod-036",
@@ -725,7 +795,9 @@
             },
             "demand_score": 0.64,
             "sales_velocity": 0.54,
-            "value_score": 0.68
+            "value_score": 0.68,
+            "fans_viewed_24h": 1654,
+            "announced_days_ago": 21
         },
         {
             "id": "prod-037",
@@ -745,7 +817,9 @@
             },
             "demand_score": 0.56,
             "sales_velocity": 0.47,
-            "value_score": 0.74
+            "value_score": 0.74,
+            "fans_viewed_24h": 1377,
+            "announced_days_ago": 22
         },
         {
             "id": "prod-038",
@@ -765,7 +839,9 @@
             },
             "demand_score": 0.93,
             "sales_velocity": 0.86,
-            "value_score": 0.38
+            "value_score": 0.38,
+            "fans_viewed_24h": 3558,
+            "announced_days_ago": 35
         },
         {
             "id": "prod-039",
@@ -785,7 +861,9 @@
             },
             "demand_score": 0.53,
             "sales_velocity": 0.44,
-            "value_score": 0.78
+            "value_score": 0.78,
+            "fans_viewed_24h": 1322,
+            "announced_days_ago": 5
         },
         {
             "id": "prod-040",
@@ -805,7 +883,9 @@
             },
             "demand_score": 0.91,
             "sales_velocity": 0.84,
-            "value_score": 0.36
+            "value_score": 0.36,
+            "fans_viewed_24h": 3551,
+            "announced_days_ago": 26
         },
         {
             "id": "prod-041",
@@ -825,7 +905,9 @@
             },
             "demand_score": 0.86,
             "sales_velocity": 0.75,
-            "value_score": 0.42
+            "value_score": 0.42,
+            "fans_viewed_24h": 3144,
+            "announced_days_ago": 38
         },
         {
             "id": "prod-042",
@@ -845,7 +927,9 @@
             },
             "demand_score": 0.82,
             "sales_velocity": 0.7,
-            "value_score": 0.46
+            "value_score": 0.46,
+            "fans_viewed_24h": 2397,
+            "announced_days_ago": 27
         },
         {
             "id": "prod-043",
@@ -865,7 +949,9 @@
             },
             "demand_score": 0.99,
             "sales_velocity": 0.97,
-            "value_score": 0.26
+            "value_score": 0.26,
+            "fans_viewed_24h": 3665,
+            "announced_days_ago": 35
         },
         {
             "id": "prod-044",
@@ -885,7 +971,9 @@
             },
             "demand_score": 0.97,
             "sales_velocity": 0.93,
-            "value_score": 0.3
+            "value_score": 0.3,
+            "fans_viewed_24h": 4287,
+            "announced_days_ago": 37
         },
         {
             "id": "prod-045",
@@ -905,7 +993,9 @@
             },
             "demand_score": 0.84,
             "sales_velocity": 0.73,
-            "value_score": 0.44
+            "value_score": 0.44,
+            "fans_viewed_24h": 3181,
+            "announced_days_ago": 27
         },
         {
             "id": "prod-046",
@@ -925,7 +1015,9 @@
             },
             "demand_score": 0.8,
             "sales_velocity": 0.67,
-            "value_score": 0.48
+            "value_score": 0.48,
+            "fans_viewed_24h": 2561,
+            "announced_days_ago": 25
         },
         {
             "id": "prod-047",
@@ -945,7 +1037,9 @@
             },
             "demand_score": 0.58,
             "sales_velocity": 0.49,
-            "value_score": 0.66
+            "value_score": 0.66,
+            "fans_viewed_24h": 1401,
+            "announced_days_ago": 34
         },
         {
             "id": "prod-048",
@@ -965,7 +1059,9 @@
             },
             "demand_score": 0.55,
             "sales_velocity": 0.46,
-            "value_score": 0.7
+            "value_score": 0.7,
+            "fans_viewed_24h": 1354,
+            "announced_days_ago": 5
         },
         {
             "id": "prod-049",
@@ -985,7 +1081,9 @@
             },
             "demand_score": 0.76,
             "sales_velocity": 0.63,
-            "value_score": 0.5
+            "value_score": 0.5,
+            "fans_viewed_24h": 2139,
+            "announced_days_ago": 24
         },
         {
             "id": "prod-050",
@@ -1005,7 +1103,9 @@
             },
             "demand_score": 0.57,
             "sales_velocity": 0.48,
-            "value_score": 0.64
+            "value_score": 0.64,
+            "fans_viewed_24h": 1514,
+            "announced_days_ago": 5
         },
         {
             "id": "prod-051",
@@ -1025,7 +1125,9 @@
             },
             "demand_score": 0.87,
             "sales_velocity": 0.76,
-            "value_score": 0.4
+            "value_score": 0.4,
+            "fans_viewed_24h": 2954,
+            "announced_days_ago": 34
         },
         {
             "id": "prod-052",
@@ -1045,7 +1147,9 @@
             },
             "demand_score": 0.95,
             "sales_velocity": 0.9,
-            "value_score": 0.32
+            "value_score": 0.32,
+            "fans_viewed_24h": 3859,
+            "announced_days_ago": 27
         }
     ],
     "listings_sample": [

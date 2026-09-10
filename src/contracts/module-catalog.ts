@@ -1,5 +1,7 @@
 import { z } from 'zod'
 
+import { BADGE_IDS } from '@/modules/production-list/badges'
+
 /**
  * Module catalog — source plan §3.3.
  *
@@ -93,6 +95,19 @@ export const MODULE_CATALOG = {
                  * its built-in "N shows near X / all dates" headings.
                  */
                 heading: z.string().min(1).max(60).nullable().default(null),
+                /**
+                 * Which badges this section may surface.
+                 *
+                 * An allowlist, not an instruction: a row shows a badge only if
+                 * the badge is eligible here *and* true of that date. Naming
+                 * `selling_fast` does not put it on every card — it puts it on
+                 * the ones selling fast. Defaults to the two the page has always
+                 * shown, so a section that says nothing looks unchanged.
+                 */
+                badges: z
+                    .array(z.enum(BADGE_IDS))
+                    .max(BADGE_IDS.length)
+                    .default(['deals_available', 'tickets_left']),
             })
             .strict(),
         propsHint: [
@@ -102,6 +117,15 @@ export const MODULE_CATALOG = {
             'group_by_geo: boolean  (default true; splits the visitor\'s own metro into its own group)',
             'max_items: integer 1-20  (default 8)',
             'heading: string | null  (default null = use the built-in headings)',
+            'badges: array of ["deals_available" | "selling_fast" | "tickets_left" |',
+            '  "fans_viewed" | "newly_released"]  (default ["deals_available", "tickets_left"])',
+            '  Which signals this section may surface. An allowlist, not an instruction:',
+            '  a date shows a badge only if you allowed it AND it is true of that date,',
+            '  so naming "selling_fast" marks the dates selling fast, not all of them.',
+            '  Choose by what this visitor is weighing — value signals for a',
+            '  price-sensitive browse, "fans_viewed" for someone chasing the big night,',
+            '  "tickets_left" where running out is the real risk. Two or three is plenty;',
+            '  allowing all five makes every row noisy.',
             '',
             'You may place this module more than once to build sections — e.g. one',
             'filtered to the visitor\'s city, one for dates within driving range, one',

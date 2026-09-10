@@ -7,17 +7,18 @@ import { cacheKey } from './cache'
  * that swallow their own errors, and a test that writes to disk would be worse
  * than no test.
  *
- * The key is where a mistake would actually hurt: too loose and you serve a
- * composition made under a prompt that no longer exists, too tight and the
- * cache never hits and every reload costs money.
+ * The key is where a mistake actually hurts, and it has already been wrong once:
+ * an earlier version enumerated a few fields (brief, prompt version, snapshot
+ * date) and quietly went stale, replaying a composition made before the fixture
+ * gained fields and the catalog gained a prop. Hashing the real message is what
+ * fixed it, so most of these assert that the parts of the message people
+ * actually edit each change the key.
  */
 
 const base = {
     mode: 'eval',
-    brief: 'she is in Chicago with about $80',
-    contextId: 'base',
-    promptVersion: 'v3',
-    marketCapturedAt: '2026-09-02',
+    message: 'Compose the page.\n\nbrief: she is in Chicago with about $80',
+    promptText: '# Orchestrator prompt — v3\n\nCompose a page.',
 }
 
 describe('cacheKey', () => {
@@ -25,33 +26,37 @@ describe('cacheKey', () => {
         expect(cacheKey(base)).toBe(cacheKey({ ...base }))
     })
 
-    it('changes when the brief changes', () => {
-        expect(cacheKey({ ...base, brief: 'something else' })).not.toBe(cacheKey(base))
-    })
-
-    it('changes when the prompt version changes', () => {
-        // The reason this is in the key: a composition attributed to a prompt
-        // that has since been edited is misleading in the panel.
-        expect(cacheKey({ ...base, promptVersion: 'v4' })).not.toBe(cacheKey(base))
-    })
-
-    it('changes when the snapshot is re-captured', () => {
-        expect(cacheKey({ ...base, marketCapturedAt: '2026-10-01' })).not.toBe(cacheKey(base))
-    })
-
     it('changes with the mode', () => {
         expect(cacheKey({ ...base, mode: 'custom' })).not.toBe(cacheKey(base))
     })
 
-    it('treats a null brief as distinct from an empty one', () => {
-        expect(cacheKey({ ...base, brief: null })).not.toBe(cacheKey({ ...base, brief: ' ' }))
+    it('changes when anything in the message changes', () => {
+        // The message carries the brief, the context, the market snapshot and
+        // the whole module catalog, so this one assertion covers all of them.
+        expect(cacheKey({ ...base, message: `${base.message} and prefers Saturdays` })).not.toBe(
+            cacheKey(base),
+        )
+    })
+
+    it('changes when the prompt is edited without its version being bumped', () => {
+        // The failure the previous key had: keying on "v3" meant an edited
+        // prompt kept serving compositions made under the old instructions.
+        const edited = base.promptText.replace('Compose a page.', 'Compose a page. Prefer weekends.')
+
+        expect(edited).not.toBe(base.promptText)
+        expect(cacheKey({ ...base, promptText: edited })).not.toBe(cacheKey(base))
+    })
+
+    it('treats an unreadable prompt as its own case', () => {
+        expect(cacheKey({ ...base, promptText: null })).not.toBe(cacheKey(base))
     })
 
     it('does not collide when a value contains the separator', () => {
-        // The adversarial case for a space-joined key: ("a b", "c") and
-        // ("a", "b c") both flatten to "a b c".
-        const a = cacheKey({ ...base, mode: 'a b', contextId: 'c' })
-        const b = cacheKey({ ...base, mode: 'a', contextId: 'b c' })
+        // The message is prose, so a plain join would let ("a b", "c") and
+        // ("a", "b c") flatten to the same material.
+        const a = cacheKey({ ...base, mode: 'a b', message: 'c' })
+        const b = cacheKey({ ...base, mode: 'a', message: 'b c' })
+
         expect(a).not.toBe(b)
     })
 })

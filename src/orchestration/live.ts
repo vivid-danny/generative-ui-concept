@@ -3,7 +3,7 @@ import type { Market } from '@/contracts/market'
 import { SpecProvenanceSchema, type ResolvedLayout } from '@/contracts/layout-spec'
 import { MODULE_CATALOG, type ModuleId } from '@/contracts/module-catalog'
 
-import { callModel, readPromptVersion } from './bridge'
+import { callModel, readPromptText } from './bridge'
 import { cacheKey, readCached, writeCached } from './cache'
 import { PrecomputedProvider, specKeyFor } from './precomputed'
 import type { OrchestrationProvider } from './provider'
@@ -173,15 +173,15 @@ export class LiveProvider implements OrchestrationProvider {
         const contextId = specKeyFor(context)
         const mode = this.options.mode ?? 'live'
 
-        // Keyed on the prompt version so editing the prompt invalidates every
-        // entry — a composition attributed to a prompt that no longer exists
-        // would be worse than no cache.
+        // Keyed on the exact message plus the prompt text, so editing the
+        // prompt, the catalog, a propsHint or the fixture all invalidate — a
+        // composition attributed to instructions that no longer exist would be
+        // worse than no cache.
+        const message = buildMessage(context, market)
         const key = cacheKey({
             mode,
-            brief: context.brief,
-            contextId,
-            promptVersion: await readPromptVersion(),
-            marketCapturedAt: market.captured_at,
+            message,
+            promptText: await readPromptText(),
         })
 
         if (!this.options.fresh) {
@@ -204,7 +204,7 @@ export class LiveProvider implements OrchestrationProvider {
         }
 
         try {
-            const call = await callModel(buildMessage(context, market))
+            const call = await callModel(message)
             const raw = extractLayoutSpec(call.result)
 
             if (raw === null) {

@@ -53,6 +53,23 @@ export const ProductionSchema = z.object({
      * rather than computed, so modules and the orchestrator read it directly.
      */
     value_score: z.number().min(0).max(1),
+    /**
+     * DERIVED — fabricated. People who looked at this date in the last day.
+     *
+     * A real count rather than a score, because the badge it feeds says "20 Fans
+     * Viewed" — a number on screen has to be a number in the data, or the card
+     * would be inventing one at render time.
+     */
+    fans_viewed_24h: z.number().int().nonnegative(),
+    /**
+     * DERIVED — fabricated. Days since this date was announced.
+     *
+     * Per production rather than per visit: a tour's dates are not all announced
+     * at once, and added dates are exactly what "Newly Released" is for. Taking
+     * it from the visitor's `onsale_hours_ago` instead would mark every card
+     * newly released, which is both redundant and less true.
+     */
+    announced_days_ago: z.number().int().nonnegative(),
 })
 
 export const ListingSchema = z.object({

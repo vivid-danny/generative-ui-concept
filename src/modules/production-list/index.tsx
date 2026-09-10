@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React from 'react'
 import classNames from 'classnames'
 
 import Typography from '@/design-system/typography'
@@ -24,20 +24,12 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
     size,
     props,
 }) => {
-    // A one-way "see the whole tour" escape hatch. The composition intentionally
-    // narrows the list — by budget filter and by max_items — but the visitor
-    // should always be able to fall back to every date. Expanding overrides both:
-    // it drops the filter and lifts the cap, so "all" means the whole tour, not
-    // just what the composition kept.
-    const [showAll, setShowAll] = useState(false)
-    const composed = selectProductions(market, context, props)
-    const total = market.productions.length
-    const composedCount = composed.groups.reduce((count, group) => count + group.productions.length, 0)
-    const hiddenCount = total - composedCount
-
-    const { groups, highlightedId } = showAll
-        ? selectProductions(market, context, { ...props, filter: undefined, max_items: total })
-        : composed
+    // No "see all" escape hatch here. The composition does narrow the list — by
+    // budget filter and by max_items — and the visitor still has to be able to
+    // reach every date, but that guarantee lives in the shell's FullTourList,
+    // which no composition can remove. A copy inside the module just meant two
+    // identical buttons stacked on the base variant.
+    const { groups, highlightedId } = selectProductions(market, context, props)
 
     if (groups.length === 0) {
         return (
@@ -105,31 +97,12 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
                                 production={production}
                                 performerName={market.performer.name}
                                 isHighlighted={production.id === highlightedId}
+                                eligibleBadges={props.badges}
                             />
                         ))}
                     </div>
                 </div>
             ))}
-
-            {/*
-              The composition narrows the list, so give the visitor a way back to
-              the whole tour. A page that silently drops dates erodes trust in a
-              composed page faster than any layout decision — the button is that
-              honesty affordance.
-            */}
-            {/*
-              Suppressed for a named section. The escape hatch offers "all 52
-              dates", which contradicts a list the orchestrator deliberately
-              scoped — and with three sections on the page there were three
-              identical buttons. A single unnamed list still gets it.
-            */}
-            {!props.heading && !showAll && hiddenCount > 0 && (
-                <button type="button" className={styles.showAll} onClick={() => setShowAll(true)}>
-                    <Typography variant="smallMedium" component="span">
-                        See all {total} tour dates
-                    </Typography>
-                </button>
-            )}
         </section>
     )
 }

@@ -126,6 +126,15 @@ Tailwind or App Router without a reason.
 
 ---
 
+## How far composability goes
+
+**Read [`docs/COMPOSABILITY.md`](COMPOSABILITY.md) before adding a module or a
+prop.** It holds the rule that decides what this prototype is: the goal is not
+infinite customizability but enough knobs to be genuinely relevant; content is
+the model's and form is the component's; a prop that makes a claim gets
+enumerated while a prop that frames or explains can be written freely; and
+composition happens at the section, never the row.
+
 ## The seams that matter
 
 Three decisions are load-bearing. Changing them is expensive; understand them

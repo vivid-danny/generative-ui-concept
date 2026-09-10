@@ -1,6 +1,8 @@
 import type { Context } from '@/contracts/context'
 import type { Market, Production } from '@/contracts/market'
 
+import type { BadgeId } from './badges'
+
 /**
  * Turns a validated `production_list` props object into the exact rows to
  * render. Kept separate from the component because this is where the layout
@@ -20,6 +22,11 @@ export interface ProductionListProps {
      * which is why nothing in this file reads it.
      */
     heading?: string | null
+    /**
+     * Badges this section may surface. Presentation only — selection does not
+     * read it, which is why nothing else in this file does either.
+     */
+    badges?: readonly BadgeId[]
 }
 
 export interface ProductionGroup {

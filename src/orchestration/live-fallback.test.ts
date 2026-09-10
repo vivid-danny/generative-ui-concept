@@ -37,6 +37,7 @@ vi.mock('./bridge', () => ({
         return bridge.reply
     }),
     readPromptVersion: vi.fn(async () => 'v-test'),
+    readPromptText: vi.fn(async () => '# Orchestrator prompt — v-test'),
 }))
 
 import { LiveProvider } from './live'
