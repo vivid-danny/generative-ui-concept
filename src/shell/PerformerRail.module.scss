@@ -1,5 +1,7 @@
-// `rightCol` — Figma 17055:178973. 340 wide: a 340x340 image, stats, the
-// "Experience it live" trust banner. In the design the column is pulled up so
+// `rightCol` — Figma 17055:178973. 340 wide: a 340x340 image, whatever the
+// orchestrator composed into the rail, then the "Experience it live" trust
+// banner. The frame's stats block moved into `market_signals` — see
+// PerformerRail.tsx. In the design the column is pulled up so
 // the image overlaps into the header (rightCol y = -192).
 
 .rail {
@@ -19,6 +21,15 @@
         margin-top: -224px;
         // Keep the sticky image clear of the 118px navbar once scrolled.
         top: var(--spacing-lg);
+    }
+}
+
+// With a composed card in it the rail is tall enough (~900px) that sticky
+// would strand the trust banner off the bottom of a short viewport with no way
+// to scroll to it. The pull-up stays; only the sticking goes.
+.withComposed {
+    @media (min-width: 1248px) {
+        position: relative;
     }
 }
 
@@ -62,34 +73,6 @@
     border: none;
     background: none;
     cursor: pointer;
-}
-
-.stats {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-md);
-}
-
-.stat {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    color: var(--text-primary);
-}
-
-.statIcon {
-    display: flex;
-    width: 24px;
-    height: 24px;
-    align-items: center;
-    justify-content: center;
-    color: var(--text-secondary, #717488);
-    flex-shrink: 0;
-}
-
-.dot {
-    margin: 0 var(--spacing-2xs);
-    color: var(--text-disabled, #a0a2b3);
 }
 
 .divider {

@@ -6,7 +6,7 @@ import { MODULE_CATALOG } from '@/contracts/module-catalog'
 import marketJson from '@/fixtures/market.json'
 import leahBudget80 from '@/fixtures/contexts/leah-budget-80.json'
 
-import { selectProductions, type ProductionListProps } from './select'
+import { resolveExclusions, selectProductions, type ProductionListProps } from './select'
 
 /**
  * This is where the layout spec actually changes the page, so it is worth
@@ -311,5 +311,57 @@ describe('selectProductions — weekend and lead time', () => {
 
         expect(shown.every((p) => isWeekendDay(p) && p.city === 'Milwaukee' && p.floor_price <= 80))
             .toBe(true)
+    })
+})
+
+describe('resolveExclusions', () => {
+    /**
+     * The hard rule — no date appears twice on a page — plus the invariant that
+     * makes it work: the returned array is aligned to position in the *whole*
+     * layout, including entries that are not lists. The renderer reads
+     * `exclusions[index]` while mapping every entry, so anything that filters
+     * the layout before mapping hands a section someone else's exclusions.
+     */
+
+    const listEntry = (heading: string, overrides: Partial<ProductionListProps> = {}) => ({
+        module: 'production_list',
+        props: {
+            ...props(overrides),
+            heading,
+            group_by_geo: false,
+        } as unknown as Record<string, unknown>,
+    })
+
+    it('claims dates in render order, so no date is offered twice', () => {
+        const layout = [
+            listEntry('Cheapest first', { sort: 'price' }),
+            listEntry('Soonest', { sort: 'date' }),
+        ]
+        const [first, second] = resolveExclusions(layout, market, context)
+
+        expect(first?.size ?? 0).toBe(0)
+        expect(second?.size).toBeGreaterThan(0)
+
+        const shownFirst = allDates(
+            selectProductions(market, context, layout[0].props as unknown as ProductionListProps),
+        ).map((production) => production.id)
+
+        for (const id of shownFirst) expect(second?.has(id)).toBe(true)
+    })
+
+    it('stays aligned to layout position when a non-list module is in the way', () => {
+        const layout = [
+            listEntry('Near you'),
+            { module: 'market_signals', props: {} as Record<string, unknown> },
+            listEntry('Everywhere else'),
+        ]
+        const exclusions = resolveExclusions(layout, market, context)
+
+        expect(exclusions).toHaveLength(3)
+        // The rail card claims nothing, and — the part that matters — the second
+        // list's exclusions land at index 2, not at index 1.
+        expect(exclusions[1]).toBeUndefined()
+        expect(exclusions[0]?.size ?? 0).toBe(0)
+        expect(exclusions[2]?.size).toBeGreaterThan(0)
     })
 })

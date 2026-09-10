@@ -35,14 +35,28 @@ bespoke and a wrong answer is merely unhelpful.
 - The page headline
 - `reasoning`
 
+Generative is not free, though. The rail card started with a written heading and
+lost it: the model already names every section in the main column, and a rail
+title that has to stay true whether the stats are about price, demand or
+inventory is general enough that nothing is added by generating it. **If the only
+safe version of a free-text field is a generic one, make it a constant.**
+
 **Selective** — the model picks from an enumerated set. Use where the text makes
 a claim, where it must stay accurate, or where consistency across rows matters
 more than novelty.
 
 - Card badges — chosen from a pre-written list, never composed. A badge asserts
   something about inventory or price, so the wording is ours and vetted.
+- The rail card's stats — same shape one level up. The model picks which facts
+  about the tour appear and in what order; the sentence, the number and the
+  card's title are all ours.
 - Sort, highlight, size, filter fields
-- Which secondary signal a section leads with
+- Which secondary signal a section leads with (`card_signal`)
+
+A useful corollary from the rail card: an **ordered** selective list carries more
+intent than a set. The model saying "demand first, then price" is an editorial
+judgment worth having, and it costs nothing over an unordered allowlist — where
+each item then *sits* stays the component's decision.
 
 The test: **if it makes a claim, enumerate it. If it frames or explains,
 let the model write it.**
@@ -92,6 +106,14 @@ A rule the model can reason its way around is not a rule. Two now live in code:
   spec that had repeated a Chicago date rendered clean without a new call.
 - **A module may repeat at most three times, and each instance must name
   itself.** `STRUCTURAL_RULES` in `src/orchestration/validate.ts`.
+- **At most one module in the rail**, same file. Three stacked cards in a 340px
+  sticky column is a wrong page however well-chosen each card is.
+- **Where a module renders is not a prop at all.** `region` lives on the catalog
+  entry and the renderer splits the layout by it. Choosing the rail is choosing
+  340px, sticky positioning and desktop-only visibility — form, not content — so
+  the orchestrator places a module and never says where it goes. This is the
+  cleanest case of the rule two sections up: a knob that only ever has one right
+  answer per module is not a knob.
 
 The test for where a rule belongs: if the page would be wrong when the rule is
 broken, enforce it in code. If it is a judgment about what serves this visitor,

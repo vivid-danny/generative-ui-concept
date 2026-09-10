@@ -51,6 +51,15 @@ export const STRUCTURAL_RULES = {
      * Capped at 3 because past that a page is a wall of lists.
      */
     maxInstances: 3,
+    /**
+     * How many modules a column other than the main one may hold.
+     *
+     * A hard rule rather than prompt guidance, per docs/COMPOSABILITY.md: three
+     * stacked cards in a 340px rail is a wrong page, not a judgment about this
+     * visitor. The main column is exempt — `maxModules` already governs it, and
+     * sections stacking there is the point.
+     */
+    maxPerSideRegion: 1,
 } as const
 
 export const FALLBACK_LAYOUT: LayoutSpec = LayoutSpecSchema.parse(fallbackLayoutJson)
@@ -182,6 +191,7 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
     const spec = parsed.data
     const kept: LayoutSpec['layout'] = []
     const instanceCount = new Map<string, number>()
+    const regionCount = new Map<string, number>()
     let heroCount = 0
 
     for (const entry of spec.layout) {
@@ -213,6 +223,16 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
                 level: 'dropped',
                 module: entry.module,
                 reason: `placed more than ${STRUCTURAL_RULES.maxInstances} times`,
+            })
+            continue
+        }
+
+        const inRegion = (regionCount.get(definition.region) ?? 0) + 1
+        if (definition.region !== 'main' && inRegion > STRUCTURAL_RULES.maxPerSideRegion) {
+            notes.push({
+                level: 'dropped',
+                module: entry.module,
+                reason: 'a module is already placed in the right rail',
             })
             continue
         }
@@ -251,6 +271,7 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
 
         if (size === 'hero') heroCount++
         instanceCount.set(entry.module, instances)
+        regionCount.set(definition.region, inRegion)
         kept.push({ module: entry.module, size, props })
     }
 

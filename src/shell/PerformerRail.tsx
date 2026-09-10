@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
+import classNames from 'classnames'
 
-import Typography from '@/design-system/typography'
-import { MicrophoneIcon, UserIcon } from '@/design-system/icons'
 import type { Market } from '@/contracts/market'
 
 import TrustBanner from './TrustBanner'
@@ -9,19 +8,33 @@ import styles from './PerformerRail.module.scss'
 
 /**
  * The performer page's right rail — Figma `rightCol` (17055:178973): a square
- * performer image with a favourite control, a stats block, then the
- * "Experience it live" trust banner.
+ * performer image with a favourite control, then whatever the orchestrator
+ * composed into the rail, then the "Experience it live" trust banner.
  *
- * Shell chrome, not a module: the orchestrator does not place it, and its
- * contents do not vary by context.
+ * The frame's own stats block is gone. It said "52 Tour Dates • 30 Cities" and
+ * "343 Fans shopping tickets now" — the first duplicating a stat the
+ * `market_signals` card can surface, the second a figure hardcoded here with no
+ * snapshot field behind it. Both now live in the card's vocabulary, read off the
+ * snapshot, so the rail states each fact once and one invented number is
+ * retired. Neither is decision-critical: `FullTourList` is what guarantees the
+ * dates stay reachable.
+ *
+ * Still shell chrome, not a module — the orchestrator does not place the rail,
+ * only what goes in it.
  */
 
-// Static social-proof figure from the design (no snapshot field backs it).
-const FANS_SHOPPING_NOW = 343
-
-export const PerformerRail: React.FC<{ market: Market }> = ({ market }) => {
-    const { performer, productions } = market
-    const cities = new Set(productions.map((production) => production.city)).size
+export const PerformerRail: React.FC<{
+    market: Market
+    /** Whatever the orchestrator placed in the rail, if anything. */
+    children?: React.ReactNode
+    /**
+     * Whether `children` will actually render something. The page knows from
+     * the spec; the rail cannot tell, because a `ComposedPage` element is
+     * always passed and may render nothing.
+     */
+    composed?: boolean
+}> = ({ market, children, composed = false }) => {
+    const { performer } = market
 
     // Performer art is a committed local asset. The fallback stays because a
     // missing or renamed file should degrade to the brand wash and initial
@@ -30,7 +43,7 @@ export const PerformerRail: React.FC<{ market: Market }> = ({ market }) => {
     const showImage = Boolean(performer.image_url) && !imageFailed
 
     return (
-        <div className={styles.rail}>
+        <div className={classNames(styles.rail, { [styles.withComposed]: composed })}>
             <div className={styles.imageContainer}>
                 {showImage ? (
                     <img
@@ -64,27 +77,7 @@ export const PerformerRail: React.FC<{ market: Market }> = ({ market }) => {
                 </button>
             </div>
 
-            <div className={styles.stats}>
-                <div className={styles.stat}>
-                    <span className={styles.statIcon} aria-hidden>
-                        <MicrophoneIcon />
-                    </span>
-                    <Typography variant="body" component="span">
-                        {productions.length} Tour Dates
-                        <span className={styles.dot}>•</span>
-                        {cities} Cities
-                    </Typography>
-                </div>
-
-                <div className={styles.stat}>
-                    <span className={styles.statIcon} aria-hidden>
-                        <UserIcon />
-                    </span>
-                    <Typography variant="body" component="span">
-                        {FANS_SHOPPING_NOW} Fans shopping tickets now
-                    </Typography>
-                </div>
-            </div>
+            {children}
 
             <hr className={styles.divider} />
 

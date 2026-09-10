@@ -4,6 +4,7 @@ import type { Market, Production, ProductionTrait, SelloutRisk } from '@/contrac
 import { daysOut, isWeekend } from '@/orchestration/derive'
 
 import type { BadgeId } from './badges'
+import type { CardSignal } from './trend'
 
 /**
  * Turns a validated `production_list` props object into the exact rows to
@@ -41,6 +42,11 @@ export interface ProductionListProps {
      * read it, which is why nothing else in this file does either.
      */
     badges?: readonly BadgeId[]
+    /**
+     * The signal beside each row's CTA. Presentation only, like `badges` and
+     * `heading` — selection does not read it.
+     */
+    card_signal?: CardSignal | null
 }
 
 export interface ProductionGroup {

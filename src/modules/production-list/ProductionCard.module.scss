@@ -111,7 +111,24 @@
     flex-shrink: 0;
 }
 
+// The slot the price vacated when it moved into the CTA. Right-aligned so the
+// button stays the row's anchor and the signal reads as an annotation on it.
+.signal {
+    text-align: right;
+    white-space: nowrap;
+}
 
+// A price that has come down is the only one of the three worth colouring —
+// it is good news for the buyer. Up and steady stay neutral: making "prices
+// rose" red would be pressure dressed as information.
+.signalDown {
+    color: var(--status-success-dark);
+}
+
+.signalUp,
+.signalFlat {
+    color: var(--text-secondary);
+}
 
 .cta {
     display: inline-flex;

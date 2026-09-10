@@ -58,6 +58,7 @@ const VARIANT_ELEMENT: Partial<Record<TypeScaleKey, string>> = {
     subtitleMd: 'p',
     subtitleSm: 'p',
     body: 'p',
+    bodyBold: 'p',
     small: 'p',
     smallMedium: 'p',
     smallBold: 'p',

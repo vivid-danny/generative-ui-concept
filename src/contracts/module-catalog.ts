@@ -2,6 +2,8 @@ import { z } from 'zod'
 
 import { ProductionTraitSchema, SelloutRiskSchema } from '@/contracts/market'
 import { BADGE_IDS } from '@/modules/production-list/badges'
+import { CARD_SIGNALS } from '@/modules/production-list/trend'
+import { STAT_IDS } from '@/modules/market-signals/signals'
 
 /**
  * Module catalog — source plan §3.3.
@@ -27,6 +29,15 @@ export interface ModuleDefinition {
     readonly lever: 'price' | 'date' | 'location' | 'seat_quality' | 'orientation'
     readonly sizes: readonly Size[]
     readonly defaultSize: Size
+    /**
+     * Which column the module renders in.
+     *
+     * Intrinsic to the module, not a prop the orchestrator sets. Choosing the
+     * rail is choosing 340px, sticky positioning and desktop-only visibility —
+     * that is form, and form does not belong in props (docs/COMPOSABILITY.md).
+     * The renderer filters by it; see `ComposedPage`.
+     */
+    readonly region: 'main' | 'rail'
     readonly propsSchema: z.ZodTypeAny
     /**
      * The props, written for the orchestrator, in one short block.
@@ -92,6 +103,7 @@ export const MODULE_CATALOG = {
         lever: 'orientation',
         sizes: ['fixed'],
         defaultSize: 'fixed',
+        region: 'main',
         propsSchema: z.object({}).strict(),
         propsHint: 'none — takes no props.',
         dataRequirements: ['performer.name', 'performer.image_url'],
@@ -106,6 +118,7 @@ export const MODULE_CATALOG = {
         lever: 'date',
         sizes: ['hero', 'standard', 'compact'],
         defaultSize: 'standard',
+        region: 'main',
         propsSchema: z
             .object({
                 filter: FilterSchema.optional(),
@@ -135,6 +148,17 @@ export const MODULE_CATALOG = {
                     .array(z.enum(BADGE_IDS))
                     .max(BADGE_IDS.length)
                     .default(['deals_available', 'tickets_left']),
+                /**
+                 * The signal in the slot beside each row's CTA.
+                 *
+                 * Enumerated rather than a boolean so the slot can hold a
+                 * different fact later without renaming the prop or
+                 * invalidating a stored composition. Section-level, like the
+                 * badge allowlist — but unlike a badge it shows on every row,
+                 * so it is the section saying "compare these on price
+                 * movement", not a label a few dates happen to earn.
+                 */
+                card_signal: z.enum(CARD_SIGNALS).nullable().default(null),
             })
             .strict(),
         propsHint: [
@@ -157,6 +181,10 @@ export const MODULE_CATALOG = {
             'group_by_geo: boolean  (default true; splits the visitor\'s own metro into its own group)',
             'max_items: integer 1-20  (default 8)',
             'heading: string | null  (default null = use the built-in headings)',
+            'card_signal: "price_trend" | null  (default null)',
+            '  A signal in the slot beside each row\'s price, e.g. "↓ 4% this week". Shows',
+            '  on every date in the section or none — reach for it when this visitor is',
+            '  weighing when to buy rather than which date.',
             'badges: array of ["deals_available" | "selling_fast" | "tickets_left" |',
             '  "fans_viewed" | "newly_released"]  (default ["deals_available", "tickets_left"])',
             '  An allowlist, not an instruction: a date shows a badge only if you',
@@ -174,7 +202,64 @@ export const MODULE_CATALOG = {
         implemented: true,
     },
 
-    // --- Specified, not yet implemented. Slice 2 onward. ---
+    market_signals: {
+        id: 'market_signals',
+        purpose:
+            'A compact read on the tour as a whole — what tickets cost, whether prices are moving, how much demand there is, how big the run is. Shown in the page\'s right rail beside the list, as supporting context: reach for it when a number about the tour would settle something the visitor is weighing, and never as the page\'s main argument. Its title and the wording of every stat are ours; what you choose is which facts appear and in what order, so pick the ones this visitor is actually weighing rather than all of them.',
+        lever: 'orientation',
+        sizes: ['fixed'],
+        defaultSize: 'fixed',
+        region: 'rail',
+        propsSchema: z
+            .object({
+                /**
+                 * Which stats appear, in order.
+                 *
+                 * One array rather than a pair, because where each stat sits on
+                 * the card is form: the definition in `signals.ts` says whether
+                 * a stat is a metric or a sentence, and the card puts each where
+                 * it belongs. The model orders; the caps decide what survives.
+                 */
+                stats: z
+                    .array(z.enum(STAT_IDS))
+                    .min(1)
+                    .max(5)
+                    .default(['fan_demand', 'lowest_price', 'selling_out', 'fans_viewing', 'tour_scale']),
+            })
+            .strict(),
+        propsHint: [
+            'The card\'s title is fixed ("Event Trends") and not yours to set.',
+            'stats: an ordered array of 1-5 of:',
+            '    "fan_demand"          how much fans want this tour, as a level',
+            '    "lowest_price"        the cheapest get-in price on the tour',
+            '    "typical_price"       the median get-in price',
+            '    "price_direction"     which way prices moved over the last week',
+            '    "selling_out"         how many dates are selling out fast',
+            '    "fans_viewing"        how many fans looked at these dates in the last day',
+            '    "tour_scale"          how many dates, in how many cities',
+            '    "tickets_available"   how much inventory exists across the tour',
+            '  (default ["fan_demand", "lowest_price", "selling_out", "fans_viewing", "tour_scale"])',
+            '  Order matters: earlier stats lead. Where each one sits on the card, and how',
+            '  it is worded, is the card\'s decision — the one thing you choose here is',
+            '  which facts appear and in what order. A stat with nothing behind it in this',
+            '  snapshot is dropped, so naming one is a request, not a guarantee. Three or',
+            '  four beats five.',
+        ].join('\n'),
+        dataRequirements: ['productions'],
+        orchestrated: true,
+        implemented: true,
+    },
+
+    // --- Specified, not yet implemented. ---
+    //
+    // `listing_preview` is the one wanted module still missing: it needs top
+    // listings per event, which the snapshot does not carry, and it has to pair
+    // with a chosen date rather than the tour. Six other entries were reviewed
+    // and cut — `sellout_urgency`, `price_trend` and `date_compare` collapsed
+    // into `market_signals`; `venue_alternatives` is covered by the list's geo
+    // and city filters; `budget_entry` by the budget already arriving in the
+    // context; and `view_from_seat_value` is seat-level detail, which is the
+    // wrong stage of shopping for a page about choosing between dates.
 
     listing_preview: {
         id: 'listing_preview',
@@ -183,6 +268,7 @@ export const MODULE_CATALOG = {
         lever: 'seat_quality',
         sizes: ['standard'],
         defaultSize: 'standard',
+        region: 'main',
         propsSchema: z
             .object({
                 filter: FilterSchema.optional(),
@@ -194,127 +280,6 @@ export const MODULE_CATALOG = {
             'max_items: integer 1-10  (default 5)',
         ].join('\n'),
         dataRequirements: ['listings_sample'],
-        orchestrated: true,
-        implemented: false,
-    },
-
-    venue_alternatives: {
-        id: 'venue_alternatives',
-        purpose:
-            'Shows the visitor what a different city would get them — the same tour, a drive away, usually cheaper. Reach for this when the dates near the visitor are expensive, thin, or sold out, and somewhere they could plausibly travel to is materially better. Named in the source plan as the location lever; this catalog had nothing for it, which is why prompt v3 could ask you to reason about distance but gave you nowhere to act on it.',
-        lever: 'location',
-        sizes: ['standard', 'compact'],
-        defaultSize: 'standard',
-        propsSchema: z
-            .object({
-                /**
-                 * Whose location the comparison is drawn from. Defaults to the
-                 * visitor's metro; set it explicitly when comparing against
-                 * somewhere else.
-                 */
-                anchor_metro: z.string().nullable().default(null),
-                /**
-                 * How far to look. Deliberately coarse words rather than a
-                 * mileage number — the snapshot carries no distances, and you
-                 * know from the city names which is which.
-                 */
-                reach: z.enum(['drivable', 'regional', 'anywhere']).default('drivable'),
-                /** What the comparison leads with. */
-                emphasis: z.enum(['savings', 'inventory', 'seat_quality']).default('savings'),
-                max_alternatives: z.number().int().min(1).max(6).default(3),
-            })
-            .strict(),
-        propsHint: [
-            'anchor_metro: string | null  (default null = the visitor\'s own metro)',
-            'reach: "drivable" | "regional" | "anywhere"  (default "drivable")',
-            'emphasis: "savings" | "inventory" | "seat_quality"  (default "savings")',
-            'max_alternatives: integer 1-6  (default 3)',
-        ].join('\n'),
-        dataRequirements: ['productions[].city', 'productions[].floor_price'],
-        orchestrated: true,
-        implemented: false,
-    },
-
-    sellout_urgency: {
-        id: 'sellout_urgency',
-        purpose:
-            'Tells the visitor how fast inventory is moving, so they can judge whether waiting is a risk. Reach for this when the snapshot shows real scarcity — a selling-out event is material information, so cite the actual listing count, sellout risk, or sales velocity rather than an invented figure.',
-        lever: 'price',
-        sizes: ['hero', 'compact'],
-        defaultSize: 'compact',
-        propsSchema: z
-            .object({
-                risk: z.enum(['low', 'moderate', 'high']),
-                message_tone: z.literal('factual').default('factual'),
-            })
-            .strict(),
-        propsHint: [
-            'risk: "low" | "moderate" | "high"  (required)',
-            'message_tone: "factual"  (the only value)',
-        ].join('\n'),
-        dataRequirements: [
-            'productions[].sellout_risk',
-            'productions[].listing_count',
-            'productions[].sales_velocity',
-        ],
-        orchestrated: true,
-        implemented: false,
-    },
-
-    price_trend: {
-        id: 'price_trend',
-        purpose:
-            'Answers "are prices dropping, and is this fairly priced" with a trend line and a plain-language read. Reach for this when the visitor has time before the event and price is their main lever.',
-        lever: 'price',
-        sizes: ['hero', 'standard', 'compact'],
-        defaultSize: 'standard',
-        propsSchema: z.object({ window_days: z.number().int().min(1).max(90).default(7) }).strict(),
-        propsHint: 'window_days: integer 1-90  (default 7)',
-        dataRequirements: ['productions[].price_trend_7d'],
-        orchestrated: true,
-        implemented: false,
-    },
-
-    budget_entry: {
-        id: 'budget_entry',
-        purpose:
-            'Asks the visitor what they want to spend, then filters everything below it. Reach for this when the entry signals price sensitivity but you do not yet know the number.',
-        lever: 'price',
-        sizes: ['standard'],
-        defaultSize: 'standard',
-        propsSchema: z.object({ prefill: z.number().positive().nullable().default(null) }).strict(),
-        propsHint: 'prefill: number | null  (default null; a budget to pre-fill the input with)',
-        dataRequirements: [],
-        orchestrated: true,
-        implemented: false,
-    },
-
-    date_compare: {
-        id: 'date_compare',
-        purpose:
-            'Ranks a strip of dates by value for the stated budget, so the visitor can see which night is the cost-effective one. Reach for this when the visitor is flexible on date.',
-        lever: 'date',
-        sizes: ['hero', 'standard', 'compact'],
-        defaultSize: 'standard',
-        propsSchema: z
-            .object({ highlight: z.enum(['best_value', 'cheapest']).default('best_value') })
-            .strict(),
-        propsHint: 'highlight: "best_value" | "cheapest"  (default "best_value")',
-        dataRequirements: ['productions', 'productions[].value_score'],
-        orchestrated: true,
-        implemented: false,
-    },
-
-    view_from_seat_value: {
-        id: 'view_from_seat_value',
-        purpose:
-            'Surfaces the best view-per-dollar seats with enough section context to judge them. Reach for this when seat quality, not price alone, is what the visitor is weighing.',
-        lever: 'seat_quality',
-        sizes: ['standard'],
-        defaultSize: 'standard',
-        propsSchema: z.object({ max_picks: z.number().int().min(1).max(5).default(3) }).strict(),
-        propsHint: 'max_picks: integer 1-5  (default 3)',
-        dataRequirements: ['listings_sample[].view_score', 'listings_sample[].deal_score'],
         orchestrated: true,
         implemented: false,
     },

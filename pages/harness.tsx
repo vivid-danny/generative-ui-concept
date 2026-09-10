@@ -23,6 +23,12 @@ const containerStyle: React.CSSProperties = {
     gap: 48,
 }
 
+/**
+ * Rail modules render in a 340px column on the real page, so the harness has to
+ * constrain them or it judges fidelity at a width the module never sees.
+ */
+const RAIL_WIDTH = 340
+
 const labelStyle: React.CSSProperties = {
     fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
     fontSize: 12,
@@ -58,9 +64,17 @@ export default function Harness() {
                             // harness shows each module in its intended resting state.
                             const props = definition.propsSchema.parse({})
                             return (
-                                <section key={`${id}-${size}`}>
+                                <section
+                                    key={`${id}-${size}`}
+                                    style={
+                                        definition.region === 'rail'
+                                            ? { width: RAIL_WIDTH }
+                                            : undefined
+                                    }
+                                >
                                     <p style={labelStyle}>
                                         {id} · {size}
+                                        {definition.region === 'rail' && ' · right rail'}
                                     </p>
                                     <Module
                                         market={MARKET}

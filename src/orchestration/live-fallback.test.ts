@@ -49,7 +49,7 @@ function reply(result: string): BridgeResult {
     return {
         result,
         model: 'claude-opus-5',
-        promptVersion: 'v3',
+        promptVersion: 'v4',
         costUsd: 0.5,
         durationMs: 1234,
         inputTokens: 13000,
@@ -73,7 +73,7 @@ describe('LiveProvider', () => {
 
         expect(resolved.provenance.source).toBe('live')
         expect(resolved.provenance.model).toBe('claude-opus-5')
-        expect(resolved.provenance.prompt_version).toBe('v3')
+        expect(resolved.provenance.prompt_version).toBe('v4')
         expect(resolved.provenance.cost_usd).toBe(0.5)
         expect(resolved.provenance.duration_ms).toBe(1234)
         expect(resolved.spec.layout[0].module).toBe('production_list')

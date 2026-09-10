@@ -9,16 +9,16 @@ guardrails. This document says where the code actually is and what to do next.
 
 ---
 
-## Status: slice 3 — the orchestrator composes sections
+## Status: slice 4 — the orchestrator picks between modules
 
-The page is composed at request time by `claude-sonnet-5`. 85 tests pass,
+The page is composed at request time by `claude-sonnet-5`. 145 tests pass,
 typecheck is clean, production build succeeds. Committed on
 `vivid-danny/genui-concept-build`; nothing is pushed.
 
 ```bash
 npm install
 npm run dev          # http://localhost:3000
-npm test             # 85 tests, none of which call the model
+npm test             # 145 tests, none of which call the model
 npm run typecheck
 npm run build
 ```
@@ -44,45 +44,93 @@ replayed composition keeps its original cost in the panel, so it never looks fre
 
 ### What the orchestrator can do now
 
+- Choose **between two modules**: `production_list` in the main column and
+  `market_signals` in the right rail. Which module appears is now a real
+  decision, not just how the list is sliced.
 - Place `production_list` **up to three times as sections**, each naming itself
   via `heading`.
 - Scope a section by **price, city, demand, value, sales velocity, sellout risk,
-  or a date's traits** — so a heading like "likely to sell out" has a real
-  collection behind it rather than words over an unfiltered list.
+  a date's traits, weekend vs weeknight, or lead time** — so a heading like
+  "likely to sell out" or "weekend trips" has a real collection behind it rather
+  than words over an unfiltered list.
 - Sort by `date`, `price`, `value` or `demand`, and highlight one row.
 - Choose **which badges a section may surface**, from five DS badges. An
   allowlist, not an instruction: a row shows one only if the section allowed it
   *and* the date qualifies, so rows share a vocabulary without being identical.
+- Fill the slot beside each row's CTA with a **per-row price trend**
+  (`card_signal`) — section-level, so a section either compares its dates on
+  price movement or it does not.
+- Compose the rail card by **picking which of eight stats appear, in order**.
+  Every stat makes a claim about the tour, so its wording and its number are
+  ours (`src/modules/market-signals/signals.ts`). Its title is fixed at
+  "Event Trends" — the model already writes every heading in the main column,
+  and a title that must stay true of any stat mix has nothing left for it to
+  add.
 - Reason about **geography from city names alone** — no distance field, no tiers.
 - Read a **freeform brief** that overrides the structured context.
 
+Where a module renders is **not** its decision. `region` is a property of the
+module in the catalog, and the page mounts one `ComposedPage` per column. The
+rail is 340px, sticky, and hidden below 1248px — that is form, and form does not
+belong in props.
+
 ### What it costs
 
-About **$0.04 and 34 seconds** a call, after three changes worth knowing about:
+**$0.04–$0.20 a call, 34–143s.** Runs have come in at $0.043, $0.047, $0.116,
+$0.158 and — the slice-4 run, with a second module in the catalog — **$0.202 in
+143s on 15,953 input tokens**, the most expensive yet.
+
+Adding a module is not free. The catalog now carries a second `propsHint`, a
+`region` line per entry, and a new prompt section, and the composition itself is
+longer. Whether that accounts for all of it or the run was simply unlucky is not
+knowable from one call — see the variance note.
+
+**Variance is as large as most effects you would try to measure.** A single run
+cannot tell you what a prompt sentence costs. If that question matters, it needs
+several runs per condition, which is a real spend — otherwise treat cost as a
+range and move on.
+
+Three changes got it down from ~$0.18:
 
 - The market snapshot is minified. Indentation was ~3,000 tokens a call.
 - The message is ordered stable-first, volatile-last, because prompt caching
   matches on a prefix and the brief was sitting ahead of 9,000 tokens of
   inventory that never changes.
-- `--effort medium`. This was the big one — tokens fell 19% while cost fell 76%,
-  so most of the saving was the model no longer thinking harder than the task
-  needs.
+- `--effort medium`, set explicitly in `src/orchestration/bridge.ts`. The
+  biggest single lever — tokens fell 19% while cost fell 76%.
 
-**Watch the quality tradeoff.** At medium effort it scoped the drive-away
-sections by city alone, where a high-effort run had also filtered on the
-visitor's $80 ceiling. If compositions start reading carelessly, `--effort high`
-now costs ~$0.10 rather than the $0.179 it did before, since the token cuts are
-independent of effort.
+Reloading a composed page is free: `src/orchestration/cache.ts` keys on the exact
+message plus the prompt text, so only a real change to either costs anything.
 
 ### What it cannot compose away
 
-`src/shell/FullTourList.tsx` sits below the composed column and always offers the
-whole tour. It is shell chrome on purpose: a composition narrows, and "a customer
-can still browse everything" has to hold regardless of what the orchestrator
-decided. Anything the orchestrator places, it can also leave out — so this was
-never given to it.
+Three things are enforced regardless of what the orchestrator decides, because a
+rule the model can reason its way around is not a rule:
 
-`/harness` and `/diff` exist and are deliberately unlinked.
+- **The whole tour stays reachable.** `src/shell/FullTourList.tsx` sits below the
+  composed column and always offers every date. Shell chrome, never a module —
+  anything the orchestrator places, it can also leave out.
+- **No date appears twice on a page.** An exclusion set the renderer accumulates
+  in section order (`resolveExclusions` in
+  `src/modules/production-list/select.ts`). The first section to claim a date
+  keeps it.
+- **A module repeats at most three times, each instance naming itself.**
+  `STRUCTURAL_RULES` in `src/orchestration/validate.ts`.
+- **At most one module in the rail.** Three stacked cards in a 340px sticky
+  column is a wrong page, not a judgment about a visitor. Same file
+  (`maxPerSideRegion`).
+- **A stat with nothing behind it is dropped, not guessed at.** Naming a stat is
+  a request; `resolveSignals` drops what the snapshot cannot support, and a card
+  whose stats all drop renders nothing.
+
+`docs/COMPOSABILITY.md` has the test for deciding where a new rule belongs: if
+the page would be *wrong* when the rule is broken, enforce it in code; if it is a
+judgment about what serves this visitor, put it in the prompt and let the model
+weigh it.
+
+An empty section renders nothing rather than an empty state, and the drawer
+reports it — distinguishing "no matches" from "already shown above", which tells
+you the model wrote two sections that overlap.
 
 ### Danny drives the demo
 
@@ -249,6 +297,16 @@ Each of these cost real time. Do not rediscover them.
 - **Zod reports unknown keys with an *empty* path** and the names in
   `issue.keys` (`unrecognized_keys`). Handling only path-bearing issues made every
   hallucinated prop unrepairable and fell whole pages back to the static layout.
+- **Never filter `spec.layout` before mapping it.** `resolveExclusions` returns
+  an array aligned to position in the *whole* layout, and `ComposedPage` reads
+  `exclusions[index]`. Filtering first silently hands each section another
+  section's excluded dates — a wrong page with no error. Filter *while* mapping;
+  `ComposedPage` does this for the region split.
+- **A dev server may already be running, on port 3100.** Conductor starts one for
+  this worktree. Starting a second fails with "Unable to acquire lock at
+  `.next/dev/lock`" — and that is the lock of the server you want, not a stale
+  one. Check `pgrep -fl "next dev"` and the port before touching anything under
+  `.next/`.
 - **Fixture dates are venue-local wall-clock strings** with no offset. Do not pin
   a formatter to UTC — it shifts every date forward a day and disagrees with the
   card on the page.
@@ -354,41 +412,58 @@ sort/highlight were left unchanged — that wiring belongs with the module work 
 
 **How to decide what to build: read the eval output.** The loop is data → a
 surface that exposes it → a line in the prompt or catalog describing it →
-guardrails → one eval run → read what the model reached for that does not exist.
-That last part is the sequencing signal, and it has been right every time so far:
-the invented `focus_metro` prop is what led to sections, and the invented
-`sort_by` is what led to `propsHint`.
+guardrails → one eval run → read what the model reached for that does not exist,
+or had and did not use. That has been right every time: the invented
+`focus_metro` prop led to sections, the invented `sort_by` led to `propsHint`,
+and the ignored weekend constraint led to the rule that stated limits are
+obligations.
 
-**What the latest run exposed.** The brief says she "can drive a few hours **on a
-weekend** but not fly." The model has no way to act on that — there is no
-weekend or lead-time dimension in the filter, and `src/orchestration/derive.ts`
-already computes `isWeekend`, `isWeeknight` and `daysOut` but is consumed by
-nothing except its own test. That is the smallest gap with the clearest evidence
-behind it.
+**A lesson worth keeping.** Adding a surface is not enough on its own. The
+weekend filter existed for a full run before the model touched it, because
+nothing told it that a stated constraint had to be applied. When a new surface
+goes unused, check whether anything says it *should* be — before reaching for
+more effort or more data.
 
-Then, roughly in order:
+Roughly in order:
 
-1. **Weekend and lead time as filter dimensions.** Wire `derive.ts` into
-   `selectProductions` and add the criteria to `FilterSchema`. A "weekend nights
-   within driving distance" collection is exactly the shape the brief asks for
-   and cannot currently be built.
-2. **The slot freed beside the CTA.** The card's price moved into the button and
-   left a gap. What earns it is an open design question — median price, a
-   view-quality signal, inventory depth — and deciding it is the point, not
-   filling it.
-3. **Card variants beyond badges.** The composability Danny is most interested
-   in: which secondary signal a section's cards lead with. Per
-   `docs/COMPOSABILITY.md`, section-level and enumerated, never per row.
-4. **Restore `STRUCTURAL_RULES.minModules` to 3** once three orchestrated modules
-   exist. Still 1, because a floor of 3 would fail every spec — there is one
-   placeable module, used up to three times.
-5. **Extend the evals to compare rendered output**, and to assert that two
-   contexts differ in *which modules appear* rather than only in props.
+1. **A second `card_signal`.** The slot beside the CTA now holds a price trend,
+   and the prop is an enum precisely so it can hold something else — inventory
+   depth, a view-quality signal, the typical price against the get-in. One more
+   value makes the choice itself meaningful.
+2. **`listing_preview`.** The one wanted module still missing, and the only one
+   that pairs with a chosen date rather than the tour. Needs top-listings-per-
+   event data, which the snapshot does not carry.
+3. **Restore `STRUCTURAL_RULES.minModules` to 3** once a third orchestrated
+   module exists. Still 1: two exist, and a floor of 3 would fall back on every
+   good composition.
+4. **Extend the evals to compare rendered output**, and to assert two contexts
+   differ in *which modules appear* rather than only in props. Now worth doing —
+   until slice 4 there was only one module, so "which modules appear" had one
+   possible answer.
 
 **Still unsurfaced data:** `inventory_by_tier` and `listings_sample`'s
-`deal_score` are read by nothing at all. `price_trend_7d` reaches the page only
-through the "Deals Available" badge. Each is a candidate surface, but let the
+`deal_score` are read by nothing at all. Each is a candidate surface, but let the
 eval say which is wanted rather than building on inventory alone.
+(`price_trend_7d` is no longer on this list — it now drives both `card_signal`
+and the card's `price_direction` stat.)
+
+## Parked ideas
+
+**Composed filters — the model composing controls, not content.** Instead of an
+open-ended date picker, the orchestrator emits two or three one-tap filters
+relevant to the brief: "Fri & Sat", "Under $80", "Within a drive". Danny's idea,
+and a genuinely different class from everything built so far — every module to
+date decides what to *say*; this one would decide what the visitor can *do*.
+
+Why it is not scheduled: a filter that changes what is on the page interacts with
+both code-enforced guarantees. The no-duplicate-dates exclusion set is computed
+once per render in section order, so a filter that removes a date from section
+one silently hands it to section two — which may be right, or may be a page that
+reshuffles under the visitor. And the full-tour guarantee has to survive whatever
+a filter does. Neither is unsolvable; both are more than an afternoon.
+
+Stretch goal. Worth returning to once there are enough modules that composing
+*controls* has something to control.
 
 **A small honesty bug in the panel.** The drawer showed "replayed from cache" on
 a composition made seconds earlier — Next's dev server appears to invoke
@@ -398,11 +473,18 @@ and the second replays. Only one call is billed, but the note misleads.
 **Hosting is not near-term.** Vercel only becomes worth considering once the
 local experience is solid, and live orchestration cannot go with it.
 
-Deferred: `budget_entry` (see `docs/PLAN-budget-entry.md`), `date_compare`,
-`venue_alternatives` — which may be unnecessary now that a list can section by
-geography — `sellout_urgency`, ticket-level `listing_preview`, `screen-sm` mobile,
-the assembly animation, session signals and live re-orchestration, real snapshot
-capture.
+**Six catalog entries were reviewed and cut.** `sellout_urgency`, `price_trend`
+and the editorial half of `date_compare` turned out to be the same component and
+collapsed into `market_signals`. `venue_alternatives` is covered by the list's
+city and geo filters; `budget_entry` by the budget already arriving in the
+context (`docs/PLAN-budget-entry.md` is now history, not a plan); and
+`view_from_seat_value` is seat-level detail, which is the wrong stage of shopping
+for a page about choosing between dates. Leaving them in cost tokens on nothing
+and invited the model to reach for decisions already made.
+
+Deferred: ticket-level `listing_preview`, `screen-sm` mobile — which the rail
+card also needs, since it vanishes below 1248px — the assembly animation, session
+signals and live re-orchestration, real snapshot capture.
 
 ## Guardrails (source plan §8 — no exceptions)
 

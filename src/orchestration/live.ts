@@ -38,6 +38,12 @@ function catalogForPrompt(): string {
                 `- \`${id}\` (${module.lever} lever)`,
                 `  purpose: ${module.purpose}`,
                 `  sizes: ${module.sizes.join(' | ')} (default ${module.defaultSize})`,
+                // A fact, not a knob. Where a module renders is intrinsic to it
+                // (docs/COMPOSABILITY.md), but the model should know a rail card
+                // is narrow, desktop-only context before it leans on one.
+                `  region: ${
+                    module.region === 'rail' ? 'right rail (desktop only)' : 'main column'
+                }`,
                 // Without the props, the model invents names that are close but
                 // wrong (`sort_by` for `sort`) and the validator has to strip
                 // them, discarding intent it could have expressed correctly.

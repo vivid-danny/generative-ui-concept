@@ -40,7 +40,15 @@ over from the earlier `event-decision` prototype's per-event `demand` /
 `salesVelocity` / value model. They are stored, not computed, so the orchestrator
 and future modules read them directly. Day-of-week and lead time are **not** stored
 — derive them from `date` + `captured_at` via `src/orchestration/derive.ts`.
-| `listings_sample` | Unused in slice 1 — `listing_preview` is specified but not implemented. Present so the market contract is exercised in full. |
+| `listings_sample` | Unused so far — `listing_preview` is specified but not implemented. Present so the market contract is exercised in full. |
+
+Nothing in the snapshot is tour-level. `market_signals` reads its whole
+vocabulary off `productions` — minima, medians, means, counts and city sets — so
+adding a card meant adding no data. Two figures from that card's Figma frame
+were dropped rather than fabricated: "tickets sold in the last 24 hours" (no
+sales-volume field, and a tour-wide constant would be identical for every
+visitor) and "343 fans shopping now", which was hardcoded in `PerformerRail`
+and is now the summed `fans_viewed_24h`.
 
 ### Shapes worth preserving
 
@@ -71,6 +79,13 @@ low `value_score`), and mid-market weekends that are unremarkable on every axis.
   budget-250 spec shows the 8 earliest with no price filter and the eval asserts
   none exceed budget. Ultra-premium dates are later in the calendar.
 - `prod-002` (Chicago, 2026-12-05) stays 94 days out from `captured_at`.
+- The rail card's figures are pinned to the fixture in `signals.test.ts`: mean
+  `demand_score` **0.736** (reads "High"), min `floor_price` **$54**, median
+  `floor_price` **98.5** ("$99"), mean `price_trend_7d` **−0.0063** ("Easing"),
+  **19** dates at high sellout risk, `fans_viewed_24h` summing to **121,821**,
+  `listing_count` to **59,564**, and **52** dates across **36** cities. An edit
+  that shifts a mean across a band boundary changes what the card says, which is
+  why the bands are asserted rather than the raw numbers alone.
 
 The generator that produced the tour and checked these invariants is at
 `.context/gen-market.mjs` (gitignored) if the fixture needs regenerating.

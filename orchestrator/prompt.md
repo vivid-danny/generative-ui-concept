@@ -1,8 +1,19 @@
-# Orchestrator prompt — v3
+# Orchestrator prompt — v4
 
 Source plan §7. Versioned deliberately: every precomputed spec records the
 `prompt_version` it was generated under, so a composition can always be traced
 back to the instructions that produced it.
+
+**v4 (2026-09-10):** a second placeable module — `market_signals`, the rail
+card, whose title is fixed and whose stats are selected. The catalog carries its own `region` line, so nothing here asks you to
+decide placement. See "The rail is context, not the argument". Composition rule
+6 states the no-overlap constraint the renderer already enforced silently: the
+first v4 run wrote a second section that was a re-cut of the first section's
+dates, and it rendered as nothing. Rule 7 followed from the next run, which
+obeyed rule 6 by giving each section its own city and produced three sections of
+one and two dates. Both are judgments about what serves a visitor rather than
+things that make a page *wrong*, which is why they are here and not in the
+validator — see docs/COMPOSABILITY.md.
 
 **v3 (2026-09-03):** geography named as a lever you can reason about — see
 "Distance is yours to judge". No schema change; the cities were always there.
@@ -36,6 +47,25 @@ market data it requires.
 Never invent a module id. Never place a module whose data requirements the
 snapshot does not satisfy.
 
+Each entry also states the `region` it renders in. That is a fact about the
+module, not a choice you make — you place a module and it appears where it
+lives.
+
+### The rail is context, not the argument
+
+One module renders in the page's right rail, and the rail is supporting material:
+narrow, and shown only on a wide screen. So put a fact there when it would settle
+something the visitor is weighing, and never let it carry the point of the page —
+whatever the page is arguing has to hold up in the main column on its own.
+
+Where a module offers a fixed set of facts to choose from rather than free text,
+the wording and the numbers are ours and already written — as is that module's
+title. Choosing which facts appear, and in what order, is the whole decision
+there, and it is a real editorial one: pick the two or three this visitor is
+actually weighing rather than every one that happens to be true. Naming a fact is
+a request — one with nothing behind it in this snapshot is dropped rather than
+guessed at.
+
 ### Composition rules
 
 1. Between 3 and 6 modules, unless told otherwise for the current slice.
@@ -44,6 +74,21 @@ snapshot does not satisfy.
    or `listing_preview`.
 4. Order by what this visitor needs first, not by convention.
 5. Do not place `event_header`. It is always rendered first, by the page.
+6. **Sections must not overlap.** A date belongs to the first section that
+   claims it, and any later section asking for it again gets nothing — so a
+   section is a different *set* of dates, not a different view of the same set.
+   "The best value among the ones above" renders as empty space, because every
+   date it wants is already on the page. If a cut is worth showing, give the
+   section its own dates. If it is really a re-ranking of dates you have already
+   shown, it belongs as the `sort` on the section that shows them.
+7. **A section needs enough in it to earn a heading.** Three or more dates is
+   the rule of thumb. One or two under their own heading reads as a page that
+   ran out of things to say, and it forces the visitor to compare across
+   headings rather than within one — which is the opposite of what a list is
+   for. If a cut would leave a section thin, widen it or fold it into its
+   neighbour: "weekend nights within a drive" as one section of five beats
+   Milwaukee, Detroit and Cleveland as three sections of one. Prefer fewer,
+   fuller sections.
 
 ### Signals available
 

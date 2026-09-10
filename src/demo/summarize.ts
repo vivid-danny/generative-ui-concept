@@ -2,6 +2,11 @@ import type { Context } from '@/contracts/context'
 import type { LayoutSpec } from '@/contracts/layout-spec'
 import type { Market } from '@/contracts/market'
 import {
+    CARD_HEADING,
+    resolveSignals,
+    type MarketSignalsProps,
+} from '@/modules/market-signals/signals'
+import {
     resolveExclusions,
     selectProductions,
     type ProductionListProps,
@@ -31,8 +36,20 @@ export interface RenderedGroup {
     rows: RenderedRow[]
 }
 
+export interface RenderedSignals {
+    heading: string
+    /** The stat lines as the card renders them, in render order. */
+    lines: string[]
+}
+
 export interface CompositionSummary {
     modules: { module: string; size: string }[]
+    /**
+     * What the rail card actually shows. Worth reporting separately from
+     * `modules`: the orchestrator's stat list is a request, so which stats
+     * survived is the only place its choice is visible.
+     */
+    signals: RenderedSignals[]
     /**
      * Sections the orchestrator asked for that have no members, and why. Not
      * shown to the visitor — an empty section renders nothing — so this is the
@@ -77,6 +94,21 @@ export function summarizeComposition(
         size: entry.size ?? 'standard',
     }))
 
+    // Above the early return below: a page can be a rail card and nothing else,
+    // and reporting nothing for it would make the panel look broken.
+    const signals = spec.layout
+        .filter((entry) => entry.module === 'market_signals')
+        .map((entry) => {
+            const resolved = resolveSignals(market, entry.props as unknown as MarketSignalsProps)
+            return {
+                heading: CARD_HEADING,
+                lines: [
+                    ...resolved.metrics.map((metric) => `${metric.label}: ${metric.value}`),
+                    ...resolved.facts.map((fact) => fact.text),
+                ],
+            }
+        })
+
     // Every instance, not just the first. Once the orchestrator can place
     // `production_list` as several sections, summarising only one would show a
     // third of the page and report the wrong counts — and this panel is what
@@ -85,6 +117,7 @@ export function summarizeComposition(
     if (listEntries.length === 0) {
         return {
             modules,
+            signals,
             emptySections: [],
             groups: [],
             shown: 0,
@@ -163,6 +196,7 @@ export function summarizeComposition(
 
     return {
         modules,
+        signals,
         emptySections,
         groups,
         shown,

@@ -3,6 +3,7 @@ import type React from 'react'
 import type { ModuleId } from '@/contracts/module-catalog'
 
 import EventHeader from './event-header'
+import MarketSignals from './market-signals'
 import ProductionList from './production-list'
 import type { ModuleComponentProps } from './types'
 
@@ -18,6 +19,7 @@ export const MODULE_REGISTRY: Partial<
 > = {
     event_header: EventHeader,
     production_list: ProductionList,
+    market_signals: MarketSignals,
 }
 
 export function getModuleComponent(id: ModuleId) {

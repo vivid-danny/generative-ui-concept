@@ -5,6 +5,7 @@ import Typography from '@/design-system/typography'
 import type { Production } from '@/contracts/market'
 
 import { badgesFor, type BadgeId, type BadgeTone } from './badges'
+import { cardSignalFor, type CardSignal } from './trend'
 import styles from './ProductionCard.module.scss'
 
 /**
@@ -34,6 +35,18 @@ export interface ProductionCardProps {
      * so an allowlist never becomes a label every card wears.
      */
     eligibleBadges?: readonly BadgeId[]
+    /**
+     * The signal this section shows beside the CTA, if any. Section-level, so
+     * every row in a list gets the same one or none.
+     */
+    signal?: CardSignal | null
+}
+
+/** Trend direction -> the card's own styling. Form, so it lives here. */
+const TREND_CLASS: Record<'down' | 'up' | 'flat', string> = {
+    down: styles.signalDown,
+    up: styles.signalUp,
+    flat: styles.signalFlat,
 }
 
 /** Badge tone -> the card's own styling. Form, so it lives here. */
@@ -53,10 +66,12 @@ export const ProductionCard: React.FC<ProductionCardProps> = ({
     performerName,
     isHighlighted = false,
     eligibleBadges = [],
+    signal = null,
 }) => {
     const date = new Date(production.date)
     // Which badges the section allowed, narrowed to the ones true of this date.
     const badges = badgesFor(production, eligibleBadges)
+    const signalValue = cardSignalFor(production, signal)
 
     return (
         <article className={classNames(styles.card, { [styles.highlighted]: isHighlighted })}>
@@ -102,10 +117,19 @@ export const ProductionCard: React.FC<ProductionCardProps> = ({
                 {/*
                   The CTA carries the get-in price. "Find Tickets" told a visitor
                   nothing they did not know from being on this page, and folding
-                  the price into the button frees the slot to its left for
-                  something that earns it. Left empty deliberately — what goes
-                  there is a decision of its own.
+                  the price into the button freed the slot to its left. The
+                  section decides what fills it — the same fact on every row, or
+                  nothing at all.
                 */}
+                {signalValue && (
+                    <Typography
+                        variant="caption"
+                        component="span"
+                        className={classNames(styles.signal, TREND_CLASS[signalValue.direction])}
+                    >
+                        {signalValue.label}
+                    </Typography>
+                )}
                 <button type="button" className={styles.cta}>
                     <Typography variant="smallMedium" component="span">
                         From ${production.floor_price}

@@ -60,6 +60,7 @@ export const TYPE_SCALE = {
     // with weight 400 — identical to `body`. That looks like an authoring slip
     // rather than an intended style, so it is deliberately not modelled here;
     // adding it would mean guessing which of the name and the weight is right.
+    bodyBold: { size: 16, lineHeight: 24, weight: FONT_WEIGHT.bold },
     smallMedium: { size: 14, lineHeight: 21, weight: FONT_WEIGHT.medium },
     smallBold: { size: 14, lineHeight: 21, weight: FONT_WEIGHT.bold },
     captionMedium: { size: 12, lineHeight: 18, weight: FONT_WEIGHT.medium },

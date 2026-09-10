@@ -66,12 +66,94 @@ describe('validateLayout', () => {
 
     it('drops a module that is catalogued but not implemented yet', () => {
         const result = validateLayout(
-            { ...validSpec, layout: [{ module: 'price_trend', props: {} }, ...validSpec.layout] },
+            { ...validSpec, layout: [{ module: 'listing_preview', props: {} }, ...validSpec.layout] },
             market,
         )
 
         expect(result.spec.layout.map((entry) => entry.module)).toEqual(['production_list'])
         expect(result.notes[0].reason).toContain('not implemented')
+    })
+
+    it('accepts the rail card and fills in its defaults', () => {
+        const result = validateLayout(
+            { ...validSpec, layout: [...validSpec.layout, { module: 'market_signals', props: {} }] },
+            market,
+        )
+
+        expect(result.notes).toEqual([])
+        expect(result.spec.layout[1]).toMatchObject({
+            module: 'market_signals',
+            size: 'fixed',
+            props: { stats: ['fan_demand', 'lowest_price', 'selling_out', 'fans_viewing', 'tour_scale'] },
+        })
+    })
+
+    it('does not let a rail module spend the page’s one hero', () => {
+        // `market_signals` offers only `fixed`, so the existing size repair
+        // handles this — the point of the test is that the main column still
+        // has its hero afterwards.
+        const result = validateLayout(
+            {
+                ...validSpec,
+                layout: [
+                    { module: 'market_signals', size: 'hero', props: {} },
+                    { module: 'production_list', size: 'hero', props: { heading: 'Near you' } },
+                ],
+            },
+            market,
+        )
+
+        expect(result.spec.layout[0]).toMatchObject({ module: 'market_signals', size: 'fixed' })
+        expect(result.spec.layout[1]).toMatchObject({ module: 'production_list', size: 'hero' })
+        expect(result.notes[0].reason).toContain('is not offered')
+    })
+
+    it('keeps one module in the rail and drops the rest', () => {
+        const result = validateLayout(
+            {
+                ...validSpec,
+                layout: [
+                    { module: 'market_signals', props: { stats: ['fan_demand'] } },
+                    { module: 'market_signals', props: { stats: ['selling_out'] } },
+                    ...validSpec.layout,
+                ],
+            },
+            market,
+        )
+
+        expect(result.spec.layout.map((entry) => entry.module)).toEqual([
+            'market_signals',
+            'production_list',
+        ])
+        expect(result.notes[0].reason).toContain('already placed in the right rail')
+    })
+
+    it('adds a path to purchase to a page that is only a rail card', () => {
+        // The rail card is context, never the way to buy — and it disappears
+        // below 1248px, so a page of nothing else would render empty.
+        const result = validateLayout(
+            { ...validSpec, layout: [{ module: 'market_signals', props: {} }] },
+            market,
+        )
+
+        expect(result.spec.layout.map((entry) => entry.module)).toEqual([
+            'market_signals',
+            'production_list',
+        ])
+    })
+
+    it('strips a bad card signal back to null rather than dropping the section', () => {
+        const result = validateLayout(
+            {
+                ...validSpec,
+                layout: [{ module: 'production_list', props: { card_signal: 'vibes' } }],
+            },
+            market,
+        )
+
+        expect(result.spec.layout).toHaveLength(1)
+        expect(result.spec.layout[0].props.card_signal).toBeNull()
+        expect(result.notes[0].level).toBe('repaired')
     })
 
     it('drops page chrome the orchestrator is not allowed to place', () => {

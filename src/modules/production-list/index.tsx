@@ -100,6 +100,7 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
                                 performerName={market.performer.name}
                                 isHighlighted={production.id === highlightedId}
                                 eligibleBadges={props.badges}
+                                signal={props.card_signal}
                             />
                         ))}
                     </div>

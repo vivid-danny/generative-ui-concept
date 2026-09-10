@@ -3,7 +3,7 @@ import React from 'react'
 import type { Context } from '@/contracts/context'
 import type { LayoutSpec } from '@/contracts/layout-spec'
 import type { Market } from '@/contracts/market'
-import { isModuleId } from '@/contracts/module-catalog'
+import { isModuleId, MODULE_CATALOG } from '@/contracts/module-catalog'
 import { getModuleComponent } from '@/modules/registry'
 import { resolveExclusions } from '@/modules/production-list/select'
 
@@ -22,6 +22,15 @@ interface ComposedPageProps {
     spec: LayoutSpec
     market: Market
     context: Context
+    /**
+     * Which column this instance renders.
+     *
+     * The page mounts one `ComposedPage` per column and each takes the entries
+     * whose module belongs to it. Region is a property of the module, not of the
+     * layout entry — the orchestrator places a module and the renderer knows
+     * where that module lives (docs/COMPOSABILITY.md: form is not a prop).
+     */
+    region?: 'main' | 'rail'
 }
 
 /**
@@ -43,7 +52,25 @@ function moduleKey(entry: { module: string; props: Record<string, unknown> }, in
         : `${entry.module}:${index}`
 }
 
-export const ComposedPage: React.FC<ComposedPageProps> = ({ spec, market, context }) => {
+/**
+ * Whether the spec put anything in this column.
+ *
+ * The page needs to know before rendering — an empty rail column and a rail
+ * with a card in it are laid out differently — and `ComposedPage` returning
+ * nothing is too late to ask.
+ */
+export function hasRegion(spec: LayoutSpec, region: 'main' | 'rail'): boolean {
+    return spec.layout.some(
+        (entry) => isModuleId(entry.module) && MODULE_CATALOG[entry.module].region === region,
+    )
+}
+
+export const ComposedPage: React.FC<ComposedPageProps> = ({
+    spec,
+    market,
+    context,
+    region = 'main',
+}) => {
     // Worked out once, in render order, so a date claimed by an earlier section
     // cannot appear again further down the page.
     const exclusions = resolveExclusions(spec.layout, market, context)
@@ -55,6 +82,12 @@ export const ComposedPage: React.FC<ComposedPageProps> = ({ spec, market, contex
             // unimplemented modules. Guarded anyway so a renderer bug degrades to
             // a missing module rather than a crashed page.
             if (!isModuleId(entry.module)) return null
+
+            // Filter while mapping, never before it: `exclusions` is aligned to
+            // position in the *whole* layout, so filtering the array first would
+            // hand each section another section's excluded dates.
+            if (MODULE_CATALOG[entry.module].region !== region) return null
+
             const Module = getModuleComponent(entry.module)
             if (!Module) return null
 

@@ -12,7 +12,7 @@ import { BaseProvider } from '@/orchestration/base'
 import { LiveProvider } from '@/orchestration/live'
 import { PrecomputedProvider } from '@/orchestration/precomputed'
 import type { OrchestrationProvider } from '@/orchestration/provider'
-import ComposedPage from '@/renderer/ComposedPage'
+import ComposedPage, { hasRegion } from '@/renderer/ComposedPage'
 import PageShell from '@/shell/PageShell'
 import PerformerFilters from '@/shell/PerformerFilters'
 import FullTourList from '@/shell/FullTourList'
@@ -56,7 +56,22 @@ export default function Home({ mode, market, context, resolved, summary }: HomeP
                             headline={resolved.spec.headline}
                         />
                     }
-                    rail={<PerformerRail market={market} />}
+                    rail={
+                        <PerformerRail market={market} composed={hasRegion(resolved.spec, 'rail')}>
+                            {/*
+                              The rail's own composed column. Same spec, same
+                              renderer — it takes the entries whose module lives
+                              in the rail, so the orchestrator never has to say
+                              where anything goes.
+                            */}
+                            <ComposedPage
+                                spec={resolved.spec}
+                                market={market}
+                                context={context}
+                                region="rail"
+                            />
+                        </PerformerRail>
+                    }
                     seo={<SeoContent market={market} />}
                 >
                     <div className={styles.mainStack}>

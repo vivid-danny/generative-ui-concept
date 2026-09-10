@@ -94,10 +94,19 @@ describe('buildMessage', () => {
 
     it('offers only modules that are implemented and orchestrated', () => {
         expect(message).toContain('`production_list`')
+        expect(message).toContain('`market_signals`')
         // Specified but not implemented — offering it would produce a spec the
-        // validator has to drop, wasting the call.
-        expect(message).not.toContain('`price_trend`')
-        expect(message).not.toContain('`budget_entry`')
+        // validator has to drop, wasting the call. `listing_preview` is the only
+        // entry left in that state, so it is the whole guard.
+        expect(message).not.toContain('`listing_preview`')
+    })
+
+    it('tells the model which column each module renders in', () => {
+        // A fact, not a knob: region is intrinsic to the module, so the model
+        // needs to know a rail card is desktop-only supporting context, but has
+        // nothing to decide about it.
+        expect(message).toContain('region: main column')
+        expect(message).toContain('region: right rail (desktop only)')
     })
 
     it('does not offer page chrome as placeable', () => {

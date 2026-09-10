@@ -174,6 +174,17 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
                             ))}
                         </ul>
 
+                        {summary.signals.map((signals) => (
+                            <div key={signals.heading} className={styles.renderedGroup}>
+                                <p className={styles.groupLabel}>{`rail: ${signals.heading}`}</p>
+                                <ul className={styles.rowList}>
+                                    {signals.lines.map((line) => (
+                                        <li key={line}>{line}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        ))}
+
                         {summary.emptySections.length > 0 && (
                             <ul className={styles.notes}>
                                 {summary.emptySections.map((section) => (

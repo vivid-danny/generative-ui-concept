@@ -1,0 +1,70 @@
+// `Frame 19283` — Figma 17433:28650. 340 wide, no background of its own: the
+// frame is drawn on white and the page already is.
+
+.card {
+    display: flex;
+    flex-direction: column;
+    // 8px between the heading and the highlight block (title y=0 h=23,
+    // block y=31).
+    gap: var(--spacing-sm);
+}
+
+.heading {
+    margin: 0;
+}
+
+// Frame 7 (17433:28603) — the two-up highlight block. Asymmetric padding
+// straight from the frame: 16 vertical, 12 horizontal.
+.metrics {
+    display: flex;
+    gap: var(--spacing-lg);
+    padding: var(--spacing-lg) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    background: var(--surface-gray-50-veryThin, #f6f6fb);
+}
+
+.metric {
+    display: flex;
+    flex: 1 0 0;
+    flex-direction: column;
+    // No gap — the label's 18px and the value's 24px line boxes stack flush in
+    // the design (label y=0 h=18, value y=18).
+    min-width: 0;
+}
+
+.metricLabel {
+    color: var(--text-secondary);
+}
+
+// Frame 19284 (17433:28611) — the fact rows. The 16px top padding is the
+// frame's, not a gap, so it survives even when the highlight block is absent.
+.facts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+    margin: 0;
+    padding: var(--spacing-lg) 0 0;
+    list-style: none;
+}
+
+// Top-aligned, not centred. A six-figure count wraps to two lines, and a
+// centred icon would then float between them and break the row rhythm; the
+// 24px box matches the first line's box exactly, so it sits with the text it
+// belongs to.
+.fact {
+    display: flex;
+    gap: var(--spacing-sm);
+    align-items: flex-start;
+}
+
+// The shared 24px box. Each glyph keeps its own designed leaf size inside it,
+// so the rows align on the box rather than on the artwork.
+.factIcon {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    color: var(--text-secondary);
+}
