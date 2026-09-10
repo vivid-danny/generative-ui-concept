@@ -103,6 +103,33 @@ Two things make that reversible cheaply. The line is one paragraph in
 `orchestrator/prompt.md`, and the rules that must not bend are enforced in code
 rather than asked for in the prompt — see the next section.
 
+## Describe the shape, not what fills it
+
+The system prompt used to carry three separate rules about page structure: a
+module count, a no-overlap constraint, and a minimum section size. They were
+three answers to a question nobody had written down — *what shape is this page?*
+— and the model resolved the tension between them by quietly dropping the count.
+
+They are now one idea: **the page runs from certainty to completeness.** A tight
+strongly-filtered group at the top, broader editorial cuts below it, the whole
+tour at the bottom. No-overlap and minimum-weight follow from that rather than
+standing beside it: sections do not overlap because each is a different band of
+the arc, and none is thin because each band has a job.
+
+The distinction worth keeping: **the shape is ours, what fills it is the
+model's.** The arc says a lower section should be broader and less certain; it
+does not say what that section is about. "The biggest nights on the tour, if
+you're ever flying" was the model's idea and it fits the arc exactly. A shape
+constrains only if you start specifying content.
+
+A corollary about caps. Item count is itself a claim — three dates read as a
+recommendation, eight read as a list that was not finished narrowing — so the
+cap is derived from `size` rather than being its own knob: `hero` holds three,
+anything else seven. Prominence and length can no longer contradict each other,
+which is what a hero section of eight rows was doing. Same move as two badges
+per row and two metrics on the rail card: **how much fits is the component's
+call, not the orchestrator's.**
+
 ## Hard rules go in code, not the prompt
 
 A rule the model can reason its way around is not a rule. Two now live in code:

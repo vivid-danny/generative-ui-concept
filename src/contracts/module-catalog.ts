@@ -124,7 +124,16 @@ export const MODULE_CATALOG = {
                 filter: FilterSchema.optional(),
                 sort: z.enum(['date', 'price', 'value', 'demand']).default('date'),
                 group_by_geo: z.boolean().default(true),
-                max_items: z.number().int().min(1).max(20).default(8),
+                /**
+                 * How many rows this section shows.
+                 *
+                 * Capped by the section's prominence at validation time, not
+                 * here — `hero` holds 3 and everything else 7
+                 * (`STRUCTURAL_RULES.maxItemsBySize`). The schema stays wide
+                 * because the ceiling depends on `size`, which is not visible
+                 * from inside a props schema.
+                 */
+                max_items: z.number().int().min(1).max(20).default(7),
                 /**
                  * The section's own heading, e.g. "Worth the drive".
                  *
@@ -177,7 +186,10 @@ export const MODULE_CATALOG = {
             'sort: "date" | "price" | "value" | "demand"  (default "date")',
             '  "value" and "demand" sort by those scores, best first.',
             'group_by_geo: boolean  (default true; splits the visitor\'s own metro into its own group)',
-            'max_items: integer 1-20  (default 8)',
+            'max_items: integer  (default 7)',
+            '  Capped by prominence: a `hero` section holds 3, any other holds 7. Asking',
+            '  for more is not an error, it is just trimmed — but three dates read as a',
+            '  recommendation and eight read as a list, so choose the count you mean.',
             'heading: string | null  (default null = use the built-in headings)',
             'card_signal: "price_trend" | null  (default null)',
             '  A signal in the slot beside each row\'s price, e.g. "↓ 4% this week". Shows',

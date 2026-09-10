@@ -122,6 +122,13 @@ rule the model can reason its way around is not a rule:
   keeps it.
 - **A module repeats at most three times, each instance naming itself.**
   `STRUCTURAL_RULES` in `src/orchestration/validate.ts`.
+- **A section holds three rows at `hero`, seven otherwise.**
+  `STRUCTURAL_RULES.maxItemsBySize`. A count is a claim about confidence, so it
+  is derived from prominence rather than chosen separately — a hero of eight
+  claimed certainty and then read as a list. Clamped with a note only when the
+  model asked for more than it can have; a trimmed default is not worth
+  reporting. `FullTourList` bypasses the validator, which is why "see every
+  date" can still be a wall of dates.
 - **At most one module in the rail.** Three stacked cards in a 340px sticky
   column is a wrong page, not a judgment about a visitor. Same file
   (`maxPerSideRegion`).

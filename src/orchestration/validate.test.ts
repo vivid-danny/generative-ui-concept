@@ -32,7 +32,7 @@ describe('validateLayout', () => {
         expect(result.spec.layout[0].props).toMatchObject({
             sort: 'date',
             group_by_geo: true,
-            max_items: 8,
+            max_items: 7,
         })
     })
 
@@ -143,6 +143,46 @@ describe('validateLayout', () => {
         ])
     })
 
+    it('caps a hero section at three rows, and says so', () => {
+        // Prominence and length were two knobs that could argue: a `hero`
+        // section of eight rows claims certainty and then reads as a list.
+        const result = validateLayout(
+            {
+                ...validSpec,
+                layout: [{ module: 'production_list', size: 'hero', props: { max_items: 8 } }],
+            },
+            market,
+        )
+
+        expect(result.spec.layout[0].props.max_items).toBe(3)
+        expect(result.notes[0].reason).toContain('a `hero` section holds 3')
+        expect(result.notes[0].reason).toContain('8 was asked for')
+    })
+
+    it('caps any other section at seven', () => {
+        const result = validateLayout(
+            {
+                ...validSpec,
+                layout: [{ module: 'production_list', size: 'compact', props: { max_items: 20 } }],
+            },
+            market,
+        )
+
+        expect(result.spec.layout[0].props.max_items).toBe(7)
+    })
+
+    it('does not report a cap the model never asked for', () => {
+        // A `hero` with no `max_items` gets the schema default of 7, trimmed to
+        // 3. Noting that would be noise: the model did not ask for anything.
+        const result = validateLayout(
+            { ...validSpec, layout: [{ module: 'production_list', size: 'hero', props: {} }] },
+            market,
+        )
+
+        expect(result.spec.layout[0].props.max_items).toBe(3)
+        expect(result.notes).toEqual([])
+    })
+
     it('drops a top pick that is not a date in this snapshot', () => {
         const result = validateLayout({ ...validSpec, top_pick: 'prod-999' }, market)
 
@@ -226,7 +266,7 @@ describe('validateLayout', () => {
 
         expect(result.usedFallback).toBe(false)
         // The bad value is gone and the module's own default applies.
-        expect(result.spec.layout[0].props).toMatchObject({ max_items: 8 })
+        expect(result.spec.layout[0].props).toMatchObject({ max_items: 7 })
         expect(result.notes.some((note) => note.reason.includes('max_items'))).toBe(true)
     })
 

@@ -1,8 +1,16 @@
-# Orchestrator prompt — v5
+# Orchestrator prompt — v6
 
 Source plan §7. Versioned deliberately: every precomputed spec records the
 `prompt_version` it was generated under, so a composition can always be traced
 back to the instructions that produced it.
+
+**v6 (2026-09-10):** rules 1, 6 and 7 became "The shape of the page". They were
+three separate answers — a count, a constraint and a minimum — to a question
+nobody had written down, and the model resolved the tension between them by
+quietly dropping the count. The arc says the same things as one idea, and drops
+the floor of three modules: a page of one good section plus the rail card is
+better than three padded ones. Item counts are now capped by prominence in code
+(hero 3, others 7) rather than asked for here.
 
 **v5 (2026-09-10):** `top_pick` replaces the `highlight` strategy. The page may
 name one date it recommends and the card labels it; naming a strategy keyword and
@@ -71,29 +79,48 @@ actually weighing rather than every one that happens to be true. Naming a fact i
 a request — one with nothing behind it in this snapshot is dropped rather than
 guessed at.
 
+### The shape of the page
+
+A page runs from **certainty to completeness**, top to bottom. That shape is
+yours to fill; what goes in each band is not prescribed.
+
+**At the top, one tight group you are confident about.** Strongly filtered, few
+dates. `hero` prominence holds three, and the limit is the point: three dates
+read as a recommendation, eight read as a list you had not finished narrowing.
+This is where a `top_pick` belongs if you name one.
+
+**Below it, broader cuts.** Each a different *set* of dates and a different
+reason to look — a city worth the drive, the nights that are selling out, the
+marquee shows someone might aspire to. Up to seven dates each. Wider and less
+certain than the top group, which is what makes them worth scrolling to.
+
+**At the bottom, the whole tour.** The page always ends with a way to see every
+date. You do not place this and cannot remove it; the page owns it.
+
+Two things follow from the shape rather than being rules alongside it:
+
+- **Sections do not overlap.** A date belongs to the first section that claims
+  it, and a later section asking for it again gets nothing — a section is a
+  different set of dates, not a different view of the same set. "The best value
+  among the ones above" renders as empty space, because every date it wants is
+  already on the page. If it is really a re-ranking of dates you have shown, it
+  belongs as the `sort` on the section showing them.
+- **A section earns its heading by having enough in it.** One or two dates under
+  their own heading reads as a page that ran out of things to say, and makes the
+  visitor compare across headings instead of within one. If a cut would leave a
+  section thin, widen it or fold it into its neighbour: "weekend nights within a
+  drive" as one section of five beats Milwaukee, Detroit and Cleveland as three
+  sections of one.
+
 ### Composition rules
 
-1. Between 3 and 6 modules, unless told otherwise for the current slice.
+1. At most six modules. There is no floor — one well-judged group plus the rail
+   card is a better page than three sections padded to meet a count.
 2. At most one `hero` module. Prominence means something only if it is scarce.
 3. Every layout contains a path to purchase — at least one of `production_list`
    or `listing_preview`.
-4. Order by what this visitor needs first, not by convention.
+4. Order by the shape above: tightest first.
 5. Do not place `event_header`. It is always rendered first, by the page.
-6. **Sections must not overlap.** A date belongs to the first section that
-   claims it, and any later section asking for it again gets nothing — so a
-   section is a different *set* of dates, not a different view of the same set.
-   "The best value among the ones above" renders as empty space, because every
-   date it wants is already on the page. If a cut is worth showing, give the
-   section its own dates. If it is really a re-ranking of dates you have already
-   shown, it belongs as the `sort` on the section that shows them.
-7. **A section needs enough in it to earn a heading.** Three or more dates is
-   the rule of thumb. One or two under their own heading reads as a page that
-   ran out of things to say, and it forces the visitor to compare across
-   headings rather than within one — which is the opposite of what a list is
-   for. If a cut would leave a section thin, widen it or fold it into its
-   neighbour: "weekend nights within a drive" as one section of five beats
-   Milwaukee, Detroit and Cleveland as three sections of one. Prefer fewer,
-   fuller sections.
 
 ### Signals available
 

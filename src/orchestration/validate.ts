@@ -60,6 +60,21 @@ export const STRUCTURAL_RULES = {
      * sections stacking there is the point.
      */
     maxPerSideRegion: 1,
+    /**
+     * How many rows a section may show, by the prominence it was given.
+     *
+     * A count is a claim about confidence: three dates read as a recommendation,
+     * eight read as a list that was not finished narrowing. Deriving the cap
+     * from `size` means the model chooses how sure it is and the count follows,
+     * instead of prominence and length being two knobs that can argue — which
+     * is what a `hero` section of eight was doing.
+     *
+     * Enforced here rather than in the schema because it depends on `size`, and
+     * `FullTourList` deliberately exceeds it: that list bypasses the validator
+     * entirely, because "see every date" is the one place a wall of dates is the
+     * point.
+     */
+    maxItemsBySize: { hero: 3, standard: 7, compact: 7, fixed: 7 },
 } as const
 
 /**
@@ -332,6 +347,10 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
             size = definition.defaultSize
         }
 
+        // Read before `repairProps` applies defaults, so a clamp is only worth
+        // reporting when the model actually asked for more than it can have.
+        const askedFor = (entry.props as Record<string, unknown>).max_items
+
         const { props, repairs } = repairProps(entry.module, entry.props)
         if (props === null) {
             notes.push({
@@ -341,6 +360,18 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
             })
             continue
         }
+        if (props !== null && typeof props.max_items === 'number') {
+            const cap = STRUCTURAL_RULES.maxItemsBySize[size]
+            if (props.max_items > cap) {
+                if (typeof askedFor === 'number') {
+                    repairs.push(
+                        `capped \`max_items\` at ${cap} (a \`${size}\` section holds ${cap}; ${askedFor} was asked for)`,
+                    )
+                }
+                props.max_items = cap
+            }
+        }
+
         repairs.push(...repairContradictions(entry.module, props))
         repairs.push(...repairAgainstMarket(entry.module, props, market))
         for (const repair of repairs) {
