@@ -21,6 +21,15 @@ import { FALLBACK_LAYOUT } from './validate'
  * arguing against a page that does not exist. What it does not do is *compose*
  * around the visitor: no budget, no intent, no weighing of one lever against
  * another. That is the difference on display, and it is a fair one.
+ *
+ * Which is why the baseline wears badges. `fallback-layout.json` names
+ * `deals_available` and `tickets_left` explicitly: the real performer page shows
+ * those, so a baseline without them would be weaker than the page it stands
+ * for, and every comparison after that flatters the composed page. It showed
+ * none for a while, but that was a bug rather than a decision — module prop
+ * defaults never ran on this path. It carries no `card_signal` and no
+ * `top_pick`, because those are ours and today's page has neither. The
+ * difference on display should be composition, not decoration.
  */
 export class BaseProvider implements OrchestrationProvider {
     readonly name = 'Baseline (today’s page — no composition)'

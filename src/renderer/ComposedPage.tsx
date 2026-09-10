@@ -100,6 +100,7 @@ export const ComposedPage: React.FC<ComposedPageProps> = ({
                     props={entry.props}
                     headline={spec.headline}
                     excludeItemIds={exclusions[index]}
+                    topPick={spec.top_pick}
                 />
             )
         })}

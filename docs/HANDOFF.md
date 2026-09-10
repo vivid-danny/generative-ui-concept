@@ -53,7 +53,13 @@ replayed composition keeps its original cost in the panel, so it never looks fre
   a date's traits, weekend vs weeknight, or lead time** — so a heading like
   "likely to sell out" or "weekend trips" has a real collection behind it rather
   than words over an unfiltered list.
-- Sort by `date`, `price`, `value` or `demand`, and highlight one row.
+- Sort by `date`, `price`, `value` or `demand`.
+- **Name one date on the page as its top pick**, by production id, in the spec's
+  page-level `top_pick`. That card gets a pink outline and a "Top Pick"
+  tab on its top border. Fixed copy — the recommendation is the model's, the
+  words are ours, and the *why* stays in `reasoning`. Page-level rather than a
+  section prop, so "one per page" is true by construction rather than repaired
+  back to one.
 - Choose **which badges a section may surface**, from five DS badges. An
   allowlist, not an instruction: a row shows one only if the section allowed it
   *and* the date qualifies, so rows share a vocabulary without being identical.
@@ -297,6 +303,15 @@ Each of these cost real time. Do not rediscover them.
 - **Zod reports unknown keys with an *empty* path** and the names in
   `issue.keys` (`unrecognized_keys`). Handling only path-bearing issues made every
   hallucinated prop unrepairable and fell whole pages back to the static layout.
+- **`LayoutEntrySchema.props` is an open record, so module prop defaults do not
+  apply just because a spec parsed.** `FALLBACK_LAYOUT` was built with
+  `LayoutSpecSchema.parse` alone for three slices, so nothing on the base path
+  ever ran a module's own `propsSchema`. Two visible bugs came from it: base drew
+  a pink outline around whichever row sorted first (a `highlight` of `undefined`
+  slipping a `=== null` guard) and base wore no badges at all. The fix runs each
+  entry's `propsSchema` where `FALLBACK_LAYOUT` is built — anything that spreads
+  it now gets real props. If a page shows something the AI path does not, suspect
+  a default that never ran.
 - **Never filter `spec.layout` before mapping it.** `resolveExclusions` returns
   an array aligned to position in the *whole* layout, and `ComposedPage` reads
   `exclusions[index]`. Filtering first silently hands each section another
@@ -406,7 +421,7 @@ with a "Signals available" section describing them. The fixture is a full ~52-da
 tour. The three precomputed specs were hand-refreshed for the bigger market and want
 a real regeneration once the live bridge exists — see the README's spec note. What
 is **not** done: no module renders the new signals yet, and `production_list`'s
-sort/highlight were left unchanged — that wiring belongs with the module work below.
+sort was left unchanged — that wiring belongs with the module work below.
 
 ## Next steps
 
@@ -446,6 +461,29 @@ Roughly in order:
 eval say which is wanted rather than building on inventory alone.
 (`price_trend_7d` is no longer on this list — it now drives both `card_signal`
 and the card's `price_direction` stat.)
+
+## Retired on 2026-09-10
+
+**The precomputed spec library, `/diff`, the persona fixtures, and nine evals.**
+`src/orchestration/specs/*.json` held three compositions hand-authored under
+prompt v2 and keyed to the persona fixtures that Base/Eval/Custom replaced.
+`orchestrator/eval/cases.test.ts` compared them; `pages/diff.tsx` displayed them.
+
+They went because `top_pick` replaced `highlight`, which was the only prop
+distinguishing two of the three specs — so the convergence eval started failing
+by design. That was the prompt to notice the whole thing had stopped being an
+eval: "do different contexts produce different compositions?" is the property
+that matters most here, and asking it of three files someone wrote by hand
+answers nothing about the live orchestrator.
+
+What replaced them: `LiveProvider.fallback()` now serves `FALLBACK_LAYOUT`, which
+is the more honest failure — a page composed for somebody else, presented without
+comment, is a worse lie than a page that plainly did not compose. Most of what
+the nine tests asserted has direct coverage in `validate.test.ts` already. What
+is genuinely owed back is recorded in `orchestrator/eval/README.md`: convergence,
+budget-constrains-the-page, and which-modules-appear, all at the live level where
+they mean something. `specKeyFor` survived the deletion in
+`src/orchestration/context-key.ts` — provenance still uses it.
 
 ## Parked ideas
 

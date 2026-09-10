@@ -123,7 +123,6 @@ export const MODULE_CATALOG = {
             .object({
                 filter: FilterSchema.optional(),
                 sort: z.enum(['date', 'price', 'value', 'demand']).default('date'),
-                highlight: z.enum(['best_value', 'cheapest', 'soonest']).nullable().default(null),
                 group_by_geo: z.boolean().default(true),
                 max_items: z.number().int().min(1).max(20).default(8),
                 /**
@@ -177,7 +176,6 @@ export const MODULE_CATALOG = {
             '  just the words.',
             'sort: "date" | "price" | "value" | "demand"  (default "date")',
             '  "value" and "demand" sort by those scores, best first.',
-            'highlight: "best_value" | "cheapest" | "soonest" | null  (default null)',
             'group_by_geo: boolean  (default true; splits the visitor\'s own metro into its own group)',
             'max_items: integer 1-20  (default 8)',
             'heading: string | null  (default null = use the built-in headings)',

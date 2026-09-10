@@ -185,6 +185,14 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
                             </div>
                         ))}
 
+                        {summary.unshownTopPick !== null && (
+                            <ul className={styles.notes}>
+                                <li className={styles.noteRepaired}>
+                                    {`top pick ${summary.unshownTopPick} was named but no section shows it`}
+                                </li>
+                            </ul>
+                        )}
+
                         {summary.emptySections.length > 0 && (
                             <ul className={styles.notes}>
                                 {summary.emptySections.map((section) => (
@@ -211,10 +219,10 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
                                     {group.rows.map((row) => (
                                         <li
                                             key={row.id}
-                                            className={classNames({ [styles.rowHighlighted]: row.isHighlighted })}
+                                            className={classNames({ [styles.rowHighlighted]: row.isTopPick })}
                                         >
                                             {row.date} · {row.city} · from ${row.floorPrice}
-                                            {row.isHighlighted && <span className={styles.dim}> ← highlighted</span>}
+                                            {row.isTopPick && <span className={styles.dim}> ← top pick</span>}
                                         </li>
                                     ))}
                                 </ul>

@@ -86,27 +86,6 @@ describe('selectProductions', () => {
         expect(allDates(selection)).toHaveLength(3)
     })
 
-    it('highlights the cheapest date when the composition asks for it', () => {
-        const selection = selectProductions(market, context, props({ highlight: 'cheapest', max_items: 20 }))
-        const cheapest = [...market.productions].sort((a, b) => a.floor_price - b.floor_price)[0]
-
-        expect(selection.highlightedId).toBe(cheapest.id)
-    })
-
-    it('highlights best value on median price, which is a different date than cheapest', () => {
-        const byValue = selectProductions(market, context, props({ highlight: 'best_value', max_items: 20 }))
-        const byPrice = selectProductions(market, context, props({ highlight: 'cheapest', max_items: 20 }))
-
-        // Worth asserting: if these ever coincide, the two highlight modes stop
-        // being meaningfully different choices for the orchestrator.
-        expect(byValue.highlightedId).not.toBe(byPrice.highlightedId)
-    })
-
-    it('highlights nothing when the composition declines to recommend', () => {
-        const selection = selectProductions(market, context, props({ highlight: null }))
-
-        expect(selection.highlightedId).toBeNull()
-    })
 
     it('separates the visitor’s metro from everywhere else', () => {
         const selection = selectProductions(market, context, props({ group_by_geo: true, max_items: 20 }))
@@ -131,18 +110,6 @@ describe('selectProductions', () => {
         expect(selection.filteredOutCount).toBe(market.productions.length)
     })
 
-    it('only highlights a date that is actually visible', () => {
-        // The cheapest date overall is Indianapolis; restrict to Chicago and the
-        // highlight has to move rather than point at a row that is not rendered.
-        const selection = selectProductions(
-            market,
-            context,
-            props({ filter: { city: 'Chicago' }, highlight: 'cheapest', max_items: 20 }),
-        )
-        const visibleIds = allDates(selection).map((production) => production.id)
-
-        expect(visibleIds).toContain(selection.highlightedId)
-    })
 })
 
 describe('selectProductions — demand, value and trait collections', () => {
@@ -225,31 +192,6 @@ describe('selectProductions — value and demand sorts', () => {
         expect(scores).toEqual([...scores].sort((a, b) => b - a))
     })
 
-    it('highlights on value score rather than typical price', () => {
-        const selection = selectProductions(
-            market,
-            context,
-            props({ highlight: 'best_value', group_by_geo: false, max_items: 52 }),
-        )
-        const best = [...market.productions].sort((a, b) => b.value_score - a.value_score)[0]
-
-        expect(selection.highlightedId).toBe(best.id)
-    })
-
-    it('still distinguishes best value from cheapest', () => {
-        const byValue = selectProductions(
-            market,
-            context,
-            props({ highlight: 'best_value', group_by_geo: false, max_items: 52 }),
-        )
-        const byPrice = selectProductions(
-            market,
-            context,
-            props({ highlight: 'cheapest', group_by_geo: false, max_items: 52 }),
-        )
-
-        expect(byValue.highlightedId).not.toBe(byPrice.highlightedId)
-    })
 })
 
 describe('selectProductions — weekend and lead time', () => {
@@ -363,5 +305,80 @@ describe('resolveExclusions', () => {
         expect(exclusions[1]).toBeUndefined()
         expect(exclusions[0]?.size ?? 0).toBe(0)
         expect(exclusions[2]?.size).toBeGreaterThan(0)
+    })
+})
+
+describe('selectProductions — the page\'s top pick', () => {
+    /**
+     * The pick is a named date, not a strategy, so the only question a section
+     * answers is "am I showing that row". Every case below where the answer is
+     * no must produce *no* label rather than a label on a neighbour — the old
+     * `highlight` enum moved the outline to whatever was nearest, which is right
+     * for a rule and wrong for a recommendation.
+     */
+
+    const chicago = market.productions.find((production) => production.city === 'Chicago')!
+    const indianapolis = market.productions.find(
+        (production) => production.city === 'Indianapolis',
+    )!
+
+    it('labels the date the composition named', () => {
+        const selection = selectProductions(
+            market,
+            context,
+            props({ group_by_geo: false, max_items: 52 }),
+            undefined,
+            chicago.id,
+        )
+
+        expect(selection.topPickId).toBe(chicago.id)
+    })
+
+    it('labels nothing when the named date was filtered out', () => {
+        const selection = selectProductions(
+            market,
+            context,
+            props({ filter: { city: 'Chicago' }, group_by_geo: false, max_items: 52 }),
+            undefined,
+            indianapolis.id,
+        )
+
+        expect(selection.topPickId).toBeNull()
+    })
+
+    it('labels nothing when the named date is past max_items', () => {
+        const byDate = [...market.productions].sort((a, b) => a.date.localeCompare(b.date))
+        const beyondTheCap = byDate[10]
+
+        const selection = selectProductions(
+            market,
+            context,
+            props({ sort: 'date', group_by_geo: false, max_items: 3 }),
+            undefined,
+            beyondTheCap.id,
+        )
+
+        expect(allDates(selection).map((production) => production.id)).not.toContain(
+            beyondTheCap.id,
+        )
+        expect(selection.topPickId).toBeNull()
+    })
+
+    it('labels nothing when an earlier section already claimed the named date', () => {
+        const selection = selectProductions(
+            market,
+            context,
+            props({ group_by_geo: false, max_items: 52 }),
+            new Set([chicago.id]),
+            chicago.id,
+        )
+
+        expect(selection.topPickId).toBeNull()
+    })
+
+    it('labels nothing when the composition named no date', () => {
+        const selection = selectProductions(market, context, props({ max_items: 20 }))
+
+        expect(selection.topPickId).toBeNull()
     })
 })

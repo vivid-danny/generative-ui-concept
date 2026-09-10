@@ -24,17 +24,19 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
     size,
     props,
     excludeItemIds,
+    topPick,
 }) => {
     // No "see all" escape hatch here. The composition does narrow the list — by
     // budget filter and by max_items — and the visitor still has to be able to
     // reach every date, but that guarantee lives in the shell's FullTourList,
     // which no composition can remove. A copy inside the module just meant two
     // identical buttons stacked on the base variant.
-    const { groups, highlightedId } = selectProductions(
+    const { groups, topPickId } = selectProductions(
         market,
         context,
         props,
         excludeItemIds,
+        topPick,
     )
 
     // An empty section renders nothing at all. An empty state here would be
@@ -98,7 +100,7 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
                                 key={production.id}
                                 production={production}
                                 performerName={market.performer.name}
-                                isHighlighted={production.id === highlightedId}
+                                isTopPick={production.id === topPickId}
                                 eligibleBadges={props.badges}
                                 signal={props.card_signal}
                             />

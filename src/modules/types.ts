@@ -24,4 +24,12 @@ export interface ModuleComponentProps<P = Record<string, unknown>> {
      * cannot be asked to track and should not have to.
      */
     excludeItemIds?: ReadonlySet<string>
+    /**
+     * The page's recommended date, if the composition named one.
+     *
+     * Threaded like `excludeItemIds` rather than passed as a prop: it is one
+     * decision about the whole page, and a section's only job is to label the
+     * row if it happens to be showing it.
+     */
+    topPick?: string | null
 }

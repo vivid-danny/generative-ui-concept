@@ -4,19 +4,95 @@ import { ContextSchema } from '@/contracts/context'
 import { MarketSchema } from '@/contracts/market'
 import marketJson from '@/fixtures/market.json'
 import leahBudget80 from '@/fixtures/contexts/leah-budget-80.json'
-import { MARKET } from '@/demo/modes'
-import { PERSONAS as VARIANTS } from '@/fixtures/personas'
-import { PrecomputedProvider } from '@/orchestration/precomputed'
+import { BaseProvider } from '@/orchestration/base'
 
 import { summarizeComposition } from './summarize'
 
 const market = MarketSchema.parse(marketJson)
 const context = ContextSchema.parse(leahBudget80)
-const provider = new PrecomputedProvider()
+
+/**
+ * Specs covering the shapes the summary has to add up correctly over.
+ *
+ * These replaced a loop over the persona fixtures, which read a library of
+ * hand-authored specs that has since been retired. Written by hand either way —
+ * but what is being tested here is the summary's own arithmetic, not a claim
+ * about what a model would compose, so a fixture is the right input.
+ */
+const SHAPES: { label: string; spec: Parameters<typeof summarizeComposition>[0] }[] = [
+    {
+        label: 'unfiltered, geo-grouped',
+        spec: {
+            layout: [
+                {
+                    module: 'production_list',
+                    size: 'standard' as const,
+                    props: { sort: 'date', group_by_geo: true, max_items: 8 },
+                },
+            ],
+            reasoning: 'the baseline shape',
+            headline: null,
+            top_pick: null,
+        },
+    },
+    {
+        label: 'filtered by budget',
+        spec: {
+            layout: [
+                {
+                    module: 'production_list',
+                    size: 'hero' as const,
+                    props: {
+                        filter: { max_price: 80 },
+                        sort: 'price',
+                        group_by_geo: true,
+                        max_items: 12,
+                    },
+                },
+            ],
+            reasoning: 'a budget shape',
+            headline: null,
+            top_pick: null,
+        },
+    },
+    {
+        label: 'three sections and a rail card',
+        spec: {
+            layout: [
+                {
+                    module: 'production_list',
+                    size: 'hero' as const,
+                    props: {
+                        heading: 'In Chicago',
+                        filter: { city: 'Chicago' },
+                        sort: 'date',
+                        group_by_geo: false,
+                        max_items: 8,
+                    },
+                },
+                { module: 'market_signals', size: 'fixed' as const, props: { stats: ['fan_demand'] } },
+                {
+                    module: 'production_list',
+                    size: 'standard' as const,
+                    props: {
+                        heading: 'Worth the drive',
+                        filter: { max_price: 80 },
+                        sort: 'price',
+                        group_by_geo: false,
+                        max_items: 6,
+                    },
+                },
+            ],
+            reasoning: 'a sectioned shape',
+            headline: null,
+            top_pick: null,
+        },
+    },
+]
 
 describe('summarizeComposition', () => {
     it('reports the calendar day the card renders, not a timezone-shifted one', async () => {
-        const { spec } = await provider.getLayout(context, market)
+        const { spec } = await new BaseProvider().getLayout(context, market)
         const summary = summarizeComposition(spec, market, context)
         const rows = summary.groups.flatMap((group) => group.rows)
 
@@ -33,14 +109,13 @@ describe('summarizeComposition', () => {
         }
     })
 
-    it('reports a shown/total tally that is true for every variant', async () => {
-        for (const variant of VARIANTS) {
-            const { spec } = await provider.getLayout(variant.context, MARKET)
-            const summary = summarizeComposition(spec, MARKET, variant.context)
+    it('reports a shown/total tally that is true for every shape', () => {
+        for (const { label, spec } of SHAPES) {
+            const summary = summarizeComposition(spec, market, context)
 
-            expect(summary.total, variant.slug).toBe(MARKET.productions.length)
-            expect(summary.shown, variant.slug).toBeLessThanOrEqual(summary.total)
-            expect(summary.shown, variant.slug).toBe(
+            expect(summary.total, label).toBe(market.productions.length)
+            expect(summary.shown, label).toBeLessThanOrEqual(summary.total)
+            expect(summary.shown, label).toBe(
                 summary.groups.reduce((count, group) => count + group.rows.length, 0),
             )
         }
@@ -54,11 +129,12 @@ describe('summarizeComposition', () => {
                 {
                     module: 'production_list',
                     size: 'standard' as const,
-                    props: { sort: 'date', highlight: null, group_by_geo: true, max_items: 2 },
+                    props: { sort: 'date', group_by_geo: true, max_items: 2 },
                 },
             ],
             reasoning: 'truncation case',
             headline: null,
+            top_pick: null,
         }
         const summary = summarizeComposition(spec, market, context)
 
@@ -67,13 +143,20 @@ describe('summarizeComposition', () => {
         expect(summary.filteredOut).toBe(0)
     })
 
-    it('never marks a highlighted row that is not shown', async () => {
-        for (const variant of VARIANTS) {
-            const { spec } = await provider.getLayout(variant.context, MARKET)
-            const summary = summarizeComposition(spec, MARKET, variant.context)
-            const highlighted = summary.groups.flatMap((group) => group.rows).filter((row) => row.isHighlighted)
+    it('never marks more than one top pick on a page', () => {
+        // One page, one recommendation — guaranteed by `top_pick` being a
+        // spec-level field rather than a per-section prop. Asserted over the
+        // sectioned shape too, where the naive per-section version of this prop
+        // could have produced one label per section.
+        const chicago = market.productions.find((production) => production.city === 'Chicago')!
 
-            expect(highlighted.length, variant.slug).toBeLessThanOrEqual(1)
+        for (const { label, spec } of SHAPES) {
+            const summary = summarizeComposition({ ...spec, top_pick: chicago.id }, market, context)
+            const labelled = summary.groups
+                .flatMap((group) => group.rows)
+                .filter((row) => row.isTopPick)
+
+            expect(labelled.length, label).toBeLessThanOrEqual(1)
         }
     })
 })
@@ -85,7 +168,7 @@ describe('summarizeComposition with repeated sections', () => {
         props: {
             heading,
             sort: 'date',
-            highlight: null,
+           
             group_by_geo: false,
             max_items: 20,
             ...(city ? { filter: { city } } : {}),
@@ -96,6 +179,7 @@ describe('summarizeComposition with repeated sections', () => {
         layout: [section('In Chicago', 'Chicago'), section('Worth the drive', 'Milwaukee')],
         reasoning: 'sections',
         headline: null,
+        top_pick: null,
     }
 
     it('summarises every instance, not just the first', () => {
@@ -150,7 +234,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
         props: {
             heading,
             sort: 'date',
-            highlight: null,
+           
             group_by_geo: false,
             max_items: 20,
             ...props,
@@ -167,6 +251,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
             ],
             reasoning: 'overlapping filters',
             headline: null,
+            top_pick: null,
         }
         const summary = summarizeComposition(spec, market, context)
         const ids = summary.groups.flatMap((group) => group.rows.map((row) => row.id))
@@ -182,6 +267,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
             ],
             reasoning: 'both want Chicago',
             headline: null,
+            top_pick: null,
         }
         const summary = summarizeComposition(spec, market, context)
 
@@ -196,6 +282,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
             ],
             reasoning: 'both want Chicago',
             headline: null,
+            top_pick: null,
         }
         const summary = summarizeComposition(spec, market, context)
 
@@ -209,6 +296,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
             layout: [section('Impossible', { filter: { max_price: 1 } })],
             reasoning: 'nothing is this cheap',
             headline: null,
+            top_pick: null,
         }
         const summary = summarizeComposition(spec, market, context)
 
@@ -225,9 +313,71 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
             ],
             reasoning: 'first claims Chicago',
             headline: null,
+            top_pick: null,
         }
         const summary = summarizeComposition(spec, market, context)
 
         expect(summary.filteredOut).toBe(0)
+    })
+})
+
+describe('summarizeComposition — a top pick that renders nowhere', () => {
+    it('reports a named pick no section is showing', () => {
+        // The page shows no label, which is right, and silent. The panel is the
+        // only place this is visible, and it means the model recommended
+        // something it then hid behind a filter.
+        const indianapolis = market.productions.find(
+            (production) => production.city === 'Indianapolis',
+        )!
+        const summary = summarizeComposition(
+            {
+                layout: [
+                    {
+                        module: 'production_list',
+                        size: 'standard' as const,
+                        props: {
+                            heading: 'Chicago only',
+                            filter: { city: 'Chicago' },
+                            sort: 'date',
+                            group_by_geo: false,
+                            max_items: 8,
+                        },
+                    },
+                ],
+                reasoning: 'names a date it does not show',
+                headline: null,
+                top_pick: indianapolis.id,
+            },
+            market,
+            context,
+        )
+
+        expect(summary.unshownTopPick).toBe(indianapolis.id)
+        expect(summary.groups.flatMap((group) => group.rows).some((row) => row.isTopPick)).toBe(
+            false,
+        )
+    })
+
+    it('reports nothing when the pick did render', () => {
+        const chicago = market.productions.find((production) => production.city === 'Chicago')!
+        const summary = summarizeComposition(
+            {
+                layout: [
+                    {
+                        module: 'production_list',
+                        size: 'standard' as const,
+                        props: { sort: 'date', group_by_geo: false, max_items: 52 },
+                    },
+                ],
+                reasoning: 'shows what it named',
+                headline: null,
+                top_pick: chicago.id,
+            },
+            market,
+            context,
+        )
+
+        expect(summary.unshownTopPick).toBeNull()
+        expect(summary.groups.flatMap((group) => group.rows).filter((row) => row.isTopPick)).toHaveLength(1)
     })
 })

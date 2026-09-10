@@ -10,7 +10,6 @@ import { MARKET, isModeSlug, modeFor, DEFAULT_MODE, type DemoMode } from '@/demo
 import EventHeader from '@/modules/event-header'
 import { BaseProvider } from '@/orchestration/base'
 import { LiveProvider } from '@/orchestration/live'
-import { PrecomputedProvider } from '@/orchestration/precomputed'
 import type { OrchestrationProvider } from '@/orchestration/provider'
 import ComposedPage, { hasRegion } from '@/renderer/ComposedPage'
 import PageShell from '@/shell/PageShell'

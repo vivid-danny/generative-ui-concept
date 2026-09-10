@@ -28,8 +28,13 @@ export interface ProductionCardProps {
     production: Production
     /** Rendered as the row's title: the page's performer. */
     performerName: string
-    /** Marks the one row the composition wants the visitor to notice. */
-    isHighlighted?: boolean
+    /**
+     * True on the single row the composition recommends.
+     *
+     * One per page, decided at the spec level — this card only labels the row if
+     * the section it is in happens to be the one showing it.
+     */
+    isTopPick?: boolean
     /**
      * Badges the section allowed. The row still only shows the ones true of it,
      * so an allowlist never becomes a label every card wears.
@@ -64,7 +69,7 @@ const TIME = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digi
 export const ProductionCard: React.FC<ProductionCardProps> = ({
     production,
     performerName,
-    isHighlighted = false,
+    isTopPick = false,
     eligibleBadges = [],
     signal = null,
 }) => {
@@ -74,7 +79,19 @@ export const ProductionCard: React.FC<ProductionCardProps> = ({
     const signalValue = cardSignalFor(production, signal)
 
     return (
-        <article className={classNames(styles.card, { [styles.highlighted]: isHighlighted })}>
+        <article className={classNames(styles.card, { [styles.topPickCard]: isTopPick })}>
+            {/*
+              First in reading order, so a screen reader announces the
+              recommendation before the date — the pink border alone conveyed
+              nothing at all. `overline` is the nearest scale entry; the SCSS
+              lightens its weight and tracking, and owns the overhang, which has
+              to clear the gap between cards.
+            */}
+            {isTopPick && (
+                <Typography variant="overline" component="span" className={styles.topPick}>
+                    Top Pick
+                </Typography>
+            )}
             <div className={styles.dateBlock}>
                 <Typography variant="overline" component="span" className={styles.weekday}>
                     {WEEKDAY.format(date)}

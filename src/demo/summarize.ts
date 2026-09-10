@@ -28,7 +28,7 @@ export interface RenderedRow {
     date: string
     city: string
     floorPrice: number
-    isHighlighted: boolean
+    isTopPick: boolean
 }
 
 export interface RenderedGroup {
@@ -50,6 +50,14 @@ export interface CompositionSummary {
      * survived is the only place its choice is visible.
      */
     signals: RenderedSignals[]
+    /**
+     * Set when the composition named a top pick that no section ended up
+     * showing — filtered out, past a `max_items`, or claimed by an earlier
+     * section. The page shows no label in that case, which is right, and silent,
+     * so this is the only place the miss is visible. Worth reading: it means the
+     * model recommended something it then hid.
+     */
+    unshownTopPick: string | null
     /**
      * Sections the orchestrator asked for that have no members, and why. Not
      * shown to the visitor — an empty section renders nothing — so this is the
@@ -118,6 +126,7 @@ export function summarizeComposition(
         return {
             modules,
             signals,
+            unshownTopPick: spec.top_pick,
             emptySections: [],
             groups: [],
             shown: 0,
@@ -139,7 +148,13 @@ export function summarizeComposition(
 
     for (const entry of listEntries) {
         const props = entry.props as unknown as ProductionListProps
-        const selection = selectProductions(market, context, props, exclusionFor.get(entry))
+        const selection = selectProductions(
+            market,
+            context,
+            props,
+            exclusionFor.get(entry),
+            spec.top_pick,
+        )
 
         if (selection.groups.length === 0) {
             emptySections.push({
@@ -161,7 +176,7 @@ export function summarizeComposition(
                         date: ROW_DATE.format(new Date(production.date)),
                         city: production.city,
                         floorPrice: production.floor_price,
-                        isHighlighted: production.id === selection.highlightedId,
+                        isTopPick: production.id === selection.topPickId,
                     }
                 }),
             })
@@ -194,9 +209,12 @@ export function summarizeComposition(
     }
     const filteredOut = market.productions.length - admitted.size
 
+    const labelled = groups.some((group) => group.rows.some((row) => row.isTopPick))
+
     return {
         modules,
         signals,
+        unshownTopPick: spec.top_pick !== null && !labelled ? spec.top_pick : null,
         emptySections,
         groups,
         shown,

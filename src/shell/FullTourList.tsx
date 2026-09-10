@@ -47,12 +47,14 @@ export const FullTourList: React.FC<{ market: Market; context: Context }> = ({
                 size="standard"
                 headline={null}
                 props={{
-                    // Everything off: no filter, nothing grouped, nothing capped.
+                    // Everything off: no filter, nothing grouped, nothing capped,
+                    // and no top pick — this list is the escape hatch from the
+                    // composition, so it does not carry the composition's
+                    // recommendation. `topPick` is simply not passed.
                     // `max_items` exceeds the schema's ceiling of 20 on purpose —
                     // that cap exists to stop the orchestrator producing a wall of
                     // dates, and a wall of dates is precisely what was asked for.
                     sort: 'date',
-                    highlight: null,
                     group_by_geo: false,
                     max_items: total,
                     heading: 'All tour dates',

@@ -1,8 +1,13 @@
-# Orchestrator prompt — v4
+# Orchestrator prompt — v5
 
 Source plan §7. Versioned deliberately: every precomputed spec records the
 `prompt_version` it was generated under, so a composition can always be traced
 back to the instructions that produced it.
+
+**v5 (2026-09-10):** `top_pick` replaces the `highlight` strategy. The page may
+name one date it recommends and the card labels it; naming a strategy keyword and
+letting code pick the winning row was a rule dressed as a recommendation. It is a
+page-level field, so "one per page" needs no rule.
 
 **v4 (2026-09-10):** a second placeable module — `market_signals`, the rail
 card, whose title is fixed and whose stats are selected. The catalog carries its own `region` line, so nothing here asks you to
@@ -161,13 +166,31 @@ rather than a figure you invented. This prototype exists to show real dynamic
 data and a UI composed from it at runtime, so a figure identical for every event
 and every visitor demonstrates neither.
 
+### Recommending one date
+
+You may name **one** date on the page as your top pick, in the spec's `top_pick`
+field, by its production id (`prod-012`). The card labels that row "Top Pick" —
+fixed copy, so the recommendation is yours but the words are not.
+
+Name one when the brief gives you enough to actually recommend: a visitor who has
+told you what they want deserves an answer, not just a filtered list. Leave it
+`null` when you would be guessing — an arbitrary recommendation is worse than
+none, because a visitor who follows it and finds it was arbitrary has learnt the
+page is not worth trusting.
+
+It has to be a date a section on this page is showing. A pick that is filtered
+out, past a section's `max_items`, or already claimed by an earlier section is
+simply not labelled — the page will not move the label to a nearby row on your
+behalf. Your `reasoning` is where the *why* goes; the card does not carry it.
+
 ### Output
 
 ```json
 {
   "layout": [{ "module": "...", "size": "...", "props": {} }],
   "reasoning": "one paragraph — why this composition for this context",
-  "headline": "optional page-level framing line, or null"
+  "headline": "optional page-level framing line, or null",
+  "top_pick": "production id of the one date you recommend, or null"
 }
 ```
 

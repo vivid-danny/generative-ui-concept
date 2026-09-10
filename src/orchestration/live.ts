@@ -5,16 +5,16 @@ import { MODULE_CATALOG, type ModuleId } from '@/contracts/module-catalog'
 
 import { callModel, readPromptText } from './bridge'
 import { cacheKey, readCached, writeCached } from './cache'
-import { PrecomputedProvider, specKeyFor } from './precomputed'
+import { specKeyFor } from './context-key'
 import type { OrchestrationProvider } from './provider'
-import { validateLayout } from './validate'
+import { FALLBACK_LAYOUT, validateLayout } from './validate'
 
 /**
  * Live orchestration — the composition happens at request time.
  *
  * This is the whole point of the `OrchestrationProvider` seam: the renderer, the
  * validator, the contracts and the modules are all unchanged, and the only
- * difference from `PrecomputedProvider` is where the layout spec comes from.
+ * difference from the static baseline is where the layout spec comes from.
  *
  * Two deliberate choices:
  *
@@ -274,25 +274,32 @@ export class LiveProvider implements OrchestrationProvider {
     }
 
     /**
-     * Live call failed — serve this context's precomputed spec and be explicit
-     * about it. Reuses `PrecomputedProvider` rather than reaching into the spec
-     * library, so there is one path to a precomputed layout.
+     * Live call failed — serve the static layout and say so.
+     *
+     * This used to serve a hand-authored composition for the nearest matching
+     * context. That library is gone, and the static layout is the more honest
+     * failure anyway: a page composed for somebody else, presented without
+     * comment as though it were composed for this visitor, is a worse lie than a
+     * page that plainly did not compose. The note and the provenance both say
+     * `fallback`.
      */
     private async fallback(
-        context: Context,
-        market: Market,
+        _context: Context,
+        _market: Market,
         reason: string,
         rawResponse: string | null,
     ): Promise<ResolvedLayout> {
-        const precomputed = await new PrecomputedProvider().getLayout(context, market)
-
         return {
-            ...precomputed,
-            provenance: { ...precomputed.provenance, raw_response: rawResponse },
-            notes: [
-                { level: 'fallback', reason: `live orchestration failed: ${reason}` },
-                ...precomputed.notes,
-            ],
+            spec: FALLBACK_LAYOUT,
+            provenance: SpecProvenanceSchema.parse({
+                generated_at: new Date().toISOString(),
+                source: 'fallback',
+                model: null,
+                prompt_version: null,
+                context_id: specKeyFor(_context),
+                raw_response: rawResponse,
+            }),
+            notes: [{ level: 'fallback', reason: `live orchestration failed: ${reason}` }],
         }
     }
 }

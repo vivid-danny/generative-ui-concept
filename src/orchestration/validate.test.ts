@@ -28,6 +28,7 @@ describe('validateLayout', () => {
         expect(result.notes).toEqual([])
         expect(result.spec.layout).toHaveLength(1)
         // `group_by_geo` and `max_items` were absent; the module's own defaults fill in.
+        expect(result.spec.top_pick).toBeNull()
         expect(result.spec.layout[0].props).toMatchObject({
             sort: 'date',
             group_by_geo: true,
@@ -140,6 +141,21 @@ describe('validateLayout', () => {
             'market_signals',
             'production_list',
         ])
+    })
+
+    it('drops a top pick that is not a date in this snapshot', () => {
+        const result = validateLayout({ ...validSpec, top_pick: 'prod-999' }, market)
+
+        expect(result.spec.top_pick).toBeNull()
+        expect(result.notes[0].reason).toContain('not a date in this snapshot')
+    })
+
+    it('keeps a top pick that is real', () => {
+        const real = market.productions[3].id
+        const result = validateLayout({ ...validSpec, top_pick: real }, market)
+
+        expect(result.spec.top_pick).toBe(real)
+        expect(result.notes).toEqual([])
     })
 
     it('turns off geo grouping on a section that names itself', () => {

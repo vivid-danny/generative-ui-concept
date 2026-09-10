@@ -28,7 +28,6 @@ export interface ProductionListProps {
         min_days_out?: number
     }
     sort: 'date' | 'price' | 'value' | 'demand'
-    highlight: 'best_value' | 'cheapest' | 'soonest' | null
     group_by_geo: boolean
     max_items: number
     /**
@@ -62,8 +61,16 @@ export interface Selection {
      * section explain itself honestly rather than blaming the filter.
      */
     claimedByAnotherSection?: boolean
-    /** Production id the composition wants noticed, if any. */
-    highlightedId: string | null
+    /**
+     * The page's recommended date, if this section is showing it.
+     *
+     * Null whenever the named date is not among the rows this section rendered —
+     * filtered out, past `max_items`, or claimed by an earlier section. A named
+     * recommendation that cannot be shown produces no label rather than a label
+     * on some other row: the old `highlight` strategy *moved*, which is right
+     * for a rule and wrong for a recommendation.
+     */
+    topPickId: string | null
     /** How many dates the filter removed. Shown so the page never lies by omission. */
     filteredOutCount: number
 }
@@ -77,15 +84,6 @@ const BY_SORT: Record<ProductionListProps['sort'], (a: Production, b: Production
     // would assume when it asks for it.
     value: (a, b) => b.value_score - a.value_score,
     demand: (a, b) => b.demand_score - a.demand_score,
-}
-
-const BY_HIGHLIGHT: Record<
-    NonNullable<ProductionListProps['highlight']>,
-    (a: Production, b: Production) => number
-> = {
-    cheapest: (a, b) => a.floor_price - b.floor_price,
-    best_value: (a, b) => b.value_score - a.value_score,
-    soonest: (a, b) => a.date.localeCompare(b.date),
 }
 
 export function selectProductions(
@@ -103,8 +101,10 @@ export function selectProductions(
      * claim a date keeps it, which matches the deliberate hero-first ordering.
      */
     exclude?: ReadonlySet<string>,
+    /** The page's recommended date, from the spec rather than from props. */
+    topPick?: string | null,
 ): Selection {
-    const { filter, sort, highlight, group_by_geo: groupByGeo, max_items: maxItems } = props
+    const { filter, sort, group_by_geo: groupByGeo, max_items: maxItems } = props
 
     const matching = market.productions.filter((production) => {
         if (exclude?.has(production.id)) return false
@@ -142,10 +142,11 @@ export function selectProductions(
     const sorted = [...matching].sort(BY_SORT[sort])
     const visible = sorted.slice(0, maxItems)
 
-    const highlightedId =
-        highlight === null || visible.length === 0
-            ? null
-            : [...visible].sort(BY_HIGHLIGHT[highlight])[0].id
+    // A membership test, not a search: the pick is honoured only if this section
+    // is actually rendering that row.
+    const topPickId = visible.some((production) => production.id === topPick)
+        ? (topPick as string)
+        : null
 
     const groups: ProductionGroup[] = []
     if (groupByGeo) {
@@ -167,7 +168,7 @@ export function selectProductions(
 
     return {
         groups,
-        highlightedId,
+        topPickId,
         // Counted against what this section could have shown, so a date claimed
         // by an earlier section is not reported as something the filter removed.
         filteredOutCount: market.productions.length - (exclude?.size ?? 0) - matching.length,

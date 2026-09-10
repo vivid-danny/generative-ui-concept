@@ -24,6 +24,19 @@ export const LayoutSpecSchema = z.object({
     /** Required: demo material and the primary debugging tool (§7). */
     reasoning: z.string().min(1),
     headline: z.string().nullable().default(null),
+    /**
+     * The one date the composition recommends, by production id.
+     *
+     * Page-level rather than a `production_list` prop, because "one
+     * recommendation per page" is a property of the page. Putting it here makes
+     * that true by construction instead of something the validator has to strip
+     * back to one, and it removes any question of which section owns the pick
+     * when several are placed.
+     *
+     * Checked against the snapshot by the validator, and honoured by whichever
+     * section actually shows that date — see `selectProductions`.
+     */
+    top_pick: z.string().nullable().default(null),
 })
 
 export type LayoutEntry = z.infer<typeof LayoutEntrySchema>

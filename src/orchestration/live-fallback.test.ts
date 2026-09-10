@@ -102,13 +102,18 @@ describe('LiveProvider', () => {
         expect(resolved.notes.some((note) => note.level === 'dropped')).toBe(true)
     })
 
-    it('falls back to the precomputed spec when the call fails', async () => {
+    it('falls back to the static layout when the call fails', async () => {
         bridge.mode = 'throw'
 
         const resolved = await new LiveProvider().getLayout(context, market)
 
-        // Never claims `live` for something the model did not produce.
-        expect(resolved.provenance.source).toBe('precomputed')
+        // Never claims `live` for something the model did not produce. It used
+        // to serve a hand-authored composition here; the static layout is the
+        // more honest failure, because a page composed for somebody else and
+        // presented without comment is a worse lie than a page that plainly did
+        // not compose.
+        expect(resolved.provenance.source).toBe('fallback')
+        expect(resolved.provenance.model).toBeNull()
         expect(resolved.spec.layout.length).toBeGreaterThan(0)
         expect(resolved.notes[0].level).toBe('fallback')
         expect(resolved.notes[0].reason).toContain('live orchestration failed')
@@ -120,7 +125,7 @@ describe('LiveProvider', () => {
 
         const resolved = await new LiveProvider().getLayout(context, market)
 
-        expect(resolved.provenance.source).toBe('precomputed')
+        expect(resolved.provenance.source).toBe('fallback')
         expect(resolved.notes[0].reason).toContain('no layout spec could be parsed')
         // The unusable reply is still shown, so the failure is diagnosable.
         expect(resolved.provenance.raw_response).toBe("I'd rather not.")

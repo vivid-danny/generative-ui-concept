@@ -74,6 +74,15 @@
     gap: var(--spacing-xs);
 }
 
+// 4px of gap will not take the standard 6px overhang without the tab painting
+// over the card above, so it barely overhangs here. Set as a custom property
+// because the gap that constrains it is this file's decision and the tab is the
+// card's — and because CSS-module hashing makes a cross-file class selector a
+// fiction.
+.compact .rows {
+    --top-pick-shift: -2px;
+}
+
 .empty {
     padding: var(--spacing-2xl);
     border: 1px solid var(--surface-gray-100-thin, #efeff6);

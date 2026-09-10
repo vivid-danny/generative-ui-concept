@@ -62,7 +62,39 @@ export const STRUCTURAL_RULES = {
     maxPerSideRegion: 1,
 } as const
 
-export const FALLBACK_LAYOUT: LayoutSpec = LayoutSpecSchema.parse(fallbackLayoutJson)
+/**
+ * The static layout, with every module's own prop defaults applied.
+ *
+ * The parse alone is not enough, and getting that wrong was a real bug:
+ * `LayoutEntrySchema.props` is an open record, so a module's `propsSchema` never
+ * ran on this path and none of its `.default()`s applied. `props.highlight`
+ * arrived as `undefined` rather than `null`, slipped a `=== null` guard, and the
+ * base page drew a pink outline around whichever row happened to be first —
+ * while `badges` defaulted to nothing and the base page showed none.
+ *
+ * Running the schemas here fixes the class rather than the instance: everything
+ * that spreads `FALLBACK_LAYOUT` — `BaseProvider`, `PrecomputedProvider`'s
+ * missing-key branch, the path-to-purchase rescue below — gets real props. It
+ * throws at import if `fallback-layout.json` is ever wrong, which is the right
+ * failure: a broken baseline should stop the build, not degrade quietly.
+ */
+export const FALLBACK_LAYOUT: LayoutSpec = (() => {
+    const parsed = LayoutSpecSchema.parse(fallbackLayoutJson)
+
+    return {
+        ...parsed,
+        layout: parsed.layout.map((entry) => {
+            if (!isModuleId(entry.module)) return entry
+            return {
+                ...entry,
+                props: MODULE_CATALOG[entry.module].propsSchema.parse(entry.props) as Record<
+                    string,
+                    unknown
+                >,
+            }
+        }),
+    }
+})()
 
 export interface ValidationResult {
     spec: LayoutSpec
@@ -220,6 +252,20 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
     }
 
     const spec = parsed.data
+
+    // The page's one recommendation, checked against the snapshot. A page-level
+    // field rather than a prop, so "one per page" needs no enforcing — all that
+    // is left to check is that the date exists. Whether it renders is a
+    // different question, answered per section by `selectProductions`.
+    let topPick = spec.top_pick
+    if (topPick !== null && !market.productions.some((production) => production.id === topPick)) {
+        notes.push({
+            level: 'repaired',
+            reason: `dropped \`top_pick\` (\`${topPick}\` is not a date in this snapshot)`,
+        })
+        topPick = null
+    }
+
     const kept: LayoutSpec['layout'] = []
     const instanceCount = new Map<string, number>()
     const regionCount = new Map<string, number>()
@@ -372,7 +418,12 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
     }
 
     return {
-        spec: { layout: kept, reasoning: spec.reasoning, headline: spec.headline },
+        spec: {
+            layout: kept,
+            reasoning: spec.reasoning,
+            headline: spec.headline,
+            top_pick: topPick,
+        },
         notes,
         usedFallback: false,
     }

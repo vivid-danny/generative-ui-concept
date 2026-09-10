@@ -50,8 +50,16 @@ more than novelty.
 - The rail card's stats — same shape one level up. The model picks which facts
   about the tour appear and in what order; the sentence, the number and the
   card's title are all ours.
-- Sort, highlight, size, filter fields
+- Sort, size, filter fields
 - Which secondary signal a section leads with (`card_signal`)
+
+`top_pick` is the interesting edge. The model names a production id, which is
+free text in the schema sense — but the validator checks it against the snapshot
+and the card supplies the words, so what the model actually chooses is one row
+out of an enumerated set: the dates that exist. **A free-text field the validator
+can check against reality behaves like a selective one.** The generative-looking
+part, the recommendation's *reason*, stays in `reasoning` where nothing on the
+card has to be true of it.
 
 A useful corollary from the rail card: an **ordered** selective list carries more
 intent than a set. The model saying "demand first, then price" is an editorial

@@ -53,11 +53,13 @@ and is now the summed `fans_viewed_24h`.
 ### Shapes worth preserving
 
 Indianapolis has the lowest `floor_price` while St. Louis has the lowest
-`median_price`. That is deliberate: it keeps `highlight: "cheapest"` and
-`highlight: "best_value"` pointing at *different* dates. When both pointed at
-the same row, two distinct orchestrator choices rendered identically — which
-made the composition look less responsive than it was. A real capture should be
-checked for the same property.
+`median_price`, and neither is the best `value_score`. That is deliberate. It
+was originally about keeping `highlight: "cheapest"` and `"best_value"` on
+different rows; those enums are gone, but the property matters more now, not
+less — a model-named `top_pick` is only interesting if the date it recommends can
+differ from the obvious one. If cheapest, best value and most in demand all
+collapse onto the same row, every recommendation looks like the same
+recommendation. A real capture should be checked for the same property.
 
 A few dates are authored as deliberately interesting orchestration cases: a couple
 of cheap weeknight "hidden gems" with high demand and high `value_score` (e.g.

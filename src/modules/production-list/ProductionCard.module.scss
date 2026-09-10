@@ -2,6 +2,9 @@
 // Token values taken from the node's bound variables rather than sampled.
 
 .card {
+    // The top-pick tab is absolutely positioned against this and overhangs the
+    // top border. Nothing up the tree clips, so the overhang is safe.
+    position: relative;
     display: flex;
     align-items: center;
     gap: var(--spacing-lg);
@@ -13,9 +16,36 @@
     background: var(--surface-white);
 }
 
-.highlighted {
+.topPickCard {
     border-color: var(--surface-primary-main, #ce3197);
     box-shadow: 0 0 0 1px var(--surface-primary-main, #ce3197);
+}
+
+// A tab on the card's top border, right-aligned — so the label reads as
+// attached to the outline rather than as another badge inside the row.
+//
+// The type is `overline` with two local overrides: weight 600 rather than the
+// scale's bold, and half its tracking. `overline` is a section-label style, and
+// at full weight and 10% tracking it shouted next to the row it is annotating.
+// Overridden here rather than added to the type scale, because this is one
+// card's treatment and not a style the design system declares.
+//
+// The overhang is a px value, not a percentage, and that matters: the padding
+// makes the tab 23px tall, so a half-straddle would reach 11.5px into the 8px
+// gap `.rows` leaves and paint over the card above. 6px keeps 2px of clearance.
+// Compact sections tighten that gap to 4px and shorten the shift to match — the
+// tighter rhythm is the point of compact, so the tab bends, not the list.
+.topPick {
+    position: absolute;
+    top: 0;
+    right: var(--spacing-lg);
+    transform: translateY(var(--top-pick-shift, -6px));
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: var(--radius-sm);
+    background: var(--surface-primary-main, #ce3197);
+    color: var(--text-contrast);
+    font-weight: 600;
+    letter-spacing: 0.05em;
 }
 
 // Full-height column with a rule dividing the date from the event details.
