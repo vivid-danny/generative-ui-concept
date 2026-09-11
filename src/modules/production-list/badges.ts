@@ -48,13 +48,13 @@ export interface BadgeDefinition {
 }
 
 /** Prices have moved enough to be worth telling someone about. */
-const DEAL_TREND = -0.03
+export const DEAL_TREND = -0.03
 /** Top of the velocity range — "fast" has to mean fast, or it means nothing. */
-const FAST_VELOCITY = 0.7
+export const FAST_VELOCITY = 0.7
 /** Below this a viewer count is not interesting enough to spend a badge on. */
-const NOTABLE_VIEWERS = 1500
+export const NOTABLE_VIEWERS = 1500
 /** Recently added to the tour, rather than part of the original announcement. */
-const RECENTLY_ANNOUNCED_DAYS = 7
+export const RECENTLY_ANNOUNCED_DAYS = 7
 
 export const BADGES: Record<BadgeId, BadgeDefinition> = {
     deals_available: {

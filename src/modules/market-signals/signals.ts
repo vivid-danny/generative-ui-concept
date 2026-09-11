@@ -208,6 +208,33 @@ export const STATS: Record<StatId, StatDefinition> = {
 export const MAX_METRICS = 2
 export const MAX_FACTS = 3
 
+/**
+ * The two metric slots are one demand reading and one price reading. Which
+ * demand reading and which price reading is the orchestrator's call; whether
+ * they appear is not.
+ *
+ * This is a code rule rather than a prompt line because a card that omits it is
+ * *wrong* rather than badly judged — see docs/COMPOSABILITY.md. The rail is the
+ * page's supporting evidence, and evidence that never says what a ticket costs
+ * supports nothing. The first v7 run asked for `fan_demand` and two facts,
+ * which left the second metric slot empty and the card silent on price beside a
+ * main column arguing about $76 versus $125.
+ *
+ * Enforced here rather than in the validator so it holds on every path into the
+ * card, including the base layout, which the validator never sees.
+ */
+const DEMAND_METRICS: readonly StatId[] = ['fan_demand']
+const PRICE_METRICS: readonly StatId[] = ['lowest_price', 'typical_price', 'price_direction']
+
+/**
+ * What fills a slot the orchestrator left empty.
+ *
+ * `lowest_price` because the main column speaks in get-in prices ("From $76"),
+ * so it is the number the card is being read against.
+ */
+const DEFAULT_DEMAND_METRIC: StatId = 'fan_demand'
+const DEFAULT_PRICE_METRIC: StatId = 'lowest_price'
+
 export interface ResolvedMetric {
     id: StatId
     label: string
@@ -239,6 +266,40 @@ export interface MarketSignalsProps {
 export const CARD_HEADING = 'Event Trends'
 
 /**
+ * The metric slots: one demand reading, one price reading.
+ *
+ * There are two slots and two required categories, so the card takes exactly
+ * one of each and the cap can never drop one — asking for two price metrics
+ * costs the second, not the demand reading.
+ *
+ * The orchestrator still decides *which* of each and which leads: its own order
+ * is preserved, and a category it did not ask for goes last rather than
+ * reordering the choice it did make.
+ */
+function requiredMetrics(market: Market, requested: StatDefinition[]): MetricStat[] {
+    const asked = requested.filter((stat): stat is MetricStat => stat.form === 'metric')
+
+    const pick = (category: readonly StatId[], fallback: StatId): MetricStat | null => {
+        const chosen = asked.find((stat) => category.includes(stat.id))
+        if (chosen) return chosen
+        const stat = STATS[fallback]
+        return stat.form === 'metric' && stat.applies(market) ? stat : null
+    }
+
+    const slots = [
+        pick(DEMAND_METRICS, DEFAULT_DEMAND_METRIC),
+        pick(PRICE_METRICS, DEFAULT_PRICE_METRIC),
+    ].filter((stat): stat is MetricStat => stat !== null)
+
+    // Unasked-for slots sort last; among the asked-for ones the model's order holds.
+    const rank = (stat: MetricStat) => {
+        const index = asked.findIndex((candidate) => candidate.id === stat.id)
+        return index === -1 ? Number.MAX_SAFE_INTEGER : index
+    }
+    return [...slots].sort((a, b) => rank(a) - rank(b))
+}
+
+/**
  * What the card actually shows, given what the orchestrator asked for.
  *
  * Requests are honoured in order and then narrowed three ways: duplicates
@@ -251,8 +312,7 @@ export function resolveSignals(market: Market, props: MarketSignalsProps): Resol
         .map((id) => STATS[id])
         .filter((stat): stat is StatDefinition => Boolean(stat) && stat.applies(market))
 
-    const metrics = requested
-        .filter((stat): stat is MetricStat => stat.form === 'metric')
+    const metrics = requiredMetrics(market, requested)
         .slice(0, MAX_METRICS)
         .map((stat) => ({ id: stat.id, label: stat.label, value: stat.value(market) }))
 

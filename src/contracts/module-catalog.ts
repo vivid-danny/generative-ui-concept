@@ -1,7 +1,13 @@
 import { z } from 'zod'
 
 import { ProductionTraitSchema, SelloutRiskSchema } from '@/contracts/market'
-import { BADGE_IDS } from '@/modules/production-list/badges'
+import {
+    BADGE_IDS,
+    DEAL_TREND,
+    FAST_VELOCITY,
+    NOTABLE_VIEWERS,
+    RECENTLY_ANNOUNCED_DAYS,
+} from '@/modules/production-list/badges'
 import { CARD_SIGNAL_IDS } from '@/modules/production-list/card-signal'
 import { STAT_IDS } from '@/modules/market-signals/signals'
 
@@ -203,11 +209,18 @@ export const MODULE_CATALOG = {
             '  one of those, so pick the comparison this visitor needs.',
             '  Shows on every date in the section or none — that is what makes the rows',
             '  comparable, and it is why there is no "only where interesting" option.',
-            'badges: array of ["deals_available" | "selling_fast" | "tickets_left" |',
-            '  "fans_viewed" | "newly_released"]  (default ["deals_available", "tickets_left"])',
+            'badges: array of, with what a date needs to qualify:',
+            `    "deals_available"  price_trend_7d <= ${DEAL_TREND} (fell ${Math.round(Math.abs(DEAL_TREND) * 100)}%+ in a week)`,
+            `    "selling_fast"     sales_velocity >= ${FAST_VELOCITY}`,
+            '    "tickets_left"     sellout_risk is "high"',
+            `    "fans_viewed"      fans_viewed_24h >= ${NOTABLE_VIEWERS.toLocaleString('en-US')}`,
+            `    "newly_released"   announced_days_ago <= ${RECENTLY_ANNOUNCED_DAYS}`,
+            '  (default ["deals_available", "tickets_left"])',
             '  An allowlist, not an instruction: a date shows a badge only if you',
-            '  allowed it AND it is true of that date. Allow two or three that match',
-            '  what this visitor is weighing, not every one that happens to be true.',
+            '  allowed it AND it qualifies. So allow what the dates in *this* section',
+            '  qualify for — read their signals first. Two or three matched to the',
+            '  section puts badges on most of its rows; two matched to the visitor but',
+            '  not to these dates puts badges on none, and the section renders bare.',
             '',
             'You may place this module more than once to build sections — e.g. one',
             'filtered to the visitor\'s city, one for dates within driving range, one',
@@ -262,6 +275,9 @@ export const MODULE_CATALOG = {
             '  which facts appear and in what order. A stat with nothing behind it in this',
             '  snapshot is dropped, so naming one is a request, not a guarantee. Three or',
             '  four beats five.',
+            '  The card always carries one demand reading and one price reading. Name the',
+            '  ones this visitor is weighing; if you leave a category out, one is filled',
+            '  in for you. So the choice is which, not whether.',
         ].join('\n'),
         dataRequirements: ['productions'],
         orchestrated: true,

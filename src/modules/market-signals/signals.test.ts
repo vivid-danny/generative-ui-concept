@@ -199,13 +199,55 @@ describe('resolveSignals — naming a stat is a request, not a guarantee', () =>
         expect(resolved.facts.map((f) => f.id)).toEqual(['tour_scale'])
     })
 
-    it('resolves to nothing when no requested stat survives', () => {
-        // The card renders null on this, rather than a heading over a blank —
-        // the same call `production_list` makes for an empty section.
+    it('still carries demand and price when every requested stat drops', () => {
+        // The facts all drop, so the card is left with the two readings it is
+        // required to have rather than with nothing. A card the orchestrator
+        // placed has something to say about what a ticket costs.
         const quiet = marketOf([{ sellout_risk: 'low', fans_viewed_24h: 0 }])
         const resolved = resolveSignals(quiet, props({ stats: ['selling_out', 'fans_viewing'] }))
 
-        expect(resolved.metrics).toHaveLength(0)
+        expect(resolved.metrics.map((m) => m.id)).toEqual(['fan_demand', 'lowest_price'])
         expect(resolved.facts).toHaveLength(0)
+    })
+
+    describe('the two metric slots are one demand reading and one price reading', () => {
+        it('fills the price slot when only demand was asked for', () => {
+            // The v7 run: fan_demand and two facts, leaving the card silent on
+            // price beside a main column arguing about $76 against $125.
+            const resolved = resolveSignals(
+                market,
+                props({ stats: ['fan_demand', 'selling_out', 'fans_viewing'] }),
+            )
+
+            expect(resolved.metrics.map((m) => m.id)).toEqual(['fan_demand', 'lowest_price'])
+        })
+
+        it('fills the demand slot when only price was asked for, and price still leads', () => {
+            const resolved = resolveSignals(market, props({ stats: ['typical_price'] }))
+
+            expect(resolved.metrics.map((m) => m.id)).toEqual(['typical_price', 'fan_demand'])
+        })
+
+        it('honours which price reading was asked for', () => {
+            const resolved = resolveSignals(market, props({ stats: ['price_direction'] }))
+
+            expect(resolved.metrics.map((m) => m.id)).toContain('price_direction')
+            expect(resolved.metrics.map((m) => m.id)).not.toContain('lowest_price')
+        })
+
+        it('spends the second slot on demand rather than a second price reading', () => {
+            const resolved = resolveSignals(
+                market,
+                props({ stats: ['lowest_price', 'typical_price'] }),
+            )
+
+            expect(resolved.metrics.map((m) => m.id)).toEqual(['lowest_price', 'fan_demand'])
+        })
+
+        it('keeps the orchestrator order when it asked for both', () => {
+            const resolved = resolveSignals(market, props({ stats: ['lowest_price', 'fan_demand'] }))
+
+            expect(resolved.metrics.map((m) => m.id)).toEqual(['lowest_price', 'fan_demand'])
+        })
     })
 })
