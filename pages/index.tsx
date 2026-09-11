@@ -9,8 +9,8 @@ import { summarizeComposition, type CompositionSummary } from '@/demo/summarize'
 import { MARKET, isModeSlug, modeFor, DEFAULT_MODE, type DemoMode } from '@/demo/modes'
 import EventHeader from '@/modules/event-header'
 import { BaseProvider } from '@/orchestration/base'
-import { LiveProvider } from '@/orchestration/live'
-import type { OrchestrationProvider } from '@/orchestration/provider'
+import { readComposition } from '@/orchestration/live'
+import { readLedger, ledgerTotals } from '@/orchestration/ledger'
 import ComposedPage, { hasRegion } from '@/renderer/ComposedPage'
 import PageShell from '@/shell/PageShell'
 import PerformerFilters from '@/shell/PerformerFilters'
@@ -39,12 +39,34 @@ interface HomeProps {
     context: Context
     resolved: ResolvedLayout
     summary: CompositionSummary
+    /**
+     * True when this mode has a brief but nothing has been composed for it yet.
+     * The page shows the baseline and the drawer offers Run — it does not
+     * quietly call the model to fill the gap.
+     */
+    awaitingRun: boolean
+    /** What has been spent so far, from the call ledger. */
+    spend: { calls: number; costUsd: number; failures: number }
 }
 
-export default function Home({ mode, market, context, resolved, summary }: HomeProps) {
+export default function Home({
+    mode,
+    market,
+    context,
+    resolved,
+    summary,
+    awaitingRun,
+    spend,
+}: HomeProps) {
     return (
         <>
-            <DemoBar active={mode} resolved={resolved} summary={summary}>
+            <DemoBar
+                active={mode}
+                resolved={resolved}
+                summary={summary}
+                awaitingRun={awaitingRun}
+                spend={spend}
+            >
                 <PageShell
                     header={
                         <EventHeader
@@ -97,15 +119,15 @@ export const getServerSideProps: GetServerSideProps<HomeProps> = async ({ query 
     const brief = typeof query.brief === 'string' ? query.brief : null
     const mode = modeFor(slug, brief)
 
-    // Base makes no call at all. Eval and custom go to the model, but only when
-    // there is a brief to compose from and no cached answer — see
-    // `src/orchestration/cache.ts`.
-    const provider =
-        mode.brief === null
-            ? new BaseProvider()
-            : new LiveProvider({ mode: mode.slug, fresh: query.fresh === '1' })
-
-    const resolved = await provider.getLayout(mode.context, MARKET)
+    // **Rendering this page cannot call the model.** Base composes nothing by
+    // design; eval and custom read the cache and stop there. A GET is
+    // replayable — hot reload, a refresh, a second tab, a prefetch — and every
+    // unintended call came from one of those re-running this function. Calling
+    // lives behind a POST to `/api/compose`, pressed by a person.
+    //
+    // `?fresh=1` is gone with it. A URL that spends money is the defect.
+    const composed = mode.brief === null ? null : await readComposition(mode.context, MARKET, mode.slug)
+    const resolved = composed ?? (await new BaseProvider().getLayout(mode.context, MARKET))
 
     return {
         props: {
@@ -114,6 +136,8 @@ export const getServerSideProps: GetServerSideProps<HomeProps> = async ({ query 
             context: mode.context,
             resolved,
             summary: summarizeComposition(resolved.spec, MARKET, mode.context),
+            awaitingRun: mode.brief !== null && composed === null,
+            spend: ledgerTotals(await readLedger()),
         },
     }
 }

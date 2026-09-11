@@ -5,6 +5,7 @@ import { MODULE_CATALOG, type ModuleId } from '@/contracts/module-catalog'
 
 import { callModel, readPromptText } from './bridge'
 import { cacheKey, readCached, writeCached } from './cache'
+import { recordCall } from './ledger'
 import { specKeyFor } from './context-key'
 import type { OrchestrationProvider } from './provider'
 import { FALLBACK_LAYOUT, validateLayout } from './validate'
@@ -178,6 +179,74 @@ export interface LiveProviderOptions {
     mode?: string
     /** Skip the cache and pay for a new composition. The re-run button. */
     fresh?: boolean
+    /** What asked for this call, for the ledger. */
+    trigger?: string
+}
+
+/**
+ * The cache key for a composition, given what would be sent.
+ *
+ * Exported because two callers need the same key from different sides: the page
+ * reads it, and `/api/compose` writes it. Deriving it twice from the same inputs
+ * is what makes "press Run, then the page finds it" work without passing
+ * anything between them.
+ */
+export async function compositionKey(
+    context: Context,
+    market: Market,
+    mode: string,
+): Promise<string> {
+    return cacheKey({
+        mode,
+        message: buildMessage(context, market),
+        promptText: await readPromptText(),
+    })
+}
+
+/**
+ * A composition already paid for, or null.
+ *
+ * **This is the only path the page itself uses.** Rendering a page can no longer
+ * spend money: a GET is replayable by design — hot reload, a refresh, a second
+ * tab, a link prefetch, a curl — and every unintended call so far came from one
+ * of those re-running `getServerSideProps`. Calling now requires a POST to
+ * `/api/compose`, which nothing replays on its own.
+ */
+export async function readComposition(
+    context: Context,
+    market: Market,
+    mode: string,
+): Promise<ResolvedLayout | null> {
+    const cached = await readCached(await compositionKey(context, market, mode))
+    if (!cached) return null
+    return replay(cached, market)
+}
+
+/**
+ * Re-validate a stored composition on the way out, and mark it as a replay.
+ *
+ * Not trusted as stored: a rule added in code should repair the compositions
+ * already paid for rather than waiting for the next call. Idempotent on a spec
+ * that already passed, so a replay with no rule changes reports nothing new.
+ */
+function replay(cached: ResolvedLayout, market: Market): ResolvedLayout {
+    const revalidated = validateLayout(cached.spec, market)
+
+    return {
+        ...cached,
+        spec: revalidated.spec,
+        // The original provenance is kept as-is — including what the call cost —
+        // so the panel never implies this was free. The note is what tells you
+        // it is a replay.
+        notes: [
+            {
+                level: 'repaired',
+                reason: `replayed from cache (composed ${cached.provenance.generated_at}); press Run for a fresh composition`,
+            },
+            ...cached.notes,
+            ...revalidated.notes,
+        ],
+    }
 }
 
 export class LiveProvider implements OrchestrationProvider {
@@ -195,47 +264,35 @@ export class LiveProvider implements OrchestrationProvider {
         // composition attributed to instructions that no longer exist would be
         // worse than no cache.
         const message = buildMessage(context, market)
-        const key = cacheKey({
-            mode,
-            message,
-            promptText: await readPromptText(),
-        })
+        const key = await compositionKey(context, market, mode)
 
         if (!this.options.fresh) {
             const cached = await readCached(key)
-            if (cached) {
-                // Re-validated on the way out, not trusted as stored. A rule
-                // added in code should repair the compositions already paid for
-                // rather than waiting for the next call — the no-duplicate-dates
-                // fix worked that way because exclusions are computed at render,
-                // and this makes the same true of prop repairs. Idempotent on a
-                // spec that already passed, so a replay with no rule changes
-                // reports nothing new.
-                const revalidated = validateLayout(cached.spec, market)
-
-                return {
-                    ...cached,
-                    spec: revalidated.spec,
-                    // The original provenance is kept as-is — including what the
-                    // call cost — so the panel never implies this was free. The
-                    // note is what tells you it is a replay.
-                    notes: [
-                        {
-                            level: 'repaired',
-                            reason: `replayed from cache (composed ${cached.provenance.generated_at}); re-run for a fresh composition`,
-                        },
-                        ...cached.notes,
-                        ...revalidated.notes,
-                    ],
-                }
-            }
+            if (cached) return replay(cached, market)
         }
+
+        const startedAt = Date.now()
+        const logFailure = (outcome: 'unparseable' | 'failed', error: string) =>
+            recordCall({
+                at: new Date().toISOString(),
+                mode,
+                key,
+                trigger: this.options.trigger ?? 'unknown',
+                outcome,
+                durationMs: Date.now() - startedAt,
+                // A failed call still spent tokens; we just never learn how many,
+                // because the cost arrives in the envelope we did not get.
+                costUsd: null,
+                inputTokens: null,
+                error,
+            })
 
         try {
             const call = await callModel(message)
             const raw = extractLayoutSpec(call.result)
 
             if (raw === null) {
+                await logFailure('unparseable', 'no layout spec could be parsed out of the reply')
                 return this.fallback(
                     context,
                     market,
@@ -262,14 +319,21 @@ export class LiveProvider implements OrchestrationProvider {
             }
 
             await writeCached(key, resolved)
+            await recordCall({
+                at: resolved.provenance.generated_at,
+                mode,
+                key,
+                trigger: this.options.trigger ?? 'unknown',
+                outcome: 'composed',
+                durationMs: call.durationMs,
+                costUsd: call.costUsd,
+                inputTokens: call.inputTokens,
+            })
             return resolved
         } catch (error) {
-            return this.fallback(
-                context,
-                market,
-                error instanceof Error ? error.message : 'unknown error',
-                null,
-            )
+            const reason = error instanceof Error ? error.message : 'unknown error'
+            await logFailure('failed', reason)
+            return this.fallback(context, market, reason, null)
         }
     }
 

@@ -31,6 +31,12 @@ vi.mock('./cache', () => ({
     writeCached: vi.fn(async () => undefined),
 }))
 
+// The ledger appends to `.cache/calls.log`, which is a record of real money
+// spent on this machine. A test run must never write to it.
+vi.mock('./ledger', () => ({
+    recordCall: vi.fn(async () => undefined),
+}))
+
 vi.mock('./bridge', () => ({
     callModel: vi.fn(async () => {
         if (bridge.mode === 'throw') throw new Error('could not run `claude`')
@@ -40,8 +46,10 @@ vi.mock('./bridge', () => ({
     readPromptText: vi.fn(async () => '# Orchestrator prompt — v-test'),
 }))
 
-import { LiveProvider } from './live'
+import { LiveProvider, readComposition } from './live'
 import { readCached } from './cache'
+import { callModel } from './bridge'
+import { recordCall } from './ledger'
 
 const market = MarketSchema.parse(marketJson)
 const context = ContextSchema.parse(leahBudget80)
@@ -181,5 +189,87 @@ describe('LiveProvider — replaying a cached composition', () => {
         expect(resolved.notes[0].reason).toContain('replayed from cache')
         expect(resolved.notes.some((note) => note.reason.includes('group_by_geo'))).toBe(true)
         expect(resolved.provenance.cost_usd).toBe(0.15)
+    })
+})
+
+/**
+ * The page's own path into a composition.
+ *
+ * The one property that matters here is negative: `readComposition` must never
+ * reach the bridge. Rendering the page used to be able to call the model, and a
+ * GET is replayable — hot reload, a refresh, a second tab, a prefetch — so calls
+ * happened that nobody asked for, three of which died at the timeout and billed
+ * for nothing. Calling now requires a POST to `/api/compose`.
+ */
+describe('readComposition — what the page is allowed to do', () => {
+    // Call counts are the assertion here, so they start from zero. Earlier
+    // tests in this file drive the bridge on purpose.
+    beforeEach(() => {
+        vi.clearAllMocks()
+    })
+
+    it('returns null on a cache miss without calling the model', async () => {
+        vi.mocked(readCached).mockResolvedValueOnce(null)
+
+        expect(await readComposition(context, market, 'eval')).toBeNull()
+        expect(callModel).not.toHaveBeenCalled()
+    })
+
+    it('replays a cached composition without calling the model', async () => {
+        vi.mocked(readCached).mockResolvedValueOnce({
+            spec: {
+                layout: [{ module: 'production_list', size: 'hero', props: { sort: 'price' } }],
+                reasoning: 'composed earlier',
+                headline: null,
+                top_pick: null,
+            },
+            notes: [],
+            provenance: {
+                generated_at: '2026-09-11T00:00:00.000Z',
+                source: 'live',
+                model: 'claude-sonnet-5',
+                prompt_version: 'v8',
+                context_id: 'eval/x',
+                raw_response: null,
+                cost_usd: 0.14,
+                duration_ms: 76_000,
+                input_tokens: 18_207,
+            },
+        })
+
+        const resolved = await readComposition(context, market, 'eval')
+
+        expect(callModel).not.toHaveBeenCalled()
+        expect(resolved?.provenance.source).toBe('live')
+        // The cost of the original call is preserved, so a replay never reads
+        // as free in the panel.
+        expect(resolved?.provenance.cost_usd).toBe(0.14)
+        expect(resolved?.notes[0]?.reason).toContain('replayed from cache')
+    })
+
+    it('records a successful call in the ledger with what it cost', async () => {
+        vi.mocked(readCached).mockResolvedValueOnce(null)
+
+        await new LiveProvider({ mode: 'eval', trigger: 'run button' }).getLayout(context, market)
+
+        expect(recordCall).toHaveBeenCalledWith(
+            expect.objectContaining({
+                mode: 'eval',
+                trigger: 'run button',
+                outcome: 'composed',
+                costUsd: 0.5,
+            }),
+        )
+    })
+
+    it('records a failed call too — a timeout buys nothing and must still show up', async () => {
+        vi.mocked(readCached).mockResolvedValueOnce(null)
+        bridge.mode = 'throw'
+
+        await new LiveProvider({ mode: 'eval', trigger: 'run button' }).getLayout(context, market)
+
+        expect(recordCall).toHaveBeenCalledWith(
+            expect.objectContaining({ outcome: 'failed', costUsd: null }),
+        )
     })
 })

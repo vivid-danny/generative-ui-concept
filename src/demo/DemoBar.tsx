@@ -33,6 +33,10 @@ interface DemoBarProps {
     resolved: ResolvedLayout
     /** What the spec actually produced, next to the reasoning that asked for it. */
     summary: CompositionSummary
+    /** Nothing composed for this brief yet — offer Run rather than a re-run. */
+    awaitingRun: boolean
+    /** Running total from the call ledger, so spending is visible in the UI. */
+    spend: { calls: number; costUsd: number; failures: number }
     /** The page itself — rendered beside the drawer so opening it pushes right. */
     children: React.ReactNode
 }
@@ -52,54 +56,81 @@ const NOTE_CLASS = {
 const TOGGLE_KEY = 'h'
 const DRAWER_KEY = 'genui:drawer'
 
-/** A navigation to one of these pays for a composition; `base` never does. */
-const composes = (url: string) => /[?&]mode=(eval|custom)\b/.test(url)
-
 /**
- * Whether a composition is in flight, and for how long.
+ * Runs one composition, and reports on it while it runs.
  *
- * Driven off router events rather than the click handler so it is true of the
- * navigation that is actually happening — the mode links fire calls too, and a
- * click handler on the button would leave those unguarded.
+ * Posts to `/api/compose` — the only path that can call the model — and then
+ * refreshes the page's props, which now find the composition in cache. Two
+ * requests where there used to be one, and the second is free.
  *
- * The elapsed count is the point. A composition takes 30s to over 180s, and the
- * page renders server-side, so without a number on screen there is no
- * difference between "thinking" and "dead" — which is how three calls got fired
- * on top of each other.
+ * Why not navigate and let the server compose, as this did: a navigation is a
+ * GET, and Next replays GETs on hot reload and on a cold compile. That is how
+ * calls happened that nobody pressed. It also blocked the render for up to
+ * three minutes, so a slow call looked identical to a dead page.
+ *
+ * The elapsed count is the point of the state. A composition takes 30s to over
+ * 180s; without a number on screen there is no difference between thinking and
+ * broken — which is how three calls got fired on top of each other.
  */
-function useComposing(): { composing: boolean; elapsed: number } {
+function useCompose(): {
+    composing: boolean
+    elapsed: number
+    error: string | null
+    run: (body: { mode: ModeSlug; brief: string | null; fresh?: boolean }) => void
+} {
     const router = useRouter()
     const [startedAt, setStartedAt] = useState<number | null>(null)
     const [elapsed, setElapsed] = useState(0)
-
-    useEffect(() => {
-        const start = (url: string) => {
-            if (!composes(url)) return
-            setStartedAt(Date.now())
-            setElapsed(0)
-        }
-        const stop = () => setStartedAt(null)
-
-        router.events.on('routeChangeStart', start)
-        router.events.on('routeChangeComplete', stop)
-        router.events.on('routeChangeError', stop)
-        return () => {
-            router.events.off('routeChangeStart', start)
-            router.events.off('routeChangeComplete', stop)
-            router.events.off('routeChangeError', stop)
-        }
-    }, [router])
+    const [error, setError] = useState<string | null>(null)
 
     useEffect(() => {
         if (startedAt === null) return
-        const tick = window.setInterval(() => setElapsed(Math.round((Date.now() - startedAt) / 1000)), 1000)
+        const tick = window.setInterval(
+            () => setElapsed(Math.round((Date.now() - startedAt) / 1000)),
+            1000,
+        )
         return () => window.clearInterval(tick)
     }, [startedAt])
 
-    return { composing: startedAt !== null, elapsed }
+    const run = (body: { mode: ModeSlug; brief: string | null; fresh?: boolean }) => {
+        if (startedAt !== null) return
+        setError(null)
+        setElapsed(0)
+        setStartedAt(Date.now())
+
+        void fetch('/api/compose', {
+            method: 'POST',
+            headers: { 'content-type': 'application/json' },
+            body: JSON.stringify(body),
+        })
+            .then(async (response) => {
+                const payload = (await response.json()) as { error?: string; reason?: string }
+                if (!response.ok) {
+                    // The page stays as it was rather than going blank. A failed
+                    // call still cost money; the ledger has it either way.
+                    setError(payload.reason ?? payload.error ?? `call failed (${response.status})`)
+                    return
+                }
+                // Re-read props. The composition is in cache now, so this is free.
+                await router.replace(router.asPath, undefined, { scroll: false })
+            })
+            .catch((cause: unknown) => {
+                setError(cause instanceof Error ? cause.message : 'the request never completed')
+            })
+            .finally(() => setStartedAt(null))
+    }
+
+    return { composing: startedAt !== null, elapsed, error, run }
 }
 
-export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, children }) => {
+export const DemoBar: React.FC<DemoBarProps> = ({
+    active,
+    resolved,
+    summary,
+    awaitingRun,
+    spend,
+    children,
+}) => {
     const { provenance, notes, spec } = resolved
     // Remembered for the session rather than held in the URL. Switching mode is
     // a full navigation, so pure local state closed the drawer every time you
@@ -121,18 +152,16 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
     // The textarea's own value. The composed brief lives in the URL, so this is
     // only the in-progress edit.
     const [draft, setDraft] = useState(active.brief ?? '')
-    const { composing, elapsed } = useComposing()
+    const { composing, elapsed, error, run } = useCompose()
 
+    // Switching to a typed brief is a navigation, not a call: the page loads the
+    // baseline for it and waits to be told to compose.
     const submitBrief = (event: React.FormEvent) => {
         event.preventDefault()
         const brief = draft.trim()
         if (!brief || composing) return
         router.push(`/?mode=custom&brief=${encodeURIComponent(brief)}`)
     }
-
-    const reRunHref = `/?mode=${active.slug}${
-        active.slug === 'custom' ? `&brief=${encodeURIComponent(active.brief ?? '')}` : ''
-    }&fresh=1`
 
     useEffect(() => {
         const onKeyDown = (event: KeyboardEvent) => {
@@ -169,8 +198,10 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
                                         [styles.variantActive]: slug === active.slug,
                                         [styles.variantDisabled]: composing,
                                     })}
-                                    // A mode switch is a call of its own, so it
-                                    // is a way to double-spend too.
+                                    // Switching mode is free — it reads cache.
+                                    // Still barred mid-call, because navigating
+                                    // away from a running composition loses the
+                                    // only progress indicator for it.
                                     aria-disabled={composing}
                                     tabIndex={composing ? -1 : undefined}
                                     onClick={(event) => {
@@ -215,13 +246,25 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
                             <button
                                 type="button"
                                 className={styles.runButton}
-                                // Disabled the moment the navigation starts, and
-                                // it stays disabled until the page comes back:
-                                // the second click is what pays twice.
+                                // Disabled the instant the request starts, not on
+                                // completion: the second press is the one that
+                                // pays twice.
                                 disabled={composing}
-                                onClick={() => router.push(reRunHref)}
+                                onClick={() =>
+                                    run({
+                                        mode: active.slug,
+                                        brief: active.brief,
+                                        // A composition already exists, so this
+                                        // press is asking for a new one.
+                                        fresh: !awaitingRun,
+                                    })
+                                }
                             >
-                                {composing ? 'Composing…' : 'Re-run (new call)'}
+                                {composing
+                                    ? 'Composing…'
+                                    : awaitingRun
+                                      ? 'Run composition (one call)'
+                                      : 'Re-run (new call)'}
                             </button>
                         )}
 
@@ -238,6 +281,29 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
                                 </span>
                             </p>
                         )}
+
+                        {error && (
+                            <p className={styles.composeError} role="alert">
+                                {error}
+                                <span className={styles.composingHint}>
+                                    The page still shows what it had. The call is in
+                                    .cache/calls.log either way.
+                                </span>
+                            </p>
+                        )}
+
+                        {/*
+                          Spending, in the UI rather than in a server log. The
+                          drawer used to report a cost per composition, which
+                          made a timed-out call — the most expensive kind, since
+                          it buys nothing — leave no trace at all.
+                        */}
+                        <span className={styles.label}>Spent this machine</span>
+                        <span className={styles.note}>
+                            {spend.calls} call{spend.calls === 1 ? '' : 's'} · $
+                            {spend.costUsd.toFixed(3)}
+                            {spend.failures > 0 && ` · ${spend.failures} bought nothing`}
+                        </span>
 
                         <span className={styles.label}>shift+h to hide</span>
                     </div>

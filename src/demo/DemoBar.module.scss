@@ -285,3 +285,8 @@
         transform: rotate(360deg);
     }
 }
+
+.composeError {
+    margin: var(--spacing-xs) 0 0;
+    color: #ff7b72;
+}
