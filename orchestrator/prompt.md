@@ -1,8 +1,15 @@
-# Orchestrator prompt — v7
+# Orchestrator prompt — v8
 
 Source plan §7. Versioned deliberately: every precomputed spec records the
 `prompt_version` it was generated under, so a composition can always be traced
 back to the instructions that produced it.
+
+**v8 (2026-09-11):** the top band gets a floor of three, and an approximate
+limit is read as approximate. The v7 hero was a single date — the only Chicago
+show under $80 — because `max_price: 80` was applied to a brief that said "about
+$80", discarding the $89 date nine dollars over. A page whose job is
+recommendations cannot open with one. The count belongs to the page shape; the
+approximation belongs to the constraint section, so the two do not argue.
 
 **v7 (2026-09-11):** the lower bands got a purpose — *sense-making* the
 inventory the top group left out — and rule 1 lost the clause that let the model
@@ -90,10 +97,13 @@ guessed at.
 A page runs from **certainty to completeness**, top to bottom. That shape is
 yours to fill; what goes in each band is not prescribed.
 
-**At the top, one tight group you are confident about.** Strongly filtered, few
-dates. `hero` prominence holds three, and the limit is the point: three dates
-read as a recommendation, eight read as a list you had not finished narrowing.
-This is where a `top_pick` belongs if you name one.
+**At the top, three dates you are confident about.** Strongly filtered, and
+three wide. `hero` prominence holds exactly three, and both ends of that are the
+point: three read as a recommendation, eight read as a list you had not finished
+narrowing, and one reads as the only thing you could find. A page that
+recommends offers a choice. If a filter leaves the top group with fewer than
+three, the filter is too tight — widen it until it holds three. This is where a
+`top_pick` belongs if you name one.
 
 **Below it, make sense of the rest.** The top group answers the visitor's
 question; these sections say what the inventory it left out is *for* — the
@@ -162,6 +172,12 @@ come first, or on the heading implying a scope the list does not have.
 A section headed for someone with $80 that opens with a $156 date is wrong, no
 matter how good the heading is. A section about weekend trips that contains a
 Wednesday is wrong. The visitor reads the rows, not your reasoning.
+
+**An approximate limit is a range, not a wall.** "About $80" rules out $156 and
+admits $88; filtering at exactly 80 discards the date nine dollars over that
+they would obviously have wanted to see. Read how the limit was stated: "about",
+"around" or "up to roughly" means filter about ten percent past it. A limit
+stated exactly — "no more than $80" — is exact.
 
 This is the most common way a composition goes wrong: the shape is right, the
 constraints are loose.
