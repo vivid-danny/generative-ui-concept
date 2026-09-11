@@ -9,16 +9,18 @@ guardrails. This document says where the code actually is and what to do next.
 
 ---
 
-## Status: slice 4 — the orchestrator picks between modules
+## Status: slice 5 — the model recommends, and the page has a shape
 
-The page is composed at request time by `claude-sonnet-5`. 145 tests pass,
+Prompt is at **v7**: the lower bands of the page shape now state their purpose.
+
+The page is composed at request time by `claude-sonnet-5`. 157 tests pass,
 typecheck is clean, production build succeeds. Committed on
 `vivid-danny/genui-concept-build`; nothing is pushed.
 
 ```bash
 npm install
 npm run dev          # http://localhost:3000
-npm test             # 145 tests, none of which call the model
+npm test             # 157 tests, none of which call the model
 npm run typecheck
 npm run build
 ```
@@ -85,14 +87,18 @@ belong in props.
 
 ### What it costs
 
-**$0.04–$0.20 a call, 34–143s.** Runs have come in at $0.043, $0.047, $0.116,
-$0.158 and — the slice-4 run, with a second module in the catalog — **$0.202 in
-143s on 15,953 input tokens**, the most expensive yet.
+**$0.05–$0.23 a call, 30–178s.** 19 live calls across three days total **$2.42**;
+2026-09-10 alone was **$2.05 over 16 calls**, and the v7 run on 2026-09-11 was
+$0.184 in 107s on 17,796 input tokens. Input tokens have crept
+from ~15,000 to ~17,700 as the catalog grew a second module, a `region` line per
+entry, three `card_signal` values and the page-shape section.
 
-Adding a module is not free. The catalog now carries a second `propsHint`, a
-`region` line per entry, and a new prompt section, and the composition itself is
-longer. Whether that accounts for all of it or the run was simply unlucky is not
-knowable from one call — see the variance note.
+**More calls happen than you intend, and each one pays.** Three separate v6
+calls fired inside seven minutes for what was meant to be one eval. The cache is
+written *after* a call completes, so two page loads arriving before the first
+finishes both pay — and Next's dev server invokes `getServerSideProps` twice on
+a cold compile. A browser refresh landing at the same moment as a scripted load
+is enough. If a run matters, load the page once and wait.
 
 **Variance is as large as most effects you would try to measure.** A single run
 cannot tell you what a prompt sentence costs. If that question matters, it needs
@@ -313,6 +319,13 @@ Each of these cost real time. Do not rediscover them.
 - **Zod reports unknown keys with an *empty* path** and the names in
   `issue.keys` (`unrecognized_keys`). Handling only path-bearing issues made every
   hallucinated prop unrepairable and fell whole pages back to the static layout.
+- **Concurrent page loads each pay for their own call.** `readCached` runs
+  before the call and `writeCached` after it, so there is no in-flight lock: two
+  loads inside the same ~60s window both spend. Next's dev server double-invokes
+  `getServerSideProps` on a cold compile, which makes one navigation enough on
+  its own. This is how a "one eval call" turned into three, and it defeats the
+  one-call-at-a-time discipline silently — the drawer shows a cost per
+  composition, not per session.
 - **`LayoutEntrySchema.props` is an open record, so module prop defaults do not
   apply just because a spec parsed.** `FALLBACK_LAYOUT` was built with
   `LayoutSpecSchema.parse` alone for three slices, so nothing on the base path
@@ -376,6 +389,55 @@ Each of these cost real time. Do not rediscover them.
   deliberately not modelled; don't add it without deciding which is right.
 
 ---
+
+## The tension to resolve next: a good decision is not a visible one
+
+**As the model got better at deciding, the page got worse at showing that
+anything decided.** The last v6 run composed a three-row hero, the rail card,
+and the full-tour trigger. As a recommendation it is the best output so far — it
+names Chicago 12/05, the *most expensive* of its three rows by get-in price, and
+the `typical_seat_price` signal makes that defensible at a glance: $76 in and
+$125 a seat against two cheaper-looking dates at $180. That is a genuinely good
+piece of reasoning.
+
+As a demonstration it is nearly mute. Three rows and a card look like a short
+static list. A stakeholder cannot see that a model chose anything, and a real
+visitor has no idea one is running at all — the reveal currently lives in the
+drawer, which only Danny sees, and in his narration, which a real visitor does
+not get.
+
+Two things follow, and they are different problems.
+
+**The arc needs enough visible bands to be perceptible.** Settled in v7 — and
+the diagnosis that got there is worth keeping, because the first one was wrong.
+Reading all four cached v6 compositions rather than the one run in front of us
+showed the middle band appearing **three times out of four**. It was variance,
+not a systematic miss.
+
+The run that skipped it quoted rule 1 back as its reason: *"I didn't pad it with
+a second section… a thin, dishonest second section is worse than none."* The
+model was obeying the prompt, not missing it — so a new line encouraging a
+middle band would have been arguing with the line that told it to stop. v7
+deletes that clause and states the band's **purpose** instead: below the top
+group, the job is sense-making, saying what the inventory the top group left out
+is *for*. The v7 run produced a five-date "Weekend nights within a drive" with
+`price_gap_to_cheapest` on every row.
+
+**What moved rather than resolved: the thin-section pressure went to the top
+band.** The v7 hero is a single row — the only Chicago date under $80 — and the
+model chose it deliberately: *"one certain answer to 'should I buy now,' not a
+padded three."* A page whose purpose is recommendations, plural, should not open
+with one. See next steps.
+
+**And separately: should the page ever admit it composed itself?** Everything
+built so far assumes not — the composition is invisible by design, and the
+`reasoning` string is a debugging and demo artifact rather than something a
+visitor reads. That is defensible for a real product and a problem for a demo,
+because the thing being demonstrated is exactly the part that does not render.
+Worth deciding deliberately rather than by default. It is not obviously "add a
+'why you're seeing this' line" — that might be the answer, or the answer might
+be that the composition should be legible through *contrast* (two visitors, two
+pages, side by side) rather than through explanation.
 
 ## Open decisions for Danny
 
@@ -449,27 +511,65 @@ nothing told it that a stated constraint had to be applied. When a new surface
 goes unused, check whether anything says it *should* be — before reaching for
 more effort or more data.
 
+**And its sharper version, from `card_signal`.** That prop went unused in four
+of five runs, and both plausible explanations were true at once: it was an enum
+with a single value, so naming it chose nothing; and its `propsHint` reserved
+the one value for a visitor weighing *when* to buy, while the brief is someone
+weighing *which date*. The model was following the only instruction it had. The
+fix that mattered was not a second option, it was **stating what the slot is
+for** — give the get-in price a reference point. A knob with no stated purpose
+reads as decoration, and the purpose is also the half that tells you which
+options belong in the enum. When a surface goes unused, ask what it is *for*
+before asking what else it could do.
+
+**A third, from the page shape.** Three rules that each answered part of an
+unwritten question — what shape is this page? — put the model in a position
+where it had to break one, and it broke the module count. Writing the question
+down and answering it once made all three unnecessary. If the model is
+consistently violating one rule to satisfy another, the rules are the bug.
+
 Roughly in order:
 
-1. **Read whether the model now uses `card_signal`.** It declined it in four of
-   five runs while there was one value, which was the model correctly following
-   a `propsHint` that reserved `price_trend` for a visitor weighing *when* to
-   buy — our brief is someone weighing *which date*. There are now three values
-   and a stated purpose, so the next run says whether the surface was
-   under-specified or genuinely unwanted. Candidates considered and cut are in
-   the exploration worktree's `docs/CARD-SIGNAL-CANDIDATES.md`; the shortlist
-   worth revisiting is a tour-level `price_vs_typical`, which flattens inside a
-   price-filtered section and so is strongest in a broad one.
-2. **`listing_preview`.** The one wanted module still missing, and the only one
+1. **The top band must not be one row.** The v7 hero rendered a single date
+   under a heading and a "1 Show" count chip. The page's purpose is
+   recommendations, plural. The prompt's own thin-section bullet already says
+   one or two dates under a heading reads as a page that ran out of things to
+   say — it just does not apply to the hero, where "strongly filtered, few
+   dates" reads as permission to narrow to one.
+2. **`market_signals` should be required to carry a demand fact and a price
+   fact.** The stat list is currently a free pick from eight, and the rail card
+   is the page's supporting evidence — it is not supporting anything if it omits
+   what a date costs. Keeping the pick is the point (which demand fact, which
+   price fact, and in what order is a real editorial call); the categories are
+   what should be obligatory. If that cannot be enforced, the card comes off the
+   orchestrator's plate and is derived from the snapshot instead.
+3. **`listing_preview`.** The one wanted module still missing, and the only one
    that pairs with a chosen date rather than the tour. Needs top-listings-per-
    event data, which the snapshot does not carry.
-3. **Restore `STRUCTURAL_RULES.minModules` to 3** once a third orchestrated
+4. **Restore `STRUCTURAL_RULES.minModules` to 3** once a third orchestrated
    module exists. Still 1: two exist, and a floor of 3 would fall back on every
    good composition.
-4. **Extend the evals to compare rendered output**, and to assert two contexts
+5. **Extend the evals to compare rendered output**, and to assert two contexts
    differ in *which modules appear* rather than only in props. Now worth doing —
    until slice 4 there was only one module, so "which modules appear" had one
    possible answer.
+
+**`card_signal` is settled.** The v7 run used it on both sections with a
+*different* value on each — `typical_seat_price` on the hero, where "From $76"
+needed a seat-quality reference, and `price_gap_to_cheapest` on the band, where
+five dates needed comparing against each other. Three values plus a stated
+purpose was the fix; the surface was under-specified, not unwanted.
+
+**Geography is judged, not filtered — and the model has stopped noticing.**
+`filter.city` takes a single string, so "within a drive" is inexpressible. v6
+said so out loud (*"rather than trying to fake a distance radius the filter
+can't express"*) and worked around it with one-city sections. The v7 run instead
+used `min_demand_score: 0.55` and claimed in its reasoning that the demand floor
+was what excluded Memphis and Buffalo — which is not true; demand does not
+encode distance. The all-Midwest result was correlation. **Deliberately not
+fixed:** a multi-city filter is more for the model to parse, and the page is not
+yet rendering consistently enough to spend that budget. Revisit if a run
+actually places a distant city inside a "within a drive" section.
 
 **Still unsurfaced data:** `inventory_by_tier` and `listings_sample`'s
 `deal_score` are read by nothing at all. Each is a candidate surface, but let the
