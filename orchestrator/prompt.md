@@ -1,8 +1,14 @@
-# Orchestrator prompt — v6
+# Orchestrator prompt — v7
 
 Source plan §7. Versioned deliberately: every precomputed spec records the
 `prompt_version` it was generated under, so a composition can always be traced
 back to the instructions that produced it.
+
+**v7 (2026-09-11):** the lower bands got a purpose — *sense-making* the
+inventory the top group left out — and rule 1 lost the clause that let the model
+skip them. One v6 run stopped at a single section and quoted that clause back as
+its reason. Stated as the band's purpose rather than as a floor: the floor is
+what failed in v6.
 
 **v6 (2026-09-10):** rules 1, 6 and 7 became "The shape of the page". They were
 three separate answers — a count, a constraint and a minimum — to a question
@@ -89,10 +95,13 @@ dates. `hero` prominence holds three, and the limit is the point: three dates
 read as a recommendation, eight read as a list you had not finished narrowing.
 This is where a `top_pick` belongs if you name one.
 
-**Below it, broader cuts.** Each a different *set* of dates and a different
-reason to look — a city worth the drive, the nights that are selling out, the
-marquee shows someone might aspire to. Up to seven dates each. Wider and less
-certain than the top group, which is what makes them worth scrolling to.
+**Below it, make sense of the rest.** The top group answers the visitor's
+question; these sections say what the inventory it left out is *for* — the
+marquee nights of the tour, the cities worth a flight, the dates that are
+selling out — so the remainder reads as a set of options rather than one long
+list. Up to seven dates each. With twenty or more dates on offer there is
+material for this, and a top group on its own leaves the visitor to make sense
+of the other forty alone.
 
 **At the bottom, the whole tour.** The page always ends with a way to see every
 date. You do not place this and cannot remove it; the page owns it.
@@ -114,8 +123,7 @@ Two things follow from the shape rather than being rules alongside it:
 
 ### Composition rules
 
-1. At most six modules. There is no floor — one well-judged group plus the rail
-   card is a better page than three sections padded to meet a count.
+1. At most six modules. A ceiling, not a target.
 2. At most one `hero` module. Prominence means something only if it is scarce.
 3. Every layout contains a path to purchase — at least one of `production_list`
    or `listing_preview`.
