@@ -201,3 +201,87 @@
 .briefInput::placeholder {
     color: #7d8590;
 }
+
+/*
+  The buttons that spend money.
+  
+  Styled as a real button rather than borrowing `.variant` from the mode links,
+  because pressing one starts a 30-to-180-second server-side call and the click
+  has to feel like it landed. Hover, active and disabled are all distinct: the
+  disabled state is not decoration here, it is the thing that stops a second
+  call being fired on top of the first.
+*/
+.runButton {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 12px;
+    border: 1px solid #ce3197;
+    border-radius: 4px;
+    background: rgba(206, 49, 151, 0.16);
+    color: #e6edf3;
+    font: inherit;
+    cursor: pointer;
+    transition:
+        background 120ms ease,
+        border-color 120ms ease,
+        transform 60ms ease;
+
+    &:hover:not(:disabled) {
+        background: rgba(206, 49, 151, 0.32);
+        border-color: #e85ab4;
+    }
+
+    &:active:not(:disabled) {
+        background: rgba(206, 49, 151, 0.45);
+        transform: translateY(1px);
+    }
+
+    &:focus-visible {
+        outline: 2px solid #e85ab4;
+        outline-offset: 2px;
+    }
+
+    &:disabled {
+        border-color: #30363d;
+        background: transparent;
+        color: #7d8590;
+        cursor: progress;
+    }
+}
+
+/* A mode link cannot be `disabled`, so it says so in the styling instead. */
+.variantDisabled {
+    opacity: 0.4;
+    pointer-events: none;
+}
+
+.composing {
+    display: flex;
+    gap: var(--spacing-xs);
+    align-items: flex-start;
+    margin: var(--spacing-xs) 0 0;
+    color: #e6edf3;
+}
+
+.composingHint {
+    display: block;
+    color: #7d8590;
+}
+
+.spinner {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    margin-top: 4px;
+    border: 2px solid rgba(206, 49, 151, 0.3);
+    border-top-color: #ce3197;
+    border-radius: 50%;
+    animation: spin 700ms linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}

@@ -52,6 +52,53 @@ const NOTE_CLASS = {
 const TOGGLE_KEY = 'h'
 const DRAWER_KEY = 'genui:drawer'
 
+/** A navigation to one of these pays for a composition; `base` never does. */
+const composes = (url: string) => /[?&]mode=(eval|custom)\b/.test(url)
+
+/**
+ * Whether a composition is in flight, and for how long.
+ *
+ * Driven off router events rather than the click handler so it is true of the
+ * navigation that is actually happening — the mode links fire calls too, and a
+ * click handler on the button would leave those unguarded.
+ *
+ * The elapsed count is the point. A composition takes 30s to over 180s, and the
+ * page renders server-side, so without a number on screen there is no
+ * difference between "thinking" and "dead" — which is how three calls got fired
+ * on top of each other.
+ */
+function useComposing(): { composing: boolean; elapsed: number } {
+    const router = useRouter()
+    const [startedAt, setStartedAt] = useState<number | null>(null)
+    const [elapsed, setElapsed] = useState(0)
+
+    useEffect(() => {
+        const start = (url: string) => {
+            if (!composes(url)) return
+            setStartedAt(Date.now())
+            setElapsed(0)
+        }
+        const stop = () => setStartedAt(null)
+
+        router.events.on('routeChangeStart', start)
+        router.events.on('routeChangeComplete', stop)
+        router.events.on('routeChangeError', stop)
+        return () => {
+            router.events.off('routeChangeStart', start)
+            router.events.off('routeChangeComplete', stop)
+            router.events.off('routeChangeError', stop)
+        }
+    }, [router])
+
+    useEffect(() => {
+        if (startedAt === null) return
+        const tick = window.setInterval(() => setElapsed(Math.round((Date.now() - startedAt) / 1000)), 1000)
+        return () => window.clearInterval(tick)
+    }, [startedAt])
+
+    return { composing: startedAt !== null, elapsed }
+}
+
 export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, children }) => {
     const { provenance, notes, spec } = resolved
     // Remembered for the session rather than held in the URL. Switching mode is
@@ -74,13 +121,18 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
     // The textarea's own value. The composed brief lives in the URL, so this is
     // only the in-progress edit.
     const [draft, setDraft] = useState(active.brief ?? '')
+    const { composing, elapsed } = useComposing()
 
     const submitBrief = (event: React.FormEvent) => {
         event.preventDefault()
         const brief = draft.trim()
-        if (!brief) return
+        if (!brief || composing) return
         router.push(`/?mode=custom&brief=${encodeURIComponent(brief)}`)
     }
+
+    const reRunHref = `/?mode=${active.slug}${
+        active.slug === 'custom' ? `&brief=${encodeURIComponent(active.brief ?? '')}` : ''
+    }&fresh=1`
 
     useEffect(() => {
         const onKeyDown = (event: KeyboardEvent) => {
@@ -115,7 +167,15 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
                                     href={slug === 'custom' && draft.trim() ? `/?mode=custom&brief=${encodeURIComponent(draft.trim())}` : `/?mode=${slug}`}
                                     className={classNames(styles.variant, {
                                         [styles.variantActive]: slug === active.slug,
+                                        [styles.variantDisabled]: composing,
                                     })}
+                                    // A mode switch is a call of its own, so it
+                                    // is a way to double-spend too.
+                                    aria-disabled={composing}
+                                    tabIndex={composing ? -1 : undefined}
+                                    onClick={(event) => {
+                                        if (composing) event.preventDefault()
+                                    }}
                                 >
                                     {MODE_LABEL[slug]}
                                 </Link>
@@ -141,21 +201,42 @@ export const DemoBar: React.FC<DemoBarProps> = ({ active, resolved, summary, chi
                                     placeholder="Describe who is landing. Plain sentences — the model reads this."
                                     aria-label="Visitor brief"
                                 />
-                                <button type="submit" className={styles.variant} disabled={!draft.trim()}>
-                                    Compose
+                                <button
+                                    type="submit"
+                                    className={styles.runButton}
+                                    disabled={!draft.trim() || composing}
+                                >
+                                    {composing ? 'Composing…' : 'Compose'}
                                 </button>
                             </form>
                         )}
 
                         {active.brief && (
-                            <Link
-                                href={`/?mode=${active.slug}${
-                                    active.slug === 'custom' ? `&brief=${encodeURIComponent(active.brief)}` : ''
-                                }&fresh=1`}
-                                className={styles.variant}
+                            <button
+                                type="button"
+                                className={styles.runButton}
+                                // Disabled the moment the navigation starts, and
+                                // it stays disabled until the page comes back:
+                                // the second click is what pays twice.
+                                disabled={composing}
+                                onClick={() => router.push(reRunHref)}
                             >
-                                Re-run (new call)
-                            </Link>
+                                {composing ? 'Composing…' : 'Re-run (new call)'}
+                            </button>
+                        )}
+
+                        {composing && (
+                            <p className={styles.composing} role="status" aria-live="polite">
+                                <span className={styles.spinner} aria-hidden="true" />
+                                <span>
+                                    Calling the model — {elapsed}s
+                                    <span className={styles.composingHint}>
+                                        {elapsed < 120
+                                            ? 'usually 30–120s'
+                                            : 'the bridge gives up at 180s'}
+                                    </span>
+                                </span>
+                            </p>
                         )}
 
                         <span className={styles.label}>shift+h to hide</span>
