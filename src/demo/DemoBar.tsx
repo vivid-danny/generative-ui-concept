@@ -53,6 +53,17 @@ const NOTE_CLASS = {
     fallback: styles.noteFallback,
 } as const
 
+/**
+ * Two decimal places, with a thousands separator.
+ *
+ * `toFixed(3)` rendered $2.177 as "$2.177", which got read as two thousand
+ * dollars — a spend figure misread by 1000x is worse than no figure at all. The
+ * third decimal was never worth anything: a call is 13 to 18 cents and the
+ * number this line exists to answer is "how much have I spent today".
+ */
+const formatUsd = (amount: number) =>
+    amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+
 const TOGGLE_KEY = 'h'
 const DRAWER_KEY = 'genui:drawer'
 
@@ -300,9 +311,10 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                         */}
                         <span className={styles.label}>Spent this machine</span>
                         <span className={styles.note}>
-                            {spend.calls} call{spend.calls === 1 ? '' : 's'} · $
-                            {spend.costUsd.toFixed(3)}
-                            {spend.failures > 0 && ` · ${spend.failures} bought nothing`}
+                            {spend.calls} call{spend.calls === 1 ? '' : 's'} ·{' '}
+                            {formatUsd(spend.costUsd)}
+                            {spend.failures > 0 &&
+                                ` · ${spend.failures} failed, still billed`}
                         </span>
 
                         <span className={styles.label}>shift+h to hide</span>

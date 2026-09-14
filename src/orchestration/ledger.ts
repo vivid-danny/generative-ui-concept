@@ -42,7 +42,23 @@ export interface CallRecord {
     error?: string
 }
 
+/**
+ * A test run must never write here.
+ *
+ * It already happened: six entries landed from one `npm test` before the
+ * provider tests mocked this module, each carrying the mock's fixed $0.500, and
+ * the drawer then reported $2.177 spent when $0.177 was real. A ledger that can
+ * be poisoned by a test is worse than no ledger — it is a number you cannot
+ * trust but will read anyway.
+ *
+ * Mocking the module is still right in the tests that assert on it; this is the
+ * backstop for the ones that do not think about it.
+ */
+const isTestRun = () => process.env.VITEST !== undefined || process.env.NODE_ENV === 'test'
+
 export async function recordCall(record: CallRecord): Promise<void> {
+    if (isTestRun()) return
+
     try {
         await mkdir(path.dirname(LEDGER_PATH), { recursive: true })
         await appendFile(LEDGER_PATH, `${JSON.stringify(record)}\n`, 'utf8')
