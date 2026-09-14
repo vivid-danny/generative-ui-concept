@@ -8,6 +8,7 @@ import type { ResolvedLayout } from '@/contracts/layout-spec'
 import styles from './DemoBar.module.scss'
 import type { CompositionSummary } from './summarize'
 import { MODE_SLUGS, type DemoMode, type ModeSlug } from './modes'
+import type { CallRecord } from '@/orchestration/ledger'
 
 /**
  * Demo chrome: the context switcher and the provenance panel. Not part of the
@@ -35,8 +36,8 @@ interface DemoBarProps {
     summary: CompositionSummary
     /** Nothing composed for this brief yet — offer Run rather than a re-run. */
     awaitingRun: boolean
-    /** Running total from the call ledger, so spending is visible in the UI. */
-    spend: { calls: number; costUsd: number; failures: number }
+    /** The most recent call attempt. Null before the first one on this machine. */
+    lastCall: CallRecord | null
     /** The page itself — rendered beside the drawer so opening it pushes right. */
     children: React.ReactNode
 }
@@ -63,6 +64,22 @@ const NOTE_CLASS = {
  */
 const formatUsd = (amount: number) =>
     amount.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+
+const formatSeconds = (ms: number | null) => (ms === null ? 'unknown' : `${Math.round(ms / 1000)}s`)
+
+/**
+ * A relative stamp, because the absolute one answers the wrong question. "2
+ * minutes ago" tells you whether this figure belongs to the press you just made.
+ */
+const formatWhen = (iso: string) => {
+    const seconds = Math.round((Date.now() - new Date(iso).getTime()) / 1000)
+    if (seconds < 90) return 'just now'
+    const minutes = Math.round(seconds / 60)
+    if (minutes < 60) return `${minutes} minutes ago`
+    const hours = Math.round(minutes / 60)
+    if (hours < 24) return `${hours} hour${hours === 1 ? '' : 's'} ago`
+    return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+}
 
 const TOGGLE_KEY = 'h'
 const DRAWER_KEY = 'genui:drawer'
@@ -139,7 +156,7 @@ export const DemoBar: React.FC<DemoBarProps> = ({
     resolved,
     summary,
     awaitingRun,
-    spend,
+    lastCall,
     children,
 }) => {
     const { provenance, notes, spec } = resolved
@@ -304,17 +321,39 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                         )}
 
                         {/*
-                          Spending, in the UI rather than in a server log. The
-                          drawer used to report a cost per composition, which
-                          made a timed-out call — the most expensive kind, since
-                          it buys nothing — leave no trace at all.
+                          What the last press cost, in the UI rather than in a
+                          server log — a timed-out call is the most expensive
+                          kind, since it buys nothing, and used to leave no
+                          trace at all.
+
+                          The last *call*, not the cost of the composition on
+                          screen: the two differ whenever a system prompt edit
+                          has invalidated the cache, and the provenance block
+                          below already carries the composition's own figures.
                         */}
-                        <span className={styles.label}>Spent this machine</span>
+                        <span className={styles.label}>Estimated cost</span>
                         <span className={styles.note}>
-                            {spend.calls} call{spend.calls === 1 ? '' : 's'} ·{' '}
-                            {formatUsd(spend.costUsd)}
-                            {spend.failures > 0 &&
-                                ` · ${spend.failures} failed, still billed`}
+                            {lastCall === null ? (
+                                'No calls yet on this machine'
+                            ) : lastCall.outcome === 'composed' ? (
+                                <>
+                                    {formatUsd(lastCall.costUsd ?? 0)} ·{' '}
+                                    {formatSeconds(lastCall.durationMs)} ·{' '}
+                                    {lastCall.mode}
+                                    <span className={styles.composingHint}>
+                                        {formatWhen(lastCall.at)}
+                                    </span>
+                                </>
+                            ) : (
+                                <>
+                                    Failed after {formatSeconds(lastCall.durationMs)}
+                                    <span className={styles.composingHint}>
+                                        Billed, and there is no composition for it.
+                                        {' '}
+                                        {formatWhen(lastCall.at)}
+                                    </span>
+                                </>
+                            )}
                         </span>
 
                         <span className={styles.label}>shift+h to hide</span>

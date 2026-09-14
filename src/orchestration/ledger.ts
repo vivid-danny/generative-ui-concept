@@ -86,15 +86,15 @@ export async function readLedger(): Promise<CallRecord[]> {
     }
 }
 
-/** What has been spent, for the drawer. Timeouts are included — they were paid for. */
-export function ledgerTotals(records: CallRecord[]): {
-    calls: number
-    costUsd: number
-    failures: number
-} {
-    return {
-        calls: records.length,
-        costUsd: records.reduce((total, record) => total + (record.costUsd ?? 0), 0),
-        failures: records.filter((record) => record.outcome !== 'composed').length,
-    }
+/**
+ * The most recent attempt, for the drawer.
+ *
+ * A running total replaced this and was the wrong number to put on screen: "3
+ * calls · $0.52 · 1 failed" asks the reader to work out what it means, and the
+ * question in front of someone who has just pressed Run is what *that* press
+ * cost. The total is still reconstructable from the log, which is where a
+ * question about cumulative spend belongs.
+ */
+export function lastCall(records: CallRecord[]): CallRecord | null {
+    return records.length === 0 ? null : records[records.length - 1]
 }

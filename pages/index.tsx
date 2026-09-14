@@ -10,7 +10,7 @@ import { MARKET, isModeSlug, modeFor, DEFAULT_MODE, type DemoMode } from '@/demo
 import EventHeader from '@/modules/event-header'
 import { BaseProvider } from '@/orchestration/base'
 import { readComposition } from '@/orchestration/live'
-import { readLedger, ledgerTotals } from '@/orchestration/ledger'
+import { readLedger, lastCall, type CallRecord } from '@/orchestration/ledger'
 import ComposedPage, { hasRegion } from '@/renderer/ComposedPage'
 import PageShell from '@/shell/PageShell'
 import PerformerFilters from '@/shell/PerformerFilters'
@@ -45,8 +45,14 @@ interface HomeProps {
      * quietly call the model to fill the gap.
      */
     awaitingRun: boolean
-    /** What has been spent so far, from the call ledger. */
-    spend: { calls: number; costUsd: number; failures: number }
+    /**
+     * The most recent call attempt, from the ledger. Null before the first one.
+     *
+     * Deliberately the last *call*, not the cost of the composition on screen —
+     * those differ whenever a system prompt edit has invalidated the cache, and
+     * the question after pressing Run is what the press cost.
+     */
+    lastCall: CallRecord | null
 }
 
 export default function Home({
@@ -56,7 +62,7 @@ export default function Home({
     resolved,
     summary,
     awaitingRun,
-    spend,
+    lastCall: lastCallRecord,
 }: HomeProps) {
     return (
         <>
@@ -65,7 +71,7 @@ export default function Home({
                 resolved={resolved}
                 summary={summary}
                 awaitingRun={awaitingRun}
-                spend={spend}
+                lastCall={lastCallRecord}
             >
                 <PageShell
                     header={
@@ -137,7 +143,7 @@ export const getServerSideProps: GetServerSideProps<HomeProps> = async ({ query 
             resolved,
             summary: summarizeComposition(resolved.spec, MARKET, mode.context),
             awaitingRun: mode.brief !== null && composed === null,
-            spend: ledgerTotals(await readLedger()),
+            lastCall: lastCall(await readLedger()),
         },
     }
 }
