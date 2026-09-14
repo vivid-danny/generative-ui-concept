@@ -67,8 +67,17 @@ describe('BaseProvider', () => {
             (production) => badgesFor(production, props.badges ?? []).length > 0,
         )
 
-        // Not every row — a badge has to be true of the date — but not none.
+        // The baseline's section wears them.
         expect(withBadges.length).toBeGreaterThan(0)
-        expect(withBadges.length).toBeLessThan(shown.length)
+
+        // And they stay conditional — a badge has to be true of the date.
+        // Asserted against the whole snapshot rather than against this section,
+        // because the section is now scoped to the visitor's city and every
+        // Chicago date happens to earn one. Checking "not all of them" inside
+        // three rows was testing the fixture, not the rule.
+        const unbadged = market.productions.filter(
+            (production) => badgesFor(production, props.badges ?? []).length === 0,
+        )
+        expect(unbadged.length).toBeGreaterThan(0)
     })
 })

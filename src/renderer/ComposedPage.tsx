@@ -100,8 +100,13 @@ export const ComposedPage: React.FC<ComposedPageProps> = ({
                     props={entry.props}
                     headline={spec.headline}
                     excludeItemIds={exclusions[index]}
-                    topPick={spec.top_pick}
-                    topPickReason={spec.top_pick_reason}
+                    // Only the hero is offered the pick. The validator
+                    // already refuses one authored anywhere else, but the pick
+                    // can still fall past the hero's three rows — and passing
+                    // it on would let the next section down label it, which is
+                    // the page-level behaviour this replaced.
+                    topPick={entry.size === 'hero' ? spec.top_pick : null}
+                    topPickReason={entry.size === 'hero' ? spec.top_pick_reason : null}
                     visitorMetro={spec.visitor_metro}
                 />
             )

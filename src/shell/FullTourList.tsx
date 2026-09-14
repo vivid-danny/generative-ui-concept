@@ -16,28 +16,35 @@ import styles from './FullTourList.module.scss'
  * regardless of what the orchestrator decided, and anything the orchestrator
  * places it can also leave out. Putting the affordance here means no composition
  * can remove it, and the answer to "can they still see all the dates?" is a
- * control that is simply always present rather than a validator rule that
+ * section that is simply always present rather than a validator rule that
  * patches one back in.
  *
  * It renders the same `production_list` component the orchestrator uses, with
  * every narrowing switched off. Same UI, no second implementation to drift.
+ *
+ * Two things it deliberately does *not* do:
+ *
+ * - **It does not exclude what the composition showed.** Dates repeat between
+ *   here and the sections above, and that is correct: the composed sections
+ *   dedupe against each other because they are one argument split into parts,
+ *   while this is the whole tour. A visitor looking for every date expects the
+ *   ones they just read to be in it.
+ * - **It does not start collapsed.** It used to be a button alone, which left a
+ *   page whose composition narrowed hard — a hero of three dates and nothing
+ *   else — reading as though it had failed to load. Seven dates in date order
+ *   is a floor under how bare the page can get, and the expand control is still
+ *   there for the other forty-five.
  */
+
+/** The resting length. Matches a standard composed section, so it reads as one. */
+const RESTING_ITEMS = 7
+
 export const FullTourList: React.FC<{ market: Market; context: Context }> = ({
     market,
     context,
 }) => {
     const [expanded, setExpanded] = useState(false)
     const total = market.productions.length
-
-    if (!expanded) {
-        return (
-            <button type="button" className={styles.trigger} onClick={() => setExpanded(true)}>
-                <Typography variant="smallMedium" component="span">
-                    See all {total} tour dates
-                </Typography>
-            </button>
-        )
-    }
 
     return (
         <div className={styles.expanded}>
@@ -47,24 +54,37 @@ export const FullTourList: React.FC<{ market: Market; context: Context }> = ({
                 size="standard"
                 headline={null}
                 props={{
-                    // Everything off: no filter, nothing grouped, nothing capped,
-                    // and no top pick — this list is the escape hatch from the
+                    // Everything off: no filter, nothing grouped, and no top
+                    // pick — this list is the escape hatch from the
                     // composition, so it does not carry the composition's
                     // recommendation. `topPick` is simply not passed.
-                    // `max_items` exceeds the schema's ceiling of 20 on purpose —
-                    // that cap exists to stop the orchestrator producing a wall of
-                    // dates, and a wall of dates is precisely what was asked for.
+                    //
+                    // `heading` stays null so the module's own header prints —
+                    // "<performer> Tour Dates". Naming it here would make the
+                    // shell's section sound like another composed argument,
+                    // which is the one thing it is not.
+                    //
+                    // Expanded, `max_items` exceeds the schema's ceiling of 20
+                    // on purpose: that cap exists to stop the orchestrator
+                    // producing a wall of dates, and a wall of dates is
+                    // precisely what was asked for here.
                     sort: 'date',
                     group_by_geo: false,
-                    max_items: total,
-                    heading: 'All tour dates',
+                    max_items: expanded ? total : RESTING_ITEMS,
+                    heading: null,
                 }}
             />
-            <button type="button" className={styles.trigger} onClick={() => setExpanded(false)}>
-                <Typography variant="smallMedium" component="span">
-                    Collapse
-                </Typography>
-            </button>
+            {total > RESTING_ITEMS && (
+                <button
+                    type="button"
+                    className={styles.trigger}
+                    onClick={() => setExpanded((open) => !open)}
+                >
+                    <Typography variant="smallMedium" component="span">
+                        {expanded ? 'Collapse' : `See all ${total} tour dates`}
+                    </Typography>
+                </button>
+            )}
         </div>
     )
 }

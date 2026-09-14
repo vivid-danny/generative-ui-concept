@@ -27,14 +27,26 @@ export const LayoutSpecSchema = z.object({
     /**
      * The one date the composition recommends, by production id.
      *
-     * Page-level rather than a `production_list` prop, because "one
-     * recommendation per page" is a property of the page. Putting it here makes
-     * that true by construction instead of something the validator has to strip
-     * back to one, and it removes any question of which section owns the pick
-     * when several are placed.
+     * **The model no longer writes this field.** It names the pick in the hero
+     * section's own props, and the validator lifts it here — so a spec arriving
+     * with a page-level `top_pick` has it dropped with a note.
      *
-     * Checked against the snapshot by the validator, and honoured by whichever
-     * section actually shows that date — see `selectProductions`.
+     * It was page-level, on the reasoning that "one recommendation per page" is
+     * a property of the page and belonged where it could not be contradicted.
+     * True, but it made the pick independent of the band that recommends: the
+     * model named the fourth highest-demand date while describing it as the
+     * strongest of the top three, and nothing in the contract could disagree,
+     * because a page-level pick has no section to be wrong about. A
+     * recommendation that is not one of the three dates the page is
+     * recommending is not a recommendation.
+     *
+     * One per page still holds without being enforced: `maxHero` is 1, and the
+     * validator demotes a second hero before it reads the pick, so only one
+     * section can carry one.
+     *
+     * Kept here as the *resolved* shape rather than the authored one, so
+     * everything downstream — the renderer, the demo panel — still reads one
+     * pick off the page instead of hunting for the section that owns it.
      */
     top_pick: z.string().nullable().default(null),
     /**

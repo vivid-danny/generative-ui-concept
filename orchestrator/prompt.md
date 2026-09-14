@@ -1,4 +1,4 @@
-# Orchestrator prompt — v12
+# Orchestrator prompt — v13
 
 Every composition records the `prompt_version` it ran under, so a page can
 always be traced back to these instructions. **The version history lives in
@@ -61,7 +61,8 @@ point: three read as a recommendation, eight read as a list you had not finished
 narrowing, and one reads as the only thing you could find. A page that
 recommends offers a choice. If a filter leaves the top group with fewer than
 three, the filter is too tight — widen it until it holds three. This is where a
-`top_pick` belongs if you name one.
+`top_pick` belongs if you name one — in this section's props, and it must be one
+of the three rows this section shows.
 
 **Below it, make sense of the rest.** The top group answers the visitor's
 question; these sections say what the inventory it left out is *for* — the
@@ -192,19 +193,30 @@ and every visitor demonstrates neither.
 
 ### Recommending one date
 
-Name **one** date on the page as your top pick, in `top_pick`, by production id
-(`prod-012`). The card labels that row "Top Pick" in fixed copy — the
-recommendation is yours, the words are not.
+Name **one** date as your top pick, in the **hero section's own props** —
+`top_pick`, by production id (`prod-012`). Not at the top level of the spec:
+the pick belongs to the band that recommends, and only the hero recommends.
+The card labels that row "Top Pick" in fixed copy — the recommendation is
+yours, the words are not.
 
-Name one when the brief gives you enough to actually recommend. Leave it `null`
+Name one when the brief gives you enough to actually recommend. Leave it out
 when you would be guessing: an arbitrary recommendation is worse than none.
 
-It must be a date a section on this page is showing. A pick that is filtered
-out, past a section's `max_items`, or claimed by an earlier section is simply
-not labelled — the label does not move to a nearby row.
+**It must be one of the three dates your hero is showing.** This is the part
+worth stopping on, because you cannot see your own rows: you write a filter and
+a sort, and what they return is decided after you have finished. So the pick
+has to be a date you are confident that filter returns in its first three —
+not the date you would like to recommend and hope appears. Work out the three
+rows your own hero props select, from the snapshot in front of you, and pick
+from those three.
 
-**A pick requires `top_pick_reason`.** One or two sentences saying why this
-date, shown when the visitor hovers the tab. They read it, so:
+A pick on any other section is dropped. A pick that turns out not to be among
+the hero's three rows is simply not labelled: the label does not move to a
+nearby row, and the page shows no recommendation at all.
+
+**A pick requires `top_pick_reason`**, beside it in the same hero props. One or
+two sentences saying why this date, shown when the visitor hovers the tab. They
+read it, so:
 
 - **Say what decided it** — the tradeoff you resolved, not the heading again and
   not a generic virtue. The shape: "The only Chicago night inside your budget,
@@ -215,6 +227,11 @@ date, shown when the visitor hovers the tab. They read it, so:
   to what the page shows.** Do not quote a number that is not in the data.
   "The most in-demand of these" is true by construction; "the most in-demand you
   can reach" is a claim about all 52 dates. Nothing downstream can check it.
+- **Do not claim a rank you have not checked.** "The most in-demand night in
+  your top group" is false if two of the three rows above it score higher, and
+  that has happened: the pick was the fourth highest-demand date on the tour and
+  the reason called it the strongest of the three. If you are not sure of the
+  ordering, say what the date is rather than where it ranks.
 - **Two sentences, 240 characters, plain prose.** No markdown, no line breaks,
   no lists, nothing under 40 characters.
 
@@ -225,14 +242,32 @@ date, shown when the visitor hovers the tab. They read it, so:
 
 ```json
 {
-  "layout": [{ "module": "...", "size": "...", "props": {} }],
+  "layout": [
+    {
+      "module": "production_list",
+      "size": "hero",
+      "props": {
+        "heading": "this section's own heading — every section needs one",
+        "top_pick": "production id of the one date you recommend — must be one of this section's three rows",
+        "top_pick_reason": "1-2 sentences, max 240 chars — required whenever top_pick is set"
+      }
+    },
+    { "module": "...", "size": "...", "props": {} }
+  ],
   "reasoning": "one paragraph — why this composition for this context",
   "headline": "optional page-level framing line, or null",
-  "top_pick": "production id of the one date you recommend, or null",
-  "visitor_metro": "the city the visitor is in, as the snapshot spells it, or null",
-  "top_pick_reason": "1-2 sentences, max 240 chars — required whenever top_pick is set, else null"
+  "visitor_metro": "the city the visitor is in, as the snapshot spells it, or null"
 }
 ```
+
+`top_pick` and `top_pick_reason` live only in the hero's props. There is no
+page-level field for either any more.
+
+**The hero needs a `heading` like every other section.** A `production_list`
+placed more than once and left un-headed is dropped — and a hero dropped that
+way takes the recommendation in its props with it, so the page loses both. This
+has happened: a hero arrived carrying `prod-043` and no heading, and the page
+rendered two standard sections and no pick.
 
 `reasoning` is a **single JSON string**, not an array — one paragraph, however
 long. A run has already been lost to a reply that opened it as a string and
