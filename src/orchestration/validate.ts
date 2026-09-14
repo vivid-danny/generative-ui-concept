@@ -307,43 +307,6 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
 
     const spec = parsed.data
 
-    // The page's one recommendation, checked against the snapshot. A page-level
-    // field rather than a prop, so "one per page" needs no enforcing — all that
-    // is left to check is that the date exists. Whether it renders is a
-    // different question, answered per section by `selectProductions`.
-    let topPick = spec.top_pick
-    if (topPick !== null && !market.productions.some((production) => production.id === topPick)) {
-        notes.push({
-            level: 'repaired',
-            reason: `dropped \`top_pick\` (\`${topPick}\` is not a date in this snapshot)`,
-        })
-        topPick = null
-    }
-
-    // The pick and its reason are checked as a pair, because neither field can
-    // see the other on its own.
-    //
-    // A reason with no pick is orphaned prose and goes. A pick with no usable
-    // reason keeps the pick: the recommendation is the valuable half and it is
-    // still sound, so losing it over missing prose would throw away the model's
-    // actual judgment. The chip renders with no tooltip, and the note is what
-    // says so — a required output that quietly went missing is the kind of thing
-    // that has to be visible in the panel rather than inferred from a card that
-    // does nothing on hover.
-    let topPickReason = spec.top_pick_reason
-    if (topPickReason !== null && topPick === null) {
-        notes.push({
-            level: 'repaired',
-            reason: 'dropped `top_pick_reason` (there is no `top_pick` for it to explain)',
-        })
-        topPickReason = null
-    } else if (topPick !== null && topPickReason === null && reason.note === null) {
-        notes.push({
-            level: 'repaired',
-            reason: `\`top_pick\` (\`${topPick}\`) arrived without a \`top_pick_reason\`; the chip renders without a tooltip`,
-        })
-    }
-
     // The visitor's city, checked against the snapshot for the same reason the
     // pick is: it is a claim about the data, and this one gets *printed*. An
     // invented city groups nothing — every date falls into "away" — and the
@@ -500,6 +463,20 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
                 module: entry.module,
                 reason: 'placed more than once without a `heading` — each section needs its own',
             })
+
+            // Said separately, because losing the recommendation is the more
+            // expensive half and the heading note does not imply it. A hero
+            // arrived with a pick in its props and no heading, was dropped by
+            // the rule above, and the page showed no hero and no
+            // recommendation while reporting only a missing heading.
+            const orphaned = (entry.props as { top_pick?: unknown }).top_pick
+            if (typeof orphaned === 'string' && orphaned.trim() !== '') {
+                notes.push({
+                    level: 'dropped',
+                    module: entry.module,
+                    reason: `\`top_pick\` (\`${orphaned}\`) went with it — the section holding the recommendation was dropped`,
+                })
+            }
         }
     }
 
@@ -535,6 +512,132 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
             reason: `only ${kept.length} module(s) survived validation, below the minimum of ${STRUCTURAL_RULES.minModules}`,
         })
         return { spec: FALLBACK_LAYOUT, notes, usedFallback: true }
+    }
+
+    // The page's one recommendation, taken off the hero section rather than off
+    // the spec.
+    //
+    // It was page-level, and that let the model name a date its own hero filter
+    // would never return: it recommended the fourth highest-demand date while
+    // describing it as the strongest of the top three, because it writes the
+    // filter and the prose in the same breath and never sees the rows. Authored
+    // on the hero, a pick that is not one of the three dates the page
+    // recommends has nowhere to live.
+    //
+    // "One pick per page" survives the move without being enforced here.
+    // `maxHero` is 1 and a second hero is demoted above, so by this point only
+    // one entry can be carrying a pick — which is why this reads `kept` rather
+    // than `spec.layout`.
+    let topPick: string | null = null
+    let topPickReason: string | null = null
+    let reasonDropped = false
+
+    for (const entry of kept) {
+        const props = entry.props as { top_pick?: unknown; top_pick_reason?: unknown }
+        const candidate = props.top_pick
+        const candidateReason = props.top_pick_reason
+
+        // Lifted off props either way. Downstream these are page fields, and
+        // leaving them behind would hand `selectProductions` props it does not
+        // know and the demo panel two places to look.
+        delete props.top_pick
+        delete props.top_pick_reason
+
+        if (typeof candidate !== 'string' || candidate.trim() === '') {
+            // Kept rather than discarded so the pair check below can say the
+            // reason has nothing to explain. Dropping it here would lose the
+            // only signal that the model wrote half the recommendation.
+            if (typeof candidateReason === 'string') topPickReason = candidateReason
+            continue
+        }
+
+        if (entry.size !== 'hero') {
+            notes.push({
+                level: 'dropped',
+                module: entry.module,
+                reason: `dropped \`top_pick\` (\`${candidate}\`) from a \`${entry.size}\` section; the recommendation belongs to the hero`,
+            })
+            continue
+        }
+
+        topPick = candidate.trim()
+        topPickReason = typeof candidateReason === 'string' ? candidateReason : null
+    }
+
+    // A page-level pick is the *resolved* shape, not a rejected one, so falling
+    // back to it is what keeps this function idempotent.
+    //
+    // `replay` in `live.ts` re-validates every cached composition on the way
+    // out, and its contract is that a spec which already passed comes back
+    // unchanged. Lifting the pick out of the hero breaks that on the second
+    // pass: the stored spec carries the pick at the top level and its hero
+    // props are already stripped, so a rule that dropped a page-level pick
+    // deleted the recommendation off every composition ever paid for. It did,
+    // for two of them.
+    //
+    // The consequence of being lenient here is that a fresh reply written
+    // against the old shape is accepted silently rather than flagged. That is
+    // the right way round: the system prompt is what steers authoring, and the
+    // renderer only ever offers the pick to the hero, so a page-level pick
+    // still cannot be labelled anywhere else.
+    if (topPick === null && spec.top_pick !== null) {
+        topPick = spec.top_pick
+        topPickReason = spec.top_pick_reason
+    }
+
+    if (topPick !== null && !market.productions.some((production) => production.id === topPick)) {
+        notes.push({
+            level: 'repaired',
+            reason: `dropped \`top_pick\` (\`${topPick}\` is not a date in this snapshot)`,
+        })
+        topPick = null
+    }
+
+    // The reason arrives inside an open `props` record, so nothing has checked
+    // it against its bounds yet — that used to happen at parse time, when it
+    // was a spec field.
+    if (topPickReason !== null) {
+        const field = LayoutSpecSchema.shape.top_pick_reason.safeParse(topPickReason)
+        if (field.success) {
+            topPickReason = field.data
+        } else {
+            notes.push({
+                level: 'repaired',
+                reason: `dropped \`top_pick_reason\` (${field.error.issues
+                    .map((issue) => issue.message)
+                    .join('; ')})`,
+            })
+            topPickReason = null
+            reasonDropped = true
+        }
+    }
+
+    // The pick and its reason are checked as a pair, because neither field can
+    // see the other on its own.
+    //
+    // A reason with no pick is orphaned prose and goes. A pick with no usable
+    // reason keeps the pick: the recommendation is the valuable half and it is
+    // still sound, so losing it over missing prose would throw away the model's
+    // actual judgment. The chip renders with no tooltip, and the note is what
+    // says so — a required output that quietly went missing is the kind of thing
+    // that has to be visible in the panel rather than inferred from a card that
+    // does nothing on hover.
+    if (topPickReason !== null && topPick === null) {
+        notes.push({
+            level: 'repaired',
+            reason: 'dropped `top_pick_reason` (there is no `top_pick` for it to explain)',
+        })
+        topPickReason = null
+    } else if (
+        topPick !== null &&
+        topPickReason === null &&
+        !reasonDropped &&
+        reason.note === null
+    ) {
+        notes.push({
+            level: 'repaired',
+            reason: `\`top_pick\` (\`${topPick}\`) arrived without a \`top_pick_reason\`; the chip renders without a tooltip`,
+        })
     }
 
     return {

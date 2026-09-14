@@ -20,6 +20,18 @@ const validSpec = {
     headline: null,
 }
 
+/**
+ * A spec whose hero carries the pick — where the model now writes it.
+ *
+ * `top_pick` used to be a spec-level field, so these tests used to spread it
+ * onto `validSpec`. It is authored on the hero and lifted by the validator now,
+ * which is the behaviour being covered.
+ */
+const withHeroPick = (props: Record<string, unknown>) => ({
+    ...validSpec,
+    layout: [{ module: 'production_list', size: 'hero', props: { sort: 'demand', ...props } }],
+})
+
 /** A reason of a realistic shape: two short sentences, inside the bounds. */
 const REASON =
     'The only Chicago date inside your budget, and the most in-demand night you can reach without flying.'
@@ -223,7 +235,7 @@ describe('validateLayout', () => {
     })
 
     it('drops a top pick that is not a date in this snapshot', () => {
-        const result = validateLayout({ ...validSpec, top_pick: 'prod-999' }, market)
+        const result = validateLayout(withHeroPick({ top_pick: 'prod-999' }), market)
 
         expect(result.spec.top_pick).toBeNull()
         expect(result.notes[0].reason).toContain('not a date in this snapshot')
@@ -232,13 +244,125 @@ describe('validateLayout', () => {
     it('keeps a top pick that is real', () => {
         const real = market.productions[3].id
         const result = validateLayout(
-            { ...validSpec, top_pick: real, top_pick_reason: REASON },
+            withHeroPick({ top_pick: real, top_pick_reason: REASON }),
             market,
         )
 
         expect(result.spec.top_pick).toBe(real)
         expect(result.spec.top_pick_reason).toBe(REASON)
         expect(result.notes).toEqual([])
+    })
+
+    describe('the pick belongs to the hero', () => {
+        it('lifts a pick authored on the hero onto the page', () => {
+            const real = market.productions[3].id
+            const result = validateLayout(
+                withHeroPick({ top_pick: real, top_pick_reason: REASON }),
+                market,
+            )
+
+            expect(result.spec.top_pick).toBe(real)
+            // Lifted off props, not left in both places for the renderer and
+            // the demo panel to disagree over.
+            expect(result.spec.layout[0].props.top_pick).toBeUndefined()
+            expect(result.spec.layout[0].props.top_pick_reason).toBeUndefined()
+        })
+
+        it('drops a pick authored on a section that is not the hero', () => {
+            const real = market.productions[3].id
+            const result = validateLayout(
+                {
+                    ...validSpec,
+                    layout: [
+                        { module: 'production_list', size: 'hero', props: { sort: 'demand', heading: 'Top three' } },
+                        {
+                            module: 'production_list',
+                            size: 'standard',
+                            props: { sort: 'date', heading: 'The rest', top_pick: real },
+                        },
+                    ],
+                },
+                market,
+            )
+
+            expect(result.spec.top_pick).toBeNull()
+            expect(result.notes.some((note) => note.reason.includes('belongs to the hero'))).toBe(
+                true,
+            )
+        })
+
+        it('survives a second pass, because `replay` re-validates every cached spec', () => {
+            // The regression this pins: validation lifts the pick out of the
+            // hero's props onto the spec, so a stored composition comes back
+            // with the pick page-level and the hero props already stripped.
+            // `replay` in `live.ts` runs it through again on every cache read —
+            // and a rule that rejected a page-level pick deleted the
+            // recommendation off every composition already paid for.
+            const real = market.productions[3].id
+            const once = validateLayout(
+                withHeroPick({ top_pick: real, top_pick_reason: REASON }),
+                market,
+            )
+            const twice = validateLayout(once.spec, market)
+
+            expect(twice.spec.top_pick).toBe(real)
+            expect(twice.spec.top_pick_reason).toBe(REASON)
+            expect(twice.notes).toEqual([])
+        })
+
+        it('says so when the section holding the pick is dropped', () => {
+            // A hero with a pick and no heading is dropped by the repeated-module
+            // rule, and the recommendation goes with it. Reported separately,
+            // because a note about a missing heading does not imply a lost pick.
+            const real = market.productions[3].id
+            const result = validateLayout(
+                {
+                    ...validSpec,
+                    layout: [
+                        {
+                            module: 'production_list',
+                            size: 'hero',
+                            props: { sort: 'demand', top_pick: real },
+                        },
+                        {
+                            module: 'production_list',
+                            size: 'standard',
+                            props: { sort: 'date', heading: 'The rest' },
+                        },
+                    ],
+                },
+                market,
+            )
+
+            expect(result.spec.top_pick).toBeNull()
+            expect(result.notes.some((note) => note.reason.includes('went with it'))).toBe(true)
+        })
+
+        it('drops a pick on a second hero, which is demoted before the pick is read', () => {
+            // `maxHero` is 1, so the second hero becomes a standard section —
+            // and a standard section cannot carry the recommendation. This is
+            // what makes "one pick per page" hold without being enforced.
+            const real = market.productions[3].id
+            const result = validateLayout(
+                {
+                    ...validSpec,
+                    layout: [
+                        { module: 'production_list', size: 'hero', props: { sort: 'demand', heading: 'Top three' } },
+                        {
+                            module: 'production_list',
+                            size: 'hero',
+                            props: { sort: 'date', heading: 'Also hero', top_pick: real },
+                        },
+                    ],
+                },
+                market,
+            )
+
+            expect(result.spec.top_pick).toBeNull()
+            expect(result.notes.some((note) => note.reason.includes('belongs to the hero'))).toBe(
+                true,
+            )
+        })
     })
 
     describe('the pick and its reason are checked as a pair', () => {
@@ -248,7 +372,7 @@ describe('validateLayout', () => {
             // a required output that went missing has to be visible in the
             // panel rather than inferred from a chip that does nothing.
             const real = market.productions[3].id
-            const result = validateLayout({ ...validSpec, top_pick: real }, market)
+            const result = validateLayout(withHeroPick({ top_pick: real }), market)
 
             expect(result.spec.top_pick).toBe(real)
             expect(result.spec.top_pick_reason).toBeNull()
@@ -256,7 +380,7 @@ describe('validateLayout', () => {
         })
 
         it('drops a reason that has no pick to explain', () => {
-            const result = validateLayout({ ...validSpec, top_pick_reason: REASON }, market)
+            const result = validateLayout(withHeroPick({ top_pick_reason: REASON }), market)
 
             expect(result.spec.top_pick_reason).toBeNull()
             expect(result.notes[0].reason).toContain('no `top_pick`')
@@ -267,7 +391,7 @@ describe('validateLayout', () => {
             // composition that was paid for because its prose was 241 chars.
             const real = market.productions[3].id
             const result = validateLayout(
-                { ...validSpec, top_pick: real, top_pick_reason: 'x'.repeat(241) },
+                withHeroPick({ top_pick: real, top_pick_reason: 'x'.repeat(241) }),
                 market,
             )
 
@@ -281,7 +405,7 @@ describe('validateLayout', () => {
         it('drops a reason too short to explain anything', () => {
             const real = market.productions[3].id
             const result = validateLayout(
-                { ...validSpec, top_pick: real, top_pick_reason: 'Best value.' },
+                withHeroPick({ top_pick: real, top_pick_reason: 'Best value.' }),
                 market,
             )
 
@@ -294,11 +418,11 @@ describe('validateLayout', () => {
         it('drops a reason that arrived as markup rather than prose', () => {
             const real = market.productions[3].id
             const result = validateLayout(
-                {
-                    ...validSpec,
+                withHeroPick({
                     top_pick: real,
-                    top_pick_reason: '**Cheapest** Chicago night on the tour, and the room will be full for it.',
-                },
+                    top_pick_reason:
+                        '**Cheapest** Chicago night on the tour, and the room will be full for it.',
+                }),
                 market,
             )
 

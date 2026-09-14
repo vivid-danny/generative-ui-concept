@@ -16,6 +16,20 @@ Keep appending here, newest first, when the prompt version changes.
 
 ---
 
+**v13 (2026-09-14):** `top_pick` moved out of the spec and into the hero
+section's props. The Texas custom brief recommended prod-026 (Las Vegas) and
+wrote "the most in-demand night in your top group" about it — while the hero its
+own filter selected was prod-043, prod-028 and prod-044 at demand 0.99, 0.98 and
+0.97 against Vegas at 0.96. The pick rendered in the third section instead, and
+the reasoning described a hero of "Madison Square Garden, LA's Crypto.com run,
+and Las Vegas" that the page never showed: two of those three were right, the
+third was a second Madison Square Garden night. The cause is structural rather
+than a lapse — the model writes the filter and the prose in one pass and never
+sees the rows, so a page-level pick was a claim with no section to be wrong
+about. Authored on the hero, a pick outside the recommendation band has nowhere
+to live, and "one per page" still holds for free because `maxHero` is 1 and a
+second hero is demoted before the pick is read.
+
 **v12 (2026-09-14):** `visitor_metro` — the composition states where the visitor
 is, and the renderer uses it. `selectProductions` grouped dates against
 `context.geo.metro` and the section header printed it, so the geo-IP guess was

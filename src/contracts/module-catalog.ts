@@ -181,6 +181,19 @@ export const MODULE_CATALOG = {
                  * movement", not a label a few dates happen to earn.
                  */
                 card_signal: z.enum(CARD_SIGNAL_IDS).nullable().default(null),
+                /**
+                 * The page's one recommendation, and why — accepted here
+                 * because this is where the model writes them.
+                 *
+                 * Only meaningful on a `hero` section: the validator lifts the
+                 * pair onto the spec and drops a pick authored anywhere else.
+                 * Declared loosely on purpose — the id is checked against the
+                 * snapshot and the reason against its length and shape bounds
+                 * during that lift, and rejecting either here would strip a
+                 * recoverable pick before anything could report why.
+                 */
+                top_pick: z.string().nullable().optional(),
+                top_pick_reason: z.string().nullable().optional(),
             })
             .strict(),
         propsHint: [
@@ -210,6 +223,12 @@ export const MODULE_CATALOG = {
             '  for more is not an error, it is just trimmed — but three dates read as a',
             '  recommendation and eight read as a list, so choose the count you mean.',
             'heading: string | null  (default null = use the built-in headings)',
+            'top_pick: production id | null       hero section only',
+            'top_pick_reason: string | null       required whenever top_pick is set',
+            '  The one date this page recommends, named on the section that recommends it.',
+            '  It must be one of the three rows this hero actually shows — you write the',
+            '  filter, so work out what it returns before you name a pick. A pick on any',
+            '  other section is dropped.',
             'card_signal: null | one of                    (default null)',
             '    "price_trend"            "↓ 4% this week" — the same date, last week',
             '    "price_gap_to_cheapest"  "$18 over cheapest" — the other dates here',
