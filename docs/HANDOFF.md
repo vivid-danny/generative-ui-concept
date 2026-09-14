@@ -602,6 +602,42 @@ they mean something. `specKeyFor` survived the deletion in
 
 ## Parked ideas
 
+**A reason on the Top Pick chip, written by the model.** Danny's idea: the
+orchestrator emits one or two sentences saying *why* this date is the pick, and
+hovering the "Top Pick" tab reveals it.
+
+Worth noting what it changes, because it crosses a line the prototype has held
+so far. `top_pick`'s copy is fixed and ours precisely because the recommendation
+is the model's and the words are not — the *why* has lived in `reasoning`, which
+is a drawer artefact only Danny reads. This would put model-written prose in
+front of a visitor for the first time. That is not obviously wrong: a
+recommendation nobody can interrogate is weaker than one that says its reason,
+and the existing `reasoning` field shows the model can already articulate it
+well ("the highest-energy, highest-sellout-risk date she can actually get to
+inside her range" is the v8 run, unedited).
+
+**Both questions are settled.** It is a **framing of facts already on the
+card** — not a new claim — which keeps it on the free-text side of
+docs/COMPOSABILITY.md's rule rather than needing the model's numbers verified.
+And **hover is fine for now**, specifically because a tooltip adds nothing to
+the page's resting state. That is the whole reason it is acceptable: see the
+overload note below.
+
+Adjacent to the parked question of whether the page should ever admit it
+composed itself, but narrower and more concrete: this explains one decision
+rather than announcing the mechanism.
+
+**Watch the density.** Danny's read as of 2026-09-11 is that the page is
+*approaching* information overload — not that it is there. The v8 run is what
+prompted it: fifteen rows across three bands, each carrying a date, a venue, a
+city, a get-in price, up to two badges and a `card_signal`, above a rail card of
+two metrics and three facts, above the full tour.
+
+Not a constraint, and not a reason to turn down the next surface. It is a thing
+to keep an eye on, and it is the reason a tooltip is an easy yes here: hidden by
+default costs the resting state nothing.
+
+
 **Composed filters — the model composing controls, not content.** Instead of an
 open-ended date picker, the orchestrator emits two or three one-tap filters
 relevant to the brief: "Fri & Sat", "Under $80", "Within a drive". Danny's idea,
