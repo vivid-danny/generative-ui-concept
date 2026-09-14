@@ -8,7 +8,11 @@ import styles from './TrustBanner.module.scss'
 /**
  * "Experience it live." — Figma Trust Banner A (17055:179006). The rail's
  * lower block: a headline, a guarantee subtitle, and three trust rows. Copy is
- * verbatim from the design (static brand claims).
+ * verbatim from the design (static brand claims), with one correction: the
+ * Figma reads "100 million sold" here while the navbar reads "over 190 million
+ * sold", and the two sit on the same page. Whichever the design intended, a
+ * visitor who reads both learns the numbers are decorative. 190 to match the
+ * navbar — see `Navbar.tsx`.
  */
 
 const ROWS = [
@@ -24,7 +28,7 @@ export const TrustBanner: React.FC = () => (
                 Experience it live.
             </Typography>
             <Typography variant="small" component="p" className={styles.subtitle}>
-                100 million sold, 100% Buyer Guarantee.
+                190 million sold, 100% Buyer Guarantee.
             </Typography>
         </div>
 
