@@ -9,21 +9,33 @@ guardrails. This document says where the code actually is and what to do next.
 
 ---
 
-## Status: slice 5 — the model recommends, and the page has a shape
+## Status: slice 6 — the recommendation explains itself, and calls are deliberate
 
-Prompt is at **v7**: the lower bands of the page shape now state their purpose.
-
-The page is composed at request time by `claude-sonnet-5`. 157 tests pass,
-typecheck is clean, production build succeeds. Committed on
-`vivid-danny/genui-concept-build`; nothing is pushed.
+System prompt is at **v11**. The page is composed at request time by
+`claude-sonnet-5`. 172 tests pass, typecheck is clean, production build
+succeeds. Committed on `vivid-danny/genui-concept-build`; nothing is pushed.
 
 ```bash
 npm install
-npm run dev          # http://localhost:3000
-npm test             # 157 tests, none of which call the model
+npm run dev          # http://localhost:3000 (Conductor already runs one on 3100)
+npm test             # 172 tests, none of which call the model
 npm run typecheck
 npm run build
 ```
+
+Two things landed on 2026-09-14 that change how the prototype is *operated*
+rather than what it composes, and both came out of spending money by accident:
+
+- **Rendering a page can no longer call the model.** The page reads the cache and
+  stops; a call requires a POST to `/api/compose`, which is what the drawer's Run
+  button does. See the landmine below — a GET is replayable, and five calls once
+  went through from two deliberate presses.
+- **Every call attempt is recorded** in `.cache/calls.log`, failures included,
+  with a running total in the drawer. A timeout leaves no composition to inspect,
+  which made it the easiest spending to miss entirely.
+
+And one that changes the page: **the top pick now says why, on hover.**
+`top_pick_reason` is the first model-written prose a visitor reads.
 
 ### The three modes
 
@@ -32,17 +44,23 @@ npm run build
 | mode | what the page gets | cost |
 | --- | --- | --- |
 | `base` (default) | No visitor context. The baseline every visitor gets. | free, no call |
-| `eval` | A scripted brief putting several levers in tension. | one call, then cached |
-| `custom` | A brief typed in the drawer. | one call per brief, then cached |
+| `eval` | A scripted brief putting several levers in tension. | one call **when you press Run**, then cached |
+| `custom` | A brief typed in the drawer. | one call per brief, on press, then cached |
 
 Base keeps the visitor's city — today's real page geolocates, and framing the
 baseline as context-free would argue against a page that does not exist. What it
 does not do is compose.
 
-Compositions are cached on disk under `.cache/` (gitignored), keyed on the brief,
-the prompt version and the snapshot date. Reloading is free; editing
-`orchestrator/prompt.md` invalidates everything; `?fresh=1` forces a new call. A
-replayed composition keeps its original cost in the panel, so it never looks free.
+Compositions are cached on disk under `.cache/` (gitignored), keyed on **the
+exact message sent plus the full text of the system prompt** — so the brief, the
+context, the market snapshot, the module catalog and every `propsHint` are all
+covered by one value. Reloading is free. Editing `orchestrator/prompt.md`,
+`src/contracts/module-catalog.ts` or a fixture invalidates everything, because
+all three change what the model is sent. A replayed composition keeps its
+original cost in the panel, so it never looks free.
+
+`?fresh=1` is **gone**. A URL that spends money was the defect, not the fix —
+the re-run intent travels in the POST body now.
 
 ### What the orchestrator can do now
 
@@ -57,11 +75,17 @@ replayed composition keeps its original cost in the panel, so it never looks fre
   than words over an unfiltered list.
 - Sort by `date`, `price`, `value` or `demand`.
 - **Name one date on the page as its top pick**, by production id, in the spec's
-  page-level `top_pick`. That card gets a pink outline and a "Top Pick"
-  tab on its top border. Fixed copy — the recommendation is the model's, the
-  words are ours, and the *why* stays in `reasoning`. Page-level rather than a
-  section prop, so "one per page" is true by construction rather than repaired
-  back to one.
+  page-level `top_pick`. That card gets a pink outline and a "Top Pick" tab on
+  its top border. Page-level rather than a section prop, so "one per page" is
+  true by construction rather than repaired back to one.
+- **Say why that date is the pick**, in `top_pick_reason` — one or two sentences
+  revealed on hovering the tab. **The first model-written prose a visitor
+  reads.** Every other string it writes frames; this one asserts, so the bounds
+  are hard: 40–240 characters, single line, plain prose, addressed to the visitor
+  as "you", and every superlative scoped to what the page shows. Required
+  whenever `top_pick` is set — a pick arriving without one keeps its chip and
+  loses its tooltip, with a validator note, because the recommendation is the
+  valuable half and is sound without the prose.
 - Choose **which badges a section may surface**, from five DS badges. An
   allowlist, not an instruction: a row shows one only if the section allowed it
   *and* the date qualifies, so rows share a vocabulary without being identical.
@@ -87,18 +111,23 @@ belong in props.
 
 ### What it costs
 
-**$0.05–$0.23 a call, 30–178s.** 19 live calls across three days total **$2.42**;
-2026-09-10 alone was **$2.05 over 16 calls**, and the v7 run on 2026-09-11 was
-$0.184 in 107s on 17,796 input tokens. Input tokens have crept
-from ~15,000 to ~17,700 as the catalog grew a second module, a `region` line per
-entry, three `card_signal` values and the page-shape section.
+**$0.12–$0.22 a call, 40–180s**, on roughly 18,000 input tokens. Since the call
+ledger started (2026-09-14) every attempt is in `.cache/calls.log`; before that,
+spending is only reconstructable from each cached composition's provenance.
 
-**More calls happen than you intend, and each one pays.** Three separate v6
-calls fired inside seven minutes for what was meant to be one eval. The cache is
-written *after* a call completes, so two page loads arriving before the first
-finishes both pay — and Next's dev server invokes `getServerSideProps` twice on
-a cold compile. A browser refresh landing at the same moment as a scripted load
-is enough. If a run matters, load the page once and wait.
+**The system prompt's length is the one lever with evidence behind it.** The v10
+run at 2,733 words timed out at 180s. Trimming the same version to 1,999 words —
+moving the changelog to `docs/PROMPT-HISTORY.md` and cutting 161 words of
+rationale — came back in **43s at $0.122**, against 153s and $0.221 for v9.
+Input tokens moved only 6%, so duration fell further than tokens explain and
+this is one data point, not a law. The honest claim is narrow: the two slowest
+runs were the two longest prompts.
+
+**A timeout still bills and leaves nothing.** `TIMEOUT_MS` is 180s, and it
+firing is the signal that the prompt or catalog has grown — do not raise it. The
+ledger records the attempt with a null cost, because a killed call never returns
+the envelope carrying its price, so the drawer's total *understates* real
+spending whenever there has been a timeout.
 
 **Variance is as large as most effects you would try to measure.** A single run
 cannot tell you what a prompt sentence costs. If that question matters, it needs
@@ -142,8 +171,17 @@ rule the model can reason its way around is not a rule:
   column is a wrong page, not a judgment about a visitor. Same file
   (`maxPerSideRegion`).
 - **A stat with nothing behind it is dropped, not guessed at.** Naming a stat is
-  a request; `resolveSignals` drops what the snapshot cannot support, and a card
-  whose stats all drop renders nothing.
+  a request; `resolveSignals` drops what the snapshot cannot support.
+- **The rail card always carries a demand reading and a price reading.** Two
+  metric slots, two required categories, so the cap can never drop one — asking
+  for two price metrics costs the second, not the demand reading. Which of each,
+  and which leads, stays the model's call. Enforced in `resolveSignals` rather
+  than the validator so it holds on every path into the card, including the base
+  layout the validator never sees. A support card that never says what a ticket
+  costs is not support.
+- **Only a POST can call the model.** Rendering a page reads the cache and stops
+  (`readComposition`); `pages/index.tsx` cannot reach the bridge at all, and a
+  test asserts that negative.
 
 `docs/COMPOSABILITY.md` has the test for deciding where a new rule belongs: if
 the page would be *wrong* when the rule is broken, enforce it in code; if it is a
@@ -176,16 +214,41 @@ after being cut from slice 1, and the developer panel became a left drawer.
 | Area | Files | Notes |
 | --- | --- | --- |
 | Contracts | `src/contracts/` | The four Zod schemas: context, market, module catalog, layout spec. Frozen apart from two additive amendments — see below. |
-| Orchestration | `src/orchestration/` | The seam, `PrecomputedProvider`, **`LiveProvider` + `bridge.ts`** (spawns the Claude Code CLI), validator, fallback, 3 specs, `derive.ts` |
-| Modules | `src/modules/` | `event_header` (chrome) and `production_list` implemented; 7 more specified. Every entry carries a `propsHint` the prompt shows the model |
+| Orchestration | `src/orchestration/` | The seam, `BaseProvider`, **`LiveProvider` + `bridge.ts`** (spawns the Claude Code CLI), `cache.ts`, `ledger.ts`, `validate.ts`, `derive.ts`. `readComposition` is the page's only path in — it cannot call |
+| The call gate | `pages/api/compose.ts` | **The only thing in the app that can spend money.** POST only, one in-flight call per cache key, every attempt written to the ledger |
+| Modules | `src/modules/` | `event_header` (chrome), `production_list` and `market_signals` implemented; 6 more specified. Every entry carries a `propsHint` the prompt shows the model |
 | Renderer | `src/renderer/ComposedPage.tsx` | Spec → components, keyed by module id |
 | Shell | `src/shell/` | Navbar, PageShell grid (header / main / rail / SEO slots), Breadcrumbs, PerformerTabs, PerformerFilters, PerformerRail, TrustBanner, SeoContent, Footer, Logo |
 | Design | `src/design/` | Athena tokens copied verbatim, Figma type scale as data, MUI theme, grid constants |
 | Design system | `src/design-system/` | `box`, `typography`, `chip` ported from athena (i18n stripped); local `icons` set (microphone, user, calendar, ticket, shield, heart, rewards) |
-| Fixtures | `src/fixtures/` | Olivia Rodrigo ~52-date tour + 3 Leah contexts. **Read `src/fixtures/README.md`** — it marks which fields are real vs fabricated, and the authoring invariants the tests pin |
-| Prompt | `orchestrator/prompt.md` | **v3.** Read at call time; provenance records the version that ran |
-| Evals | `orchestrator/eval/cases.test.ts` | Property tests, incl. the anti-convergence check |
-| Demo chrome | `src/demo/` | `DemoBar` drawer, context variants, and `summarize.ts` — "what it composed", shared with `/diff` so the two cannot drift |
+| Fixtures | `src/fixtures/` | Olivia Rodrigo 52-date tour, the base context, and `eval-scenarios.ts` (the scripted brief). **Read `src/fixtures/README.md`** — it marks which fields are real vs fabricated, and the authoring invariants the tests pin |
+| System prompt | `orchestrator/prompt.md` | **v11**, 1,999 words. Read at call time; provenance records the version that ran. History in `docs/PROMPT-HISTORY.md` — kept out of the file because the bridge passes it whole |
+| Evals | `orchestrator/eval/README.md` | What the deleted spec-library evals owed back, at the live level. The tests themselves are retired — see below |
+| Demo chrome | `src/demo/` | `DemoBar` drawer (modes, the Run button, elapsed counter, spend total), `modes.ts`, and `summarize.ts` — "what it composed" |
+
+### A fresh clone runs — verified 2026-09-14
+
+Cloned to a temp directory and run end to end: `npm ci`, typecheck, **172 tests,
+`next build`**, dev server ready in 403ms, `/?mode=base` and `/harness` render
+with fonts and logos served from `/public`. No absolute paths in shipped code, no
+required env vars, and `.cache/` is created on demand.
+
+`/?mode=eval` on a cold clone returns in **93ms and fires no call** — it serves
+the baseline with a Run button, which is the gate working. A cloner needs Node
+24, the `claude` CLI signed in under **their own** subscription, and one press.
+
+**The planning material stays out of the repo, on purpose, and is going away
+entirely.** The source plan, the slice staging and the working notes on what to
+build are ours rather than part of what gets handed over, and Danny expects to
+delete the plan once building is done. Nothing in them is needed to run the
+project.
+
+What follows: the ~40 `§` citations across these docs and the code comments are
+attribution to a document that will not exist. They are not load-bearing — in
+almost every case the claim beside them is already stated in full ("§3.4 says
+'on any validation failure render the fallback'" carries its own quote) — but any
+future comment that *defers* to a section instead of restating it will be
+unreadable. Restate, then cite.
 
 ### Everything runs locally — keep it that way
 
@@ -319,13 +382,33 @@ Each of these cost real time. Do not rediscover them.
 - **Zod reports unknown keys with an *empty* path** and the names in
   `issue.keys` (`unrecognized_keys`). Handling only path-bearing issues made every
   hallucinated prop unrepairable and fell whole pages back to the static layout.
-- **Concurrent page loads each pay for their own call.** `readCached` runs
-  before the call and `writeCached` after it, so there is no in-flight lock: two
-  loads inside the same ~60s window both spend. Next's dev server double-invokes
-  `getServerSideProps` on a cold compile, which makes one navigation enough on
-  its own. This is how a "one eval call" turned into three, and it defeats the
-  one-call-at-a-time discipline silently — the drawer shows a cost per
-  composition, not per session.
+- **A GET that can spend money will spend it without you.** *Fixed on
+  2026-09-14, and this is the reasoning.* Composition used to happen inside
+  `getServerSideProps`, so rendering the page called the model — and a GET is
+  replayable by design: Next's dev server re-fetches props on hot reload and
+  double-invokes on a cold compile, a refresh repeats it, a second tab repeats
+  it, a link prefetch repeats it, `curl` repeats it. Five calls went through one
+  morning from two deliberate presses; three of them died at the 180s timeout
+  and billed for nothing. **Editing `module-catalog.ts` while a `?mode=eval` tab
+  was open was enough**, because the catalog is part of the cache key, so hot
+  reload landed on a miss. Calls now require a POST to `/api/compose`, which
+  nothing replays on its own. If you are ever tempted to move composition back
+  into a loader, this is why not.
+- **A test run can poison anything that writes to disk.** Six entries landed in
+  `.cache/calls.log` from one `npm test` before the provider tests mocked the
+  ledger, each carrying the mock's fixed $0.500, and the drawer reported $2.177
+  spent when $0.177 was real. `recordCall` now returns early under `VITEST` or
+  `NODE_ENV=test`. Mocking is still right in the tests that assert on it; the
+  guard is for the ones that do not think about it.
+- **Format a money figure to two decimals.** `toFixed(3)` rendered $2.177 as
+  "$2.177", which reads as two thousand dollars. A spend figure misread by 1000x
+  is worse than no figure at all.
+- **`LayoutSpecSchema.safeParse` is all-or-nothing.** A single top-level string
+  breaking its bounds falls the *whole page* back to the static layout —
+  discarding a composition that was paid for. `top_pick_reason` is stripped
+  ahead of the parse for exactly this reason (`stripUnusableReason`), and any
+  future bounded top-level field needs the same treatment. A length or format
+  miss is the likeliest way a new required field goes wrong.
 - **`LayoutEntrySchema.props` is an open record, so module prop defaults do not
   apply just because a spec parsed.** `FALLBACK_LAYOUT` was built with
   `LayoutSpecSchema.parse` alone for three slices, so nothing on the base path
@@ -423,49 +506,52 @@ group, the job is sense-making, saying what the inventory the top group left out
 is *for*. The v7 run produced a five-date "Weekend nights within a drive" with
 `price_gap_to_cheapest` on every row.
 
-**What moved rather than resolved: the thin-section pressure went to the top
-band.** The v7 hero is a single row — the only Chicago date under $80 — and the
-model chose it deliberately: *"one certain answer to 'should I buy now,' not a
-padded three."* A page whose purpose is recommendations, plural, should not open
-with one. See next steps.
+**Then the pressure moved to the top band, and v8 answered it.** The v7 hero was
+a single row — the only Chicago date under $80 — chosen deliberately: *"one
+certain answer to 'should I buy now,' not a padded three."* Two separate causes,
+and each went in its own section so they cannot trade against each other: the
+page shape now states the floor as well as the ceiling ("one reads as the only
+thing you could find"), and the constraint section reads an approximate limit as
+approximate. The next run filtered at `max_price: 90` and said why.
 
-**And separately: should the page ever admit it composed itself?** Everything
-built so far assumes not — the composition is invisible by design, and the
-`reasoning` string is a debugging and demo artifact rather than something a
-visitor reads. That is defensible for a real product and a problem for a demo,
-because the thing being demonstrated is exactly the part that does not render.
-Worth deciding deliberately rather than by default. It is not obviously "add a
-'why you're seeing this' line" — that might be the answer, or the answer might
-be that the composition should be legible through *contrast* (two visitors, two
-pages, side by side) rather than through explanation.
+**The whole arc is now visible.** The v8 and v9 runs put three bands in the main
+column — a hero of three, a sense-making band, and the tour's marquee nights —
+each with its own badge allowlist and its own `card_signal`. Fifteen rows, no
+date twice.
+
+**Should the page ever admit it composed itself?** **Descoped by Danny on
+2026-09-11** — not a problem for a demo he narrates. The narrower version of the
+question got built instead: `top_pick_reason` explains *one decision* on hover
+without announcing the mechanism.
 
 ## Open decisions for Danny
 
-**1. Four hardcoded figures should become data-driven.** Not a blocking decision —
-just work to do.
+**1. Two hardcoded figures should become data-driven.** Not a blocking decision —
+just work to do. The other two are settled.
+
+**Settled on 2026-09-14:** the two company-wide sales figures now agree at
+**190 million** (`src/shell/Navbar.tsx` and `src/shell/TrustBanner.tsx`). They
+had been 190 and 100 million on the same page, both verbatim from the Figma, and
+a visitor who read both learnt the numbers were decorative. These are static site
+copy, so agreeing is all they needed.
+
+**Still constants**, and both are performer-specific, so neither can be fixed by
+editing copy:
 
 - `src/modules/event-header/index.tsx` — "🔥 10,302 fans recently purchased"
 - `src/shell/PerformerRail.tsx` — `FANS_SHOPPING_NOW = 343`
-- `src/shell/Navbar.tsx` — "over 190 million sold"
-- `src/shell/TrustBanner.tsx` — "100 million sold"
 
-⚠️ The last two disagree with each other on the same page — the navbar says 190
-million, the rail's trust panel says 100 million. Whichever is right, they should
-match; it is cheap to fix and awkward if someone reads both.
+Both match the Figma faithfully, and surfacing demand and scarcity is legitimate
+and useful to a buyer — urgency is information, not decoration, as long as it is
+real. The issue is narrower: these are constants, so they read identically for
+every event and every visitor. The prototype exists to show real dynamic data
+and a UI composed from it at runtime, and a fixed number demonstrates neither.
 
-All four match the Figma faithfully, and surfacing demand and scarcity is legitimate
-and useful to a buyer — §7 is explicit that urgency is information, not
-decoration. The issue is narrower: these are constants, so they would read
-identically for every event and every visitor. The prototype exists to show real
-dynamic data and a UI composed from it at runtime, and a fixed number
-demonstrates neither.
-
-Fix the two performer-specific ones by backing them with snapshot fields.
-`listing_count`, `sellout_risk` and `inventory_by_tier` already exist per
-production; a `recent_purchases` or `shoppers_now` field on `performer` or
-`productions` would carry these directly, and should be marked
-fabricated-derived in `src/fixtures/README.md` like the other derived signals.
-The two company-wide figures are static site copy, so they only need to agree.
+Back them with snapshot fields. `listing_count`, `sellout_risk` and
+`inventory_by_tier` already exist per production; a `recent_purchases` or
+`shoppers_now` field on `performer` or `productions` would carry these directly,
+and should be marked fabricated-derived in `src/fixtures/README.md` like the
+other derived signals.
 
 **2. ~~Live orchestration route~~ — settled.** No org API key is available and
 that is a hard no, so **Stage 3 is a local bridge through Claude Code
@@ -530,29 +616,28 @@ consistently violating one rule to satisfy another, the rules are the bug.
 
 Roughly in order:
 
-1. **The top band must not be one row.** The v7 hero rendered a single date
-   under a heading and a "1 Show" count chip. The page's purpose is
-   recommendations, plural. The prompt's own thin-section bullet already says
-   one or two dates under a heading reads as a page that ran out of things to
-   say — it just does not apply to the hero, where "strongly filtered, few
-   dates" reads as permission to narrow to one.
-2. **`market_signals` should be required to carry a demand fact and a price
-   fact.** The stat list is currently a free pick from eight, and the rail card
-   is the page's supporting evidence — it is not supporting anything if it omits
-   what a date costs. Keeping the pick is the point (which demand fact, which
-   price fact, and in what order is a real editorial call); the categories are
-   what should be obligatory. If that cannot be enforced, the card comes off the
-   orchestrator's plate and is derived from the snapshot instead.
-3. **`listing_preview`.** The one wanted module still missing, and the only one
+1. **`top_pick_reason` has not been read on a live v11 run.** The rule that
+   superlatives must be scoped to what the page shows came *from* the v10 output
+   and went in untested — the cache was invalidated by the version bump, so
+   `?mode=eval` serves the baseline until someone presses Run. One call says
+   whether the scoping rule holds. What to check: that the sentence addresses the
+   visitor as "you", and that any superlative in it is true of the rows on the
+   page rather than of all 52 dates.
+2. **`listing_preview`.** The one wanted module still missing, and the only one
    that pairs with a chosen date rather than the tour. Needs top-listings-per-
    event data, which the snapshot does not carry.
-4. **Restore `STRUCTURAL_RULES.minModules` to 3** once a third orchestrated
+3. **Restore `STRUCTURAL_RULES.minModules` to 3** once a third orchestrated
    module exists. Still 1: two exist, and a floor of 3 would fall back on every
    good composition.
-5. **Extend the evals to compare rendered output**, and to assert two contexts
-   differ in *which modules appear* rather than only in props. Now worth doing —
-   until slice 4 there was only one module, so "which modules appear" had one
-   possible answer.
+4. **Extend the evals to compare rendered output**, and to assert two contexts
+   differ in *which modules appear* rather than only in props.
+5. **Four hardcoded figures should become data-driven** — see the open decisions
+   above. Unblocked and never done.
+
+**Done since this list was written:** the top band's floor of three (v8, after
+the v7 hero rendered one row), the approximate-limit read (v8 — "about $80"
+admits $89), badge thresholds in the catalog hint, `market_signals` requiring a
+demand and a price reading, and `top_pick_reason` itself.
 
 **`card_signal` is settled.** The v7 run used it on both sections with a
 *different* value on each — `typical_seat_price` on the hero, where "From $76"
@@ -695,14 +780,18 @@ signals and live re-orchestration, real snapshot capture.
    "Everything runs locally" above. The one future exception is the server-side
    LLM call behind `OrchestrationProvider`.
 4. **This is a prototype, not a production delivery.** Optimise for the shortest
-   honest path to something demoable. Do not add auth, analytics, error
-   monitoring, i18n, feature flags, caching, CI, or production hardening — the
-   source plan §9 lists these as out of scope, and building them spends the
-   schedule on what the demo never shows. Test where a silent bug would cost a
-   demo (contracts, validator, composition logic) and verify components visually
-   rather than chasing coverage. Prefer a fixture over a pipeline and a clear
-   deviation over an unrequested abstraction. If something looks under-built,
-   check §9 and the Deviations list before "fixing" it.
+   honest path to something demoable. **Out of scope, in full, so this does not
+   depend on a document that is being deleted:** auth and accounts, analytics and
+   tracking, error monitoring, i18n and localisation, feature flags, CDN or HTTP
+   caching, CI/CD, SEO beyond the static block, accessibility audit work beyond
+   what the components already do, performance budgets, responsive work below the
+   breakpoints the Figma supplies, and any real integration with Vivid Seats
+   services. Building any of it spends the schedule on what the demo never
+   shows. Test where a silent bug would cost a demo (contracts, validator,
+   composition logic) and verify components visually rather than chasing
+   coverage. Prefer a fixture over a pipeline and a clear deviation over an
+   unrequested abstraction. If something looks under-built, check that list and
+   the Deviations section before "fixing" it.
 5. When unsure whether an action violates 1–4, stop and ask.
 
 ## Reference
