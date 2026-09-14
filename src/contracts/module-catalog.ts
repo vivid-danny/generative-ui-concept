@@ -71,7 +71,15 @@ const FilterSchema = z
     .object({
         max_price: z.number().positive().optional(),
         min_view_score: z.number().min(0).max(1).optional(),
-        city: z.string().optional(),
+        /**
+         * One city, or the set of them a section is about.
+         *
+         * A list because "within a drive" is a set of cities and the model has
+         * nothing else to say it with — see the note in `select.ts`. Exact
+         * names, matched as given: a city with no dates simply contributes
+         * nothing, the same as a single name that matches nothing.
+         */
+        city: z.union([z.string(), z.array(z.string()).min(1)]).optional(),
         /**
          * The dimensions that turn a section heading into something real.
          *
@@ -177,7 +185,12 @@ export const MODULE_CATALOG = {
             .strict(),
         propsHint: [
             'filter?: {',
-            '    max_price?: number, city?: exact city name, min_view_score?: 0-1,',
+            '    max_price?: number, min_view_score?: 0-1,',
+            '    city?: exact city name, or an array of them — ["Milwaukee", "Detroit"]',
+            '      Use the array to put a whole set of cities behind one heading. There is',
+            '      no distance field, so this is how "within a drive" gets said: name the',
+            '      cities you judge reachable. A heading that promises geography needs this,',
+            '      not a sort order that happens to favour nearby dates.',
             '    min_demand_score?: 0-1     how much fans want this night',
             '    min_value_score?: 0-1      price against what you get',
             '    min_sales_velocity?: 0-1   how fast it is moving right now',

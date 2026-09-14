@@ -17,7 +17,7 @@ export interface ProductionListProps {
     filter?: {
         max_price?: number
         min_view_score?: number
-        city?: string
+        city?: string | string[]
         min_demand_score?: number
         min_value_score?: number
         min_sales_velocity?: number
@@ -109,7 +109,20 @@ export function selectProductions(
     const matching = market.productions.filter((production) => {
         if (exclude?.has(production.id)) return false
         if (filter?.max_price !== undefined && production.floor_price > filter.max_price) return false
-        if (filter?.city !== undefined && production.city !== filter.city) return false
+        // A list as well as a single name, because "within a drive" is a set of
+        // cities and there is no other way to say it. The system prompt makes
+        // geography the model's judgment — no distance field, no radius, no
+        // tier — and then left it one exact city to express that judgment with.
+        // Across v6–v11 thirteen sections promised a drive or a nearby city in
+        // their heading and only three had any geography in the filter; the rest
+        // reached for `min_demand_score` or `max_days_out` as a proxy, or relied
+        // on `sort: "date"` happening to favour the December Midwest leg. Same
+        // filter, sorted by demand instead, put Tampa in the recommendation
+        // band for a visitor who said she would not fly.
+        if (filter?.city !== undefined) {
+            const cities = Array.isArray(filter.city) ? filter.city : [filter.city]
+            if (!cities.includes(production.city)) return false
+        }
         if (filter?.min_demand_score !== undefined && production.demand_score < filter.min_demand_score)
             return false
         if (filter?.min_value_score !== undefined && production.value_score < filter.min_value_score)

@@ -382,3 +382,55 @@ describe('selectProductions — the page\'s top pick', () => {
         expect(selection.topPickId).toBeNull()
     })
 })
+
+describe('filter.city as a set', () => {
+    // The capability the system prompt asked for and did not have: "within a
+    // drive" is a set of cities, and one exact name could not say it.
+    it('admits every city in the list', () => {
+        const { groups } = selectProductions(market, context, props({
+            filter: { city: ['Milwaukee', 'Detroit', 'Cleveland'] },
+            group_by_geo: false,
+            max_items: 7,
+        }))
+
+        const cities = new Set(groups.flatMap((group) => group.productions).map((item) => item.city))
+        expect(cities).toEqual(new Set(['Milwaukee', 'Detroit', 'Cleveland']))
+    })
+
+    it('excludes a city outside the list even when it clears every other filter', () => {
+        // Tampa at $88 is what actually shipped in a hero for a visitor who
+        // said she would not fly. It passed the price filter; nothing else
+        // could keep it out.
+        const { groups } = selectProductions(market, context, props({
+            filter: { max_price: 88, city: ['Chicago', 'Milwaukee', 'Detroit'] },
+            group_by_geo: false,
+            max_items: 7,
+        }))
+
+        const cities = groups.flatMap((group) => group.productions).map((item) => item.city)
+        expect(cities).not.toContain('Tampa')
+        expect(cities.length).toBeGreaterThan(0)
+    })
+
+    it('still takes a single city as a string', () => {
+        const { groups } = selectProductions(market, context, props({
+            filter: { city: 'Milwaukee' },
+            group_by_geo: false,
+            max_items: 7,
+        }))
+
+        const cities = new Set(groups.flatMap((group) => group.productions).map((item) => item.city))
+        expect(cities).toEqual(new Set(['Milwaukee']))
+    })
+
+    it('renders nothing for a city with no dates, rather than failing', () => {
+        const { groups } = selectProductions(market, context, props({
+            filter: { city: ['Nowhere', 'Milwaukee'] },
+            group_by_geo: false,
+            max_items: 7,
+        }))
+
+        const cities = new Set(groups.flatMap((group) => group.productions).map((item) => item.city))
+        expect(cities).toEqual(new Set(['Milwaukee']))
+    })
+})
