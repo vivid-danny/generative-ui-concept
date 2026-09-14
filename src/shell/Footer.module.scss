@@ -1,0 +1,65 @@
+// Footer — Figma 17055:179082, 408 tall.
+
+.footer {
+    position: relative;
+    overflow: hidden;
+    padding: 56px 64px 0;
+    background: var(--text-primary);
+    color: var(--text-contrast);
+}
+
+.top {
+    display: flex;
+    gap: 76px;
+    padding-bottom: 56px;
+}
+
+.columns {
+    display: flex;
+    flex: 1;
+    gap: 76px;
+}
+
+.column {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    min-width: 132px;
+}
+
+.columnHeading {
+    margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+}
+
+.divider {
+    max-width: 936px;
+    margin: 0 auto;
+    border: none;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+}
+
+.bottom {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 936px;
+    margin: 0 auto;
+    padding: 44px 0;
+    color: var(--text-disabled);
+}
+
+.legal {
+    display: flex;
+    gap: var(--spacing-xl);
+}
+
+// Decorative corner facets — pinned to the right edge, scaling with footer height.
+.facets {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: auto;
+    pointer-events: none;
+}

@@ -1,0 +1,26 @@
+// Matches the escape hatch that used to live inside production-list, so moving
+// the affordance out of the composed column did not change how it reads.
+
+.trigger {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: var(--spacing-md);
+    border: 1px solid var(--surface-gray-100-thin, #efeff6);
+    border-radius: var(--radius-sm);
+    background: var(--surface-white);
+    color: var(--text-primary, #04092c);
+    cursor: pointer;
+
+    &:hover {
+        border-color: var(--surface-primary-main, #ce3197);
+        color: var(--surface-primary-main, #ce3197);
+    }
+}
+
+.expanded {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-lg);
+}

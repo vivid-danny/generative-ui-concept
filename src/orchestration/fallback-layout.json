@@ -1,0 +1,21 @@
+{
+    "layout": [
+        {
+            "module": "production_list",
+            "size": "standard",
+            "props": {
+                "sort": "date",
+                "group_by_geo": true,
+                "max_items": 8,
+                "badges": [
+                    "deals_available",
+                    "tickets_left"
+                ],
+                "card_signal": null
+            }
+        }
+    ],
+    "reasoning": "Static fallback. Composition was unavailable or failed validation, so the page shows every date in chronological order — the safe default that assumes nothing about the visitor.",
+    "headline": null,
+    "top_pick": null
+}

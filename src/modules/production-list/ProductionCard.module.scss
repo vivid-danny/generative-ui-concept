@@ -1,0 +1,228 @@
+// <Production Card> — Figma 17055:178943. 812 wide, 8px gap between cards.
+// Token values taken from the node's bound variables rather than sampled.
+
+.card {
+    // The top-pick tab is absolutely positioned against this and overhangs the
+    // top border. Nothing up the tree clips, so the overhang is safe.
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    min-height: 80px;
+    // Asymmetric per the Figma node: 12 top/bottom, 16 left, 24 right.
+    padding: var(--spacing-md) var(--spacing-xl) var(--spacing-md) var(--spacing-lg);
+    border: 1px solid var(--surface-gray-100-thin, #efeff6);
+    border-radius: var(--radius-sm);
+    background: var(--surface-white);
+}
+
+// The top-pick outline is a gradient, which a border-color can't express. The
+// ring is a masked pseudo-element rather than a 2px gradient border, because a
+// 2px border would push the row's content in by 1px relative to every other
+// card. Inset -1px with a 2px band reproduces exactly the span the old 1px
+// border plus 1px box-shadow covered, and leaves the card's box untouched.
+.topPickCard {
+    border-color: transparent;
+
+    &::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        border-radius: calc(var(--radius-sm) + 1px);
+        padding: 2px;
+        background: linear-gradient(89deg, #1a1ddc 0%, #92138c 100%);
+        mask:
+            linear-gradient(#000 0 0) content-box,
+            linear-gradient(#000 0 0);
+        mask-composite: exclude;
+        pointer-events: none;
+    }
+}
+
+// A tab on the card's top border, right-aligned — so the label reads as
+// attached to the outline rather than as another badge inside the row.
+//
+// The type is `overline` with two local overrides: weight 600 rather than the
+// scale's bold, and half its tracking. `overline` is a section-label style, and
+// at full weight and 10% tracking it shouted next to the row it is annotating.
+// Overridden here rather than added to the type scale, because this is one
+// card's treatment and not a style the design system declares.
+//
+// The overhang is a fixed length, not a percentage, and that matters: the
+// padding makes the tab 23px tall, so a half-straddle would reach 11.5px into
+// the 8px gap `.rows` leaves and paint over the card above. -0.35rem keeps a
+// little over 2px of clearance. Compact sections tighten that gap to 4px and
+// shorten the overhang to match — the tighter rhythm is the point of compact,
+// so the tab bends, not the list.
+.topPick {
+    position: absolute;
+    // Hoverable, and focusable when a reason exists. The cursor is the only
+    // hint that the tab has anything behind it — deliberately no icon or
+    // underline, so the resting page looks exactly as it did.
+    cursor: help;
+    top: var(--top-pick-top, -0.35rem);
+    right: 1.35rem;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    background: var(--surface-primary-main, #ce3197);
+    color: var(--text-contrast);
+    font-weight: 600;
+    letter-spacing: 0.05em;
+}
+
+// Full-height column with a rule dividing the date from the event details.
+.dateBlock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    align-self: stretch;
+    gap: var(--spacing-2xs);
+    min-width: 48px;
+    padding-right: var(--spacing-lg);
+    border-right: 1px solid var(--surface-gray-100-thin, #efeff6);
+    flex-shrink: 0;
+    text-align: center;
+}
+
+.weekday {
+    color: var(--surface-gray-600-deep, #474b5e);
+}
+
+.date {
+    color: var(--surface-primary-main, #ce3197);
+}
+
+.time {
+    color: var(--surface-gray-600-deep, #474b5e);
+}
+
+.details {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--spacing-2xs);
+}
+
+.badges {
+    display: flex;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-2xs);
+}
+
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-2xs);
+    padding: 0 var(--spacing-xs);
+    border-radius: var(--radius-rounded);
+    white-space: nowrap;
+}
+
+.badgeDeal {
+    background: var(--surface-secondary-lightest, #dafafb);
+    color: var(--surface-secondary-darkest, #086e88);
+}
+
+.badgeUrgency {
+    background: var(--surface-primary-lightest, #fbe5f3);
+    color: var(--surface-primary-dark, #8f1564);
+}
+
+.performer {
+    color: var(--text-primary);
+}
+
+// Popularity and time-limited badges. Colours follow the DS badge sheet
+// (10571:85566): popularity reads as informational blue, time-limited as a
+// quieter neutral than the value and scarcity treatments above.
+.badgePopularity {
+    background: var(--status-info-light, #e0ebff);
+    color: var(--status-info-dark, #00308f);
+}
+
+.badgeTime {
+    background: var(--surface-gray-100-thin, #efeff6);
+    color: var(--surface-gray-600-deep, #474b5e);
+}
+
+.venue {
+    color: var(--surface-gray-600-deep, #474b5e);
+}
+
+.dot {
+    margin: 0 var(--spacing-2xs);
+    color: var(--text-disabled, #a0a2b3);
+}
+
+.actions {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-lg);
+    flex-shrink: 0;
+}
+
+// The slot the price vacated when it moved into the CTA. Right-aligned so the
+// button stays the row's anchor and the signal reads as an annotation on it.
+.signal {
+    text-align: right;
+    white-space: nowrap;
+}
+
+// Price movement is coloured in both directions; everything else stays
+// neutral. Colouring every row would make the colour mean nothing, so this is
+// reserved for the one signal that has a direction — and `FLAT_BAND` in
+// card-signal.ts keeps a 1% wobble out of it, so a coloured row is a real move.
+.signalGood {
+    color: var(--status-success-dark);
+}
+
+.signalAdverse {
+    color: var(--status-error-main);
+}
+
+.signalNeutral {
+    color: var(--text-secondary);
+}
+
+.cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 32px;
+    padding: var(--spacing-xs) var(--spacing-md);
+    border: 1px solid var(--surface-primary-main, #ce3197);
+    border-radius: var(--radius-sm);
+    background: var(--surface-white);
+    color: var(--surface-primary-main, #ce3197);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+// The Top Pick tooltip.
+//
+// MUI's default is a dark grey bubble at 11px, which reads as a browser
+// affordance rather than part of this page. `--text-primary` instead: the
+// near-black the page already uses for body copy, so the bubble reads as this
+// site's own and the pink stays on the tab that was hovered rather than being
+// spent twice.
+//
+// Wider than MUI's 300px default because the content is two sentences of prose
+// rather than a label, and a 300px column turns them into five short lines.
+.pickTooltip {
+    max-width: 22rem;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    background: var(--text-primary);
+    color: var(--text-contrast);
+    font-family: 'GT Walsheim', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+// MUI colours the arrow through `color`, not `background`.
+.pickTooltipArrow {
+    color: var(--text-primary);
+}

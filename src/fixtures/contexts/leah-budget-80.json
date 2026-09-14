@@ -1,0 +1,20 @@
+{
+    "persona_id": "leah_onsale",
+    "entry": {
+        "source": "paid_search",
+        "query": "olivia rodrigo tickets chicago",
+        "inferred_intent": "price_sensitive"
+    },
+    "device": "mobile",
+    "geo": {
+        "metro": "Chicago",
+        "distance_to_venue_mi": 12
+    },
+    "timing": {
+        "onsale_hours_ago": 2,
+        "event_days_out": 94
+    },
+    "returning_visitor": false,
+    "session_signals": [],
+    "stated_budget": 80
+}

@@ -1,0 +1,49 @@
+// Page grid — Figma `screen-xl` 17055:178919.
+//
+// 120 margin | 812 main | 48 gap | 340 rail | 120 margin = 1440.
+// Below $desktop-min the rail drops and the layout becomes single-column,
+// matching `screen-sm` (17055:179204).
+
+$page-margin: 120px;
+$main-column: 812px;
+$column-gap: 48px;
+$rail: 340px;
+$desktop-min: 1248px;
+
+.page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background: var(--surface-white);
+}
+
+.body {
+    flex: 1;
+    background: var(--background-default);
+}
+
+.content {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: $column-gap;
+    max-width: $main-column + $column-gap + $rail;
+    margin: 0 auto;
+    padding: var(--spacing-2xl) var(--spacing-lg) 64px;
+
+    @media (min-width: $desktop-min) {
+        grid-template-columns: $main-column $rail;
+        padding: var(--spacing-2xl) 0 64px;
+    }
+}
+
+.main {
+    min-width: 0;
+}
+
+.rail {
+    display: none;
+
+    @media (min-width: $desktop-min) {
+        display: block;
+    }
+}

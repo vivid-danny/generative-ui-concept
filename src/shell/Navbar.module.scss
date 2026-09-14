@@ -1,0 +1,46 @@
+// Navbar — Figma 17055:178920. Total height 118 = 40 banner + 78 bar.
+
+.banner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    background: var(--text-primary);
+    color: var(--text-contrast);
+}
+
+.bar {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2xl);
+    height: 78px;
+    padding: 0 44px;
+    background: var(--surface-white);
+    border-bottom: 1px solid var(--surface-gray-100-thin, #efeff6);
+    color: var(--text-primary);
+}
+
+.search {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    width: 345px;
+    height: 44px;
+    padding: 0 var(--spacing-lg);
+    border: none;
+    border-radius: var(--radius-rounded);
+    background: var(--gray-50, #f6f6fb);
+    color: var(--text-secondary);
+}
+
+.links {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2xl);
+    margin-left: auto;
+}
+
+// Figma nav labels are GT Walsheim Medium (500) 16px, not bold.
+.link {
+    font-weight: 500;
+}

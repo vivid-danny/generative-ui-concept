@@ -1,0 +1,34 @@
+// <Performer Filters> — Figma 17055:178933.
+
+.filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-sm);
+    align-items: center;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-sm) var(--spacing-md);
+    border: 1px solid var(--surface-gray-200-light, #d3d3dc);
+    border-radius: var(--radius-sm);
+    background: var(--surface-white);
+    color: var(--text-primary, #04092c);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    // 20px masked-icon slot holding a 14px glyph (Figma).
+    width: 20px;
+    height: 20px;
+    // Filter glyphs are teal in the design.
+    color: var(--surface-secondary-darkest, #086e88);
+    flex-shrink: 0;
+}

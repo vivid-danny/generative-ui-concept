@@ -1,0 +1,56 @@
+// `event_header` — Figma 17055:178925. Full-bleed, 240 tall.
+
+.header {
+    position: relative;
+    overflow: hidden;
+    min-height: 240px;
+    // The design's left-to-right blue-to-magenta wash. Endpoints are the DS
+    // primitives either side of the brand gradient.
+    background: linear-gradient(101deg, #16277b 0%, #2c1d6e 42%, #5b1a6c 72%, #8f1564 100%);
+    color: var(--text-contrast);
+}
+
+// Decorative corner facets — pinned to the right edge, scaling with banner height.
+.facets {
+    position: absolute;
+    top: 0;
+    right: 0;
+    height: 100%;
+    width: auto;
+    pointer-events: none;
+}
+
+.inner {
+    position: relative;
+    display: flex;
+    max-width: 1200px;
+    min-height: 240px;
+    margin: 0 auto;
+    padding: 48px var(--spacing-lg);
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--spacing-sm);
+}
+
+.subtitle {
+    opacity: 0.92;
+}
+
+// The Figma header ends at the subtitle + CTA row. The composed headline is an
+// addition, so it gets its own slot rather than displacing designed content.
+.headline {
+    max-width: 720px;
+    margin-top: var(--spacing-xs);
+}
+
+.banner {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    align-self: flex-start;
+    margin-top: var(--spacing-xl);
+    padding: var(--spacing-sm) var(--spacing-lg);
+    border-radius: var(--radius-md);
+    background: var(--surface-primary-lightest, #fbe5f3);
+    color: var(--surface-primary-dark, #8f1564);
+}

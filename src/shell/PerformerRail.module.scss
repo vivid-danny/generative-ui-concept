@@ -1,0 +1,84 @@
+// `rightCol` — Figma 17055:178973. 340 wide: a 340x340 image, whatever the
+// orchestrator composed into the rail, then the "Experience it live" trust
+// banner. The frame's stats block moved into `market_signals` — see
+// PerformerRail.tsx. In the design the column is pulled up so
+// the image overlaps into the header (rightCol y = -192).
+
+.rail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xl);
+    position: relative;
+    // Paint above the full-bleed header the image overlaps into.
+    z-index: 1;
+
+    // Desktop only — below 1248 the rail is hidden and the header is full-width.
+    @media (min-width: 1248px) {
+        position: sticky;
+        // Pull up so ~192px of the image sits over the 240px header. The rail's
+        // natural top is header-bottom + the grid's --spacing-2xl padding, so
+        // 192 + 32 = 224.
+        margin-top: -224px;
+        // Keep the sticky image clear of the 118px navbar once scrolled.
+        top: var(--spacing-lg);
+    }
+}
+
+// With a composed card in it the rail is tall enough (~900px) that sticky
+// would strand the trust banner off the bottom of a short viewport with no way
+// to scroll to it. The pull-up stays; only the sticking goes.
+.withComposed {
+    @media (min-width: 1248px) {
+        position: relative;
+    }
+}
+
+.imageContainer {
+    position: relative;
+    height: 340px;
+    overflow: hidden;
+    // 2px white stroke — Figma 17055:178974.
+    border: 2px solid var(--surface-white, #fff);
+    border-radius: var(--radius-md);
+    // Sits behind the performer image, and shows through as the fallback if the
+    // local asset is missing.
+    background: linear-gradient(145deg, #16277b 0%, #5b1a6c 60%, #8f1564 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-contrast);
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+}
+
+.initial {
+    opacity: 0.28;
+    font-size: 128px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.favorite {
+    position: absolute;
+    // 14px inset — Figma 17144:65204. The SVG carries its own box + border.
+    top: 14px;
+    right: 14px;
+    display: flex;
+    padding: 0;
+    border: none;
+    background: none;
+    cursor: pointer;
+}
+
+.divider {
+    width: 100%;
+    height: 1px;
+    margin: 0;
+    border: none;
+    background: var(--surface-gray-100-thin, #efeff6);
+}

@@ -1,0 +1,11 @@
+node_modules/
+.next/
+out/
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+logs/
+.env*.local
+
+# Generated compositions - cached model output, not source.
+.cache/

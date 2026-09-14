@@ -1,0 +1,29 @@
+@use './fonts';
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'GT Walsheim', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: var(--background-default);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+button {
+    font-family: inherit;
+}

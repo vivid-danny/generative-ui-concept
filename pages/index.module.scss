@@ -1,0 +1,8 @@
+// Main-column stack: tabs, filter chips, then the composed content. 32px rhythm
+// matches the Figma `container` (tab collection → filters → list).
+
+.mainStack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-2xl);
+}
