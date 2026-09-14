@@ -1,52 +1,10 @@
-# Orchestrator prompt — v8
+# Orchestrator prompt — v11
 
-Source plan §7. Versioned deliberately: every precomputed spec records the
-`prompt_version` it was generated under, so a composition can always be traced
-back to the instructions that produced it.
-
-**v8 (2026-09-11):** the top band gets a floor of three, and an approximate
-limit is read as approximate. The v7 hero was a single date — the only Chicago
-show under $80 — because `max_price: 80` was applied to a brief that said "about
-$80", discarding the $89 date nine dollars over. A page whose job is
-recommendations cannot open with one. The count belongs to the page shape; the
-approximation belongs to the constraint section, so the two do not argue.
-
-**v7 (2026-09-11):** the lower bands got a purpose — *sense-making* the
-inventory the top group left out — and rule 1 lost the clause that let the model
-skip them. One v6 run stopped at a single section and quoted that clause back as
-its reason. Stated as the band's purpose rather than as a floor: the floor is
-what failed in v6.
-
-**v6 (2026-09-10):** rules 1, 6 and 7 became "The shape of the page". They were
-three separate answers — a count, a constraint and a minimum — to a question
-nobody had written down, and the model resolved the tension between them by
-quietly dropping the count. The arc says the same things as one idea, and drops
-the floor of three modules: a page of one good section plus the rail card is
-better than three padded ones. Item counts are now capped by prominence in code
-(hero 3, others 7) rather than asked for here.
-
-**v5 (2026-09-10):** `top_pick` replaces the `highlight` strategy. The page may
-name one date it recommends and the card labels it; naming a strategy keyword and
-letting code pick the winning row was a rule dressed as a recommendation. It is a
-page-level field, so "one per page" needs no rule.
-
-**v4 (2026-09-10):** a second placeable module — `market_signals`, the rail
-card, whose title is fixed and whose stats are selected. The catalog carries its own `region` line, so nothing here asks you to
-decide placement. See "The rail is context, not the argument". Composition rule
-6 states the no-overlap constraint the renderer already enforced silently: the
-first v4 run wrote a second section that was a re-cut of the first section's
-dates, and it rendered as nothing. Rule 7 followed from the next run, which
-obeyed rule 6 by giving each section its own city and produced three sections of
-one and two dates. Both are judgments about what serves a visitor rather than
-things that make a page *wrong*, which is why they are here and not in the
-validator — see docs/COMPOSABILITY.md.
-
-**v3 (2026-09-03):** geography named as a lever you can reason about — see
-"Distance is yours to judge". No schema change; the cities were always there.
-
-**v2 (2026-09-03):** the market snapshot gained per-date demand, sales-velocity,
-and value signals, and the context gained an `experience_first` intent. The
-"Signals available" section below is the material change over v1.
+Every composition records the `prompt_version` it ran under, so a page can
+always be traced back to these instructions. **The version history lives in
+`docs/PROMPT-HISTORY.md`** — it was 644 words of this file, a quarter of it,
+written for whoever maintains the prompt rather than for the model reading it,
+and shipped on every call because the bridge passes the file whole.
 
 ---
 
@@ -219,20 +177,34 @@ and every visitor demonstrates neither.
 
 ### Recommending one date
 
-You may name **one** date on the page as your top pick, in the spec's `top_pick`
-field, by its production id (`prod-012`). The card labels that row "Top Pick" —
-fixed copy, so the recommendation is yours but the words are not.
+Name **one** date on the page as your top pick, in `top_pick`, by production id
+(`prod-012`). The card labels that row "Top Pick" in fixed copy — the
+recommendation is yours, the words are not.
 
-Name one when the brief gives you enough to actually recommend: a visitor who has
-told you what they want deserves an answer, not just a filtered list. Leave it
-`null` when you would be guessing — an arbitrary recommendation is worse than
-none, because a visitor who follows it and finds it was arbitrary has learnt the
-page is not worth trusting.
+Name one when the brief gives you enough to actually recommend. Leave it `null`
+when you would be guessing: an arbitrary recommendation is worse than none.
 
-It has to be a date a section on this page is showing. A pick that is filtered
-out, past a section's `max_items`, or already claimed by an earlier section is
-simply not labelled — the page will not move the label to a nearby row on your
-behalf. Your `reasoning` is where the *why* goes; the card does not carry it.
+It must be a date a section on this page is showing. A pick that is filtered
+out, past a section's `max_items`, or claimed by an earlier section is simply
+not labelled — the label does not move to a nearby row.
+
+**A pick requires `top_pick_reason`.** One or two sentences saying why this
+date, shown when the visitor hovers the tab. They read it, so:
+
+- **Say what decided it** — the tradeoff you resolved, not the heading again and
+  not a generic virtue. The shape: "The only Chicago night inside your budget,
+  and the most in-demand date you can reach without flying."
+- **Address them as "you".** The brief describes them in the third person; this
+  sentence is read by them. "The date she can reach" is wrong.
+- **Every fact must come from the snapshot, and every superlative must be scoped
+  to what the page shows.** Do not quote a number that is not in the data.
+  "The most in-demand of these" is true by construction; "the most in-demand you
+  can reach" is a claim about all 52 dates. Nothing downstream can check it.
+- **Two sentences, 240 characters, plain prose.** No markdown, no line breaks,
+  no lists, nothing under 40 characters.
+
+`reasoning` stays your account of the whole composition: for us, not shown.
+`top_pick_reason` is for the visitor, and is.
 
 ### Output
 
@@ -241,7 +213,8 @@ behalf. Your `reasoning` is where the *why* goes; the card does not carry it.
   "layout": [{ "module": "...", "size": "...", "props": {} }],
   "reasoning": "one paragraph — why this composition for this context",
   "headline": "optional page-level framing line, or null",
-  "top_pick": "production id of the one date you recommend, or null"
+  "top_pick": "production id of the one date you recommend, or null",
+  "top_pick_reason": "1-2 sentences, max 240 chars — required whenever top_pick is set, else null"
 }
 ```
 
