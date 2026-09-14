@@ -203,8 +203,10 @@
 // The Top Pick tooltip.
 //
 // MUI's default is a dark grey bubble at 11px, which reads as a browser
-// affordance rather than part of this page. This is the same pink as the tab it
-// hangs off, so the reason looks like it came from the thing that was hovered.
+// affordance rather than part of this page. `--text-primary` instead: the
+// near-black the page already uses for body copy, so the bubble reads as this
+// site's own and the pink stays on the tab that was hovered rather than being
+// spent twice.
 //
 // Wider than MUI's 300px default because the content is two sentences of prose
 // rather than a label, and a 300px column turns them into five short lines.
@@ -212,7 +214,7 @@
     max-width: 22rem;
     padding: var(--spacing-sm) var(--spacing-md);
     border-radius: var(--radius-sm);
-    background: var(--surface-primary-main, #ce3197);
+    background: var(--text-primary);
     color: var(--text-contrast);
     font-family: 'GT Walsheim', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     font-size: 0.8125rem;
@@ -220,6 +222,7 @@
     line-height: 1.5;
 }
 
+// MUI colours the arrow through `color`, not `background`.
 .pickTooltipArrow {
-    color: var(--surface-primary-main, #ce3197);
+    color: var(--text-primary);
 }
