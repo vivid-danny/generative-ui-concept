@@ -247,8 +247,47 @@ function repairAgainstMarket(
     return repairs
 }
 
+/**
+ * Take `top_pick_reason` off a spec when it does not meet its bounds, before
+ * the whole-spec parse sees it.
+ *
+ * `LayoutSpecSchema.safeParse` is all-or-nothing, so without this a reason one
+ * character too long, or carrying a stray asterisk, falls the *entire page*
+ * back to the static layout — a composition that was paid for, discarded over
+ * prose. That is exactly what "repair, don't discard" exists to prevent, and a
+ * length or format miss is the likeliest way a brand-new required field goes
+ * wrong.
+ *
+ * The tooltip is the only thing lost, and the note says why.
+ */
+function stripUnusableReason(raw: unknown): { raw: unknown; note: ValidationNote | null } {
+    if (raw === null || typeof raw !== 'object' || !('top_pick_reason' in raw)) {
+        return { raw, note: null }
+    }
+
+    const candidate = (raw as { top_pick_reason?: unknown }).top_pick_reason
+    if (candidate === null || candidate === undefined) return { raw, note: null }
+
+    const field = LayoutSpecSchema.shape.top_pick_reason.safeParse(candidate)
+    if (field.success) return { raw, note: null }
+
+    return {
+        raw: { ...(raw as Record<string, unknown>), top_pick_reason: null },
+        note: {
+            level: 'repaired',
+            reason: `dropped \`top_pick_reason\` (${field.error.issues
+                .map((issue) => issue.message)
+                .join('; ')}); the chip renders without a tooltip`,
+        },
+    }
+}
+
 export function validateLayout(raw: unknown, market: Market): ValidationResult {
     const notes: ValidationNote[] = []
+
+    const reason = stripUnusableReason(raw)
+    if (reason.note) notes.push(reason.note)
+    raw = reason.raw
 
     const parsed = LayoutSpecSchema.safeParse(raw)
     if (!parsed.success) {
@@ -279,6 +318,30 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
             reason: `dropped \`top_pick\` (\`${topPick}\` is not a date in this snapshot)`,
         })
         topPick = null
+    }
+
+    // The pick and its reason are checked as a pair, because neither field can
+    // see the other on its own.
+    //
+    // A reason with no pick is orphaned prose and goes. A pick with no usable
+    // reason keeps the pick: the recommendation is the valuable half and it is
+    // still sound, so losing it over missing prose would throw away the model's
+    // actual judgment. The chip renders with no tooltip, and the note is what
+    // says so — a required output that quietly went missing is the kind of thing
+    // that has to be visible in the panel rather than inferred from a card that
+    // does nothing on hover.
+    let topPickReason = spec.top_pick_reason
+    if (topPickReason !== null && topPick === null) {
+        notes.push({
+            level: 'repaired',
+            reason: 'dropped `top_pick_reason` (there is no `top_pick` for it to explain)',
+        })
+        topPickReason = null
+    } else if (topPick !== null && topPickReason === null && reason.note === null) {
+        notes.push({
+            level: 'repaired',
+            reason: `\`top_pick\` (\`${topPick}\`) arrived without a \`top_pick_reason\`; the chip renders without a tooltip`,
+        })
     }
 
     const kept: LayoutSpec['layout'] = []
@@ -454,6 +517,7 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
             reasoning: spec.reasoning,
             headline: spec.headline,
             top_pick: topPick,
+            top_pick_reason: topPickReason,
         },
         notes,
         usedFallback: false,

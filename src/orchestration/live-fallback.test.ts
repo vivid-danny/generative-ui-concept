@@ -222,6 +222,7 @@ describe('readComposition — what the page is allowed to do', () => {
                 reasoning: 'composed earlier',
                 headline: null,
                 top_pick: null,
+                top_pick_reason: null,
             },
             notes: [],
             provenance: {

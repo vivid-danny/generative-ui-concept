@@ -1,6 +1,8 @@
 import React from 'react'
 import classNames from 'classnames'
 
+import Tooltip from '@mui/material/Tooltip'
+
 import Typography from '@/design-system/typography'
 import type { Production } from '@/contracts/market'
 
@@ -36,6 +38,14 @@ export interface ProductionCardProps {
      */
     isTopPick?: boolean
     /**
+     * Why it is the pick, in the model's own words, revealed on hover.
+     *
+     * Null when the composition did not supply one — the tab renders without a
+     * tooltip rather than the card losing its outline, because the
+     * recommendation is sound whether or not prose arrived with it.
+     */
+    topPickReason?: string | null
+    /**
      * Badges the section allowed. The row still only shows the ones true of it,
      * so an allowlist never becomes a label every card wears.
      */
@@ -55,6 +65,7 @@ export interface ProductionCardProps {
 const SIGNAL_CLASS: Record<SignalTone, string> = {
     good: styles.signalGood,
     neutral: styles.signalNeutral,
+    adverse: styles.signalAdverse,
 }
 
 /** Badge tone -> the card's own styling. Form, so it lives here. */
@@ -73,6 +84,7 @@ export const ProductionCard: React.FC<ProductionCardProps> = ({
     production,
     performerName,
     isTopPick = false,
+    topPickReason = null,
     eligibleBadges = [],
     signal = null,
 }) => {
@@ -91,9 +103,40 @@ export const ProductionCard: React.FC<ProductionCardProps> = ({
               to clear the gap between cards.
             */}
             {isTopPick && (
-                <Typography variant="overline" component="span" className={styles.topPick}>
-                    Top Pick
-                </Typography>
+                <Tooltip
+                    // Why the reason is not visible copy: the tab sits in the
+                    // gap between cards and there is nowhere to put two
+                    // sentences that does not push the row around. Hidden by
+                    // default also costs the resting state nothing, which is
+                    // what makes it affordable on a page this dense.
+                    title={topPickReason ?? ''}
+                    // An absent reason is a composition that did not supply
+                    // one; the tab still earns its place, because the
+                    // recommendation stands without the prose.
+                    disableHoverListener={topPickReason === null}
+                    disableFocusListener={topPickReason === null}
+                    disableTouchListener={topPickReason === null}
+                    placement="top"
+                    arrow
+                    enterDelay={120}
+                    // Long enough to read two sentences without chasing it.
+                    leaveDelay={80}
+                    classes={{ tooltip: styles.pickTooltip, arrow: styles.pickTooltipArrow }}
+                >
+                    <Typography
+                        variant="overline"
+                        component="span"
+                        className={styles.topPick}
+                        // Keyboard reaches it only if it is focusable, and a
+                        // reason nobody can read without a mouse is half a
+                        // feature. `tabIndex` rather than a button: pressing it
+                        // does nothing, so a button would promise an action.
+                        tabIndex={topPickReason === null ? undefined : 0}
+                        aria-describedby={undefined}
+                    >
+                        Top Pick
+                    </Typography>
+                </Tooltip>
             )}
             <div className={styles.dateBlock}>
                 <Typography variant="overline" component="span" className={styles.weekday}>

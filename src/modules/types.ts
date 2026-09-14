@@ -32,4 +32,10 @@ export interface ModuleComponentProps<P = Record<string, unknown>> {
      * row if it happens to be showing it.
      */
     topPick?: string | null
+    /**
+     * Why that date is the pick, threaded alongside the id for the same reason:
+     * the pair is one page-level decision, and the section carries it only as
+     * far as the row that happens to be showing it.
+     */
+    topPickReason?: string | null
 }

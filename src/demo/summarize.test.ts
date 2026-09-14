@@ -33,6 +33,7 @@ const SHAPES: { label: string; spec: Parameters<typeof summarizeComposition>[0] 
             reasoning: 'the baseline shape',
             headline: null,
             top_pick: null,
+            top_pick_reason: null,
         },
     },
     {
@@ -53,6 +54,7 @@ const SHAPES: { label: string; spec: Parameters<typeof summarizeComposition>[0] 
             reasoning: 'a budget shape',
             headline: null,
             top_pick: null,
+            top_pick_reason: null,
         },
     },
     {
@@ -86,6 +88,7 @@ const SHAPES: { label: string; spec: Parameters<typeof summarizeComposition>[0] 
             reasoning: 'a sectioned shape',
             headline: null,
             top_pick: null,
+            top_pick_reason: null,
         },
     },
 ]
@@ -135,6 +138,7 @@ describe('summarizeComposition', () => {
             reasoning: 'truncation case',
             headline: null,
             top_pick: null,
+            top_pick_reason: null,
         }
         const summary = summarizeComposition(spec, market, context)
 
@@ -180,6 +184,7 @@ describe('summarizeComposition with repeated sections', () => {
         reasoning: 'sections',
         headline: null,
         top_pick: null,
+        top_pick_reason: null,
     }
 
     it('summarises every instance, not just the first', () => {
@@ -252,6 +257,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
             reasoning: 'overlapping filters',
             headline: null,
             top_pick: null,
+            top_pick_reason: null,
         }
         const summary = summarizeComposition(spec, market, context)
         const ids = summary.groups.flatMap((group) => group.rows.map((row) => row.id))
@@ -268,6 +274,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
             reasoning: 'both want Chicago',
             headline: null,
             top_pick: null,
+            top_pick_reason: null,
         }
         const summary = summarizeComposition(spec, market, context)
 
@@ -283,6 +290,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
             reasoning: 'both want Chicago',
             headline: null,
             top_pick: null,
+            top_pick_reason: null,
         }
         const summary = summarizeComposition(spec, market, context)
 
@@ -297,6 +305,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
             reasoning: 'nothing is this cheap',
             headline: null,
             top_pick: null,
+            top_pick_reason: null,
         }
         const summary = summarizeComposition(spec, market, context)
 
@@ -314,6 +323,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
             reasoning: 'first claims Chicago',
             headline: null,
             top_pick: null,
+            top_pick_reason: null,
         }
         const summary = summarizeComposition(spec, market, context)
 
@@ -347,6 +357,7 @@ describe('summarizeComposition — a top pick that renders nowhere', () => {
                 reasoning: 'names a date it does not show',
                 headline: null,
                 top_pick: indianapolis.id,
+                top_pick_reason: null,
             },
             market,
             context,
@@ -372,6 +383,7 @@ describe('summarizeComposition — a top pick that renders nowhere', () => {
                 reasoning: 'shows what it named',
                 headline: null,
                 top_pick: chicago.id,
+                top_pick_reason: null,
             },
             market,
             context,

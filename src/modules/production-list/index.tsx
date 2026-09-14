@@ -26,6 +26,7 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
     props,
     excludeItemIds,
     topPick,
+    topPickReason,
 }) => {
     // No "see all" escape hatch here. The composition does narrow the list — by
     // budget filter and by max_items — and the visitor still has to be able to
@@ -108,6 +109,7 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
                                 production={production}
                                 performerName={market.performer.name}
                                 isTopPick={production.id === topPickId}
+                                topPickReason={topPickReason ?? null}
                                 eligibleBadges={props.badges}
                                 signal={cardSignalFor(production, props.card_signal, shown)}
                             />

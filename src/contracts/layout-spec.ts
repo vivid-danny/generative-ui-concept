@@ -37,6 +37,41 @@ export const LayoutSpecSchema = z.object({
      * section actually shows that date — see `selectProductions`.
      */
     top_pick: z.string().nullable().default(null),
+    /**
+     * One or two sentences saying *why* that date is the pick, shown on hover
+     * over the "Top Pick" tab.
+     *
+     * The first model-written prose a visitor reads. Every other string the
+     * model writes is a *framing* — a heading, a headline — but this one states
+     * reasons, and a reason is made of facts. Nothing downstream can check
+     * whether they are true: the bounds below constrain shape and length, and
+     * the system prompt carries the rest (say what you like about why; every
+     * fact must come from the snapshot you were given).
+     *
+     * Why the bounds are what they are:
+     *
+     * - **40 floor.** Stops "Best value." — a chip that explains nothing is
+     *   worse than a chip with no tooltip, because the visitor spent a hover on
+     *   it.
+     * - **240 ceiling.** Two sentences with room to be specific. A tooltip is
+     *   not a paragraph, and the reasoning the model already writes in
+     *   `reasoning` shows it will fill any space it is given.
+     * - **Single line, no markup.** Rejected rather than stripped — a reason
+     *   arriving as a bullet list means the model misunderstood the slot, and
+     *   quietly reshaping it would hide that.
+     *
+     * Required whenever `top_pick` is set, enforced in the validator because it
+     * is a rule about the pair rather than about either field.
+     */
+    top_pick_reason: z
+        .string()
+        .trim()
+        .min(40)
+        .max(240)
+        .refine((text) => !text.includes('\n'), { message: 'must be a single line' })
+        .refine((text) => !/[*_`#<>|]/.test(text), { message: 'must be plain prose' })
+        .nullable()
+        .default(null),
 })
 
 export type LayoutEntry = z.infer<typeof LayoutEntrySchema>

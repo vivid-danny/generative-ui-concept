@@ -20,6 +20,10 @@ const validSpec = {
     headline: null,
 }
 
+/** A reason of a realistic shape: two short sentences, inside the bounds. */
+const REASON =
+    'The only Chicago date inside your budget, and the most in-demand night you can reach without flying.'
+
 describe('validateLayout', () => {
     it('passes a valid spec through and applies prop defaults', () => {
         const result = validateLayout(validSpec, market)
@@ -192,10 +196,79 @@ describe('validateLayout', () => {
 
     it('keeps a top pick that is real', () => {
         const real = market.productions[3].id
-        const result = validateLayout({ ...validSpec, top_pick: real }, market)
+        const result = validateLayout(
+            { ...validSpec, top_pick: real, top_pick_reason: REASON },
+            market,
+        )
 
         expect(result.spec.top_pick).toBe(real)
+        expect(result.spec.top_pick_reason).toBe(REASON)
         expect(result.notes).toEqual([])
+    })
+
+    describe('the pick and its reason are checked as a pair', () => {
+        it('keeps the pick when the reason is missing, and says so', () => {
+            // The recommendation is the valuable half and it is still sound.
+            // Losing it over missing prose would throw away real judgment — but
+            // a required output that went missing has to be visible in the
+            // panel rather than inferred from a chip that does nothing.
+            const real = market.productions[3].id
+            const result = validateLayout({ ...validSpec, top_pick: real }, market)
+
+            expect(result.spec.top_pick).toBe(real)
+            expect(result.spec.top_pick_reason).toBeNull()
+            expect(result.notes[0].reason).toContain('without a `top_pick_reason`')
+        })
+
+        it('drops a reason that has no pick to explain', () => {
+            const result = validateLayout({ ...validSpec, top_pick_reason: REASON }, market)
+
+            expect(result.spec.top_pick_reason).toBeNull()
+            expect(result.notes[0].reason).toContain('no `top_pick`')
+        })
+
+        it('does not fall the whole page back over a reason one character too long', () => {
+            // The failure this guards: an all-or-nothing parse threw away a
+            // composition that was paid for because its prose was 241 chars.
+            const real = market.productions[3].id
+            const result = validateLayout(
+                { ...validSpec, top_pick: real, top_pick_reason: 'x'.repeat(241) },
+                market,
+            )
+
+            expect(result.usedFallback).toBe(false)
+            expect(result.spec.layout.length).toBeGreaterThan(0)
+            expect(result.spec.top_pick).toBe(real)
+            expect(result.spec.top_pick_reason).toBeNull()
+            expect(result.notes[0].reason).toContain('dropped `top_pick_reason`')
+        })
+
+        it('drops a reason too short to explain anything', () => {
+            const real = market.productions[3].id
+            const result = validateLayout(
+                { ...validSpec, top_pick: real, top_pick_reason: 'Best value.' },
+                market,
+            )
+
+            // Stripped back to the schema default rather than shown: a chip
+            // that says nothing on hover is worse than one with no tooltip,
+            // because the visitor spent the hover.
+            expect(result.spec.top_pick_reason).toBeNull()
+        })
+
+        it('drops a reason that arrived as markup rather than prose', () => {
+            const real = market.productions[3].id
+            const result = validateLayout(
+                {
+                    ...validSpec,
+                    top_pick: real,
+                    top_pick_reason: '**Cheapest** Chicago night on the tour, and the room will be full for it.',
+                },
+                market,
+            )
+
+            expect(result.spec.top_pick_reason).toBeNull()
+        })
     })
 
     it('turns off geo grouping on a section that names itself', () => {
