@@ -90,5 +90,18 @@ export function modeFor(slug: ModeSlug, brief: string | null): DemoMode {
     }
 }
 
+/**
+ * A brief typed before, offered back.
+ *
+ * `cached` is the load-bearing half: a brief whose composition is still on disk
+ * replays for nothing, and one whose is not costs a call. Editing
+ * `orchestrator/prompt.md` or the catalog invalidates every key, so the same
+ * brief flips from free to paid without the text changing at all.
+ */
+export interface BriefHistoryEntry {
+    brief: string
+    cached: boolean
+}
+
 /** Ordered for the panel's buttons. */
 export const MODE_SLUGS: ModeSlug[] = ['base', 'eval', 'custom']

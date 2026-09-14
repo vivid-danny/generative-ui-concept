@@ -29,6 +29,21 @@ export interface CallRecord {
     /** The composition cache key, so a line can be tied to its artefact. */
     key: string
     /**
+     * The brief this call was composed from.
+     *
+     * Optional because every line written before this field existed will not
+     * have it, and `readLedger` casts rather than validates — a required field
+     * would be a type that lies about what is on disk. Read it as
+     * `record.brief ?? null`.
+     *
+     * This is the only durable copy of a typed brief. The composition artefact
+     * does not carry one (`SpecProvenance` keys on persona and budget, see
+     * `context-key.ts`), and the drawer holds the text in React state only
+     * until a call succeeds. So for a call that failed or timed out, this line
+     * is the whole record of what was asked for.
+     */
+    brief?: string | null
+    /**
      * What caused the call. Only ever a deliberate press now, but recorded
      * rather than assumed: if an automatic trigger ever comes back, the ledger
      * is where it will show up.
@@ -97,4 +112,38 @@ export async function readLedger(): Promise<CallRecord[]> {
  */
 export function lastCall(records: CallRecord[]): CallRecord | null {
     return records.length === 0 ? null : records[records.length - 1]
+}
+
+/** How many briefs the drawer offers back. Five ranked beats ten unranked. */
+const BRIEF_HISTORY_LIMIT = 5
+
+/**
+ * The briefs typed into the Custom tab, most recent first.
+ *
+ * A scripted eval brief lives in a fixture, so it never needed remembering. A
+ * typed one exists nowhere but the URL of the tab it was typed in — close that
+ * tab and the composition you paid for is unreachable, sitting in `.cache`
+ * under a 16-character hash. This is what makes it findable again.
+ *
+ * Custom only, and deliberately: `mode` is part of the cache key material
+ * (`cache.ts`), so an eval brief offered back as `?mode=custom&brief=…` hashes
+ * to a key nothing was ever written under. It would read as "already run" and
+ * then cost a call.
+ */
+export function recentBriefs(records: CallRecord[]): string[] {
+    const seen = new Set<string>()
+
+    // Reversed before deduping, not after. The ledger is oldest-first, so
+    // keeping the first occurrence of a repeated brief in that order would pin
+    // it at the position it had the first time it was ever run — a brief from
+    // five minutes ago would sort below one from last week.
+    for (const record of [...records].reverse()) {
+        if (record.mode !== 'custom') continue
+        const brief = record.brief?.trim()
+        if (!brief) continue
+        seen.add(brief)
+        if (seen.size === BRIEF_HISTORY_LIMIT) break
+    }
+
+    return [...seen]
 }

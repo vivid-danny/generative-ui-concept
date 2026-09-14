@@ -45,7 +45,7 @@ And one that changes the page: **the top pick now says why, on hover.**
 | --- | --- | --- |
 | `base` (default) | No visitor context. The baseline every visitor gets. | free, no call |
 | `eval` | A scripted brief putting several levers in tension. | one call **when you press Run**, then cached |
-| `custom` | A brief typed in the drawer. | one call per brief, on press, then cached |
+| `custom` | A brief typed in the drawer. | one call per brief, on press, then cached. Lands empty; the URL gains `brief=` only *after* a call succeeds |
 
 Base keeps the visitor's city — today's real page geolocates, and framing the
 baseline as context-free would argue against a page that does not exist. What it
@@ -215,7 +215,7 @@ after being cut from slice 1, and the developer panel became a left drawer.
 | --- | --- | --- |
 | Contracts | `src/contracts/` | The four Zod schemas: context, market, module catalog, layout spec. Frozen apart from two additive amendments — see below. |
 | Orchestration | `src/orchestration/` | The seam, `BaseProvider`, **`LiveProvider` + `bridge.ts`** (spawns the Claude Code CLI), `cache.ts`, `ledger.ts`, `validate.ts`, `derive.ts`. `readComposition` is the page's only path in — it cannot call |
-| The call gate | `pages/api/compose.ts` | **The only thing in the app that can spend money.** POST only, one in-flight call per cache key, every attempt written to the ledger |
+| The call gate | `pages/api/compose.ts` | **The only thing in the app that can spend money.** POST only, **one in-flight call across the whole server** (a second press on the same composition joins it; anything else gets a 409), every attempt written to the ledger with the brief it came from |
 | Modules | `src/modules/` | `event_header` (chrome), `production_list` and `market_signals` implemented; 6 more specified. Every entry carries a `propsHint` the prompt shows the model |
 | Renderer | `src/renderer/ComposedPage.tsx` | Spec → components, keyed by module id |
 | Shell | `src/shell/` | Navbar, PageShell grid (header / main / rail / SEO slots), Breadcrumbs, PerformerTabs, PerformerFilters, PerformerRail, TrustBanner, SeoContent, Footer, Logo |
@@ -224,7 +224,7 @@ after being cut from slice 1, and the developer panel became a left drawer.
 | Fixtures | `src/fixtures/` | Olivia Rodrigo 52-date tour, the base context, and `eval-scenarios.ts` (the scripted brief). **Read `src/fixtures/README.md`** — it marks which fields are real vs fabricated, and the authoring invariants the tests pin |
 | System prompt | `orchestrator/prompt.md` | **v11**, 1,999 words. Read at call time; provenance records the version that ran. History in `docs/PROMPT-HISTORY.md` — kept out of the file because the bridge passes it whole |
 | Evals | `orchestrator/eval/README.md` | What the deleted spec-library evals owed back, at the live level. The tests themselves are retired — see below |
-| Demo chrome | `src/demo/` | `DemoBar` drawer (modes, the Run button, elapsed counter, spend total), `modes.ts`, and `summarize.ts` — "what it composed" |
+| Demo chrome | `src/demo/` | `DemoBar` drawer (modes, the run button, elapsed counter, last-call cost, the brief history list), `modes.ts`, and `summarize.ts` — "what it composed" |
 
 ### A fresh clone runs — verified 2026-09-14
 

@@ -196,10 +196,52 @@
     color: #e6edf3;
     font: inherit;
     resize: vertical;
+
+    /*
+      Sized here rather than by the `rows` attribute, which only takes whole
+      numbers: the box was 4 rows, and 30% more is 5.2 — `rows={5}` is 25% and
+      `rows={6}` is 50%. `line-height` is pinned alongside it because `font:
+      inherit` above would otherwise leave it at `normal`, which differs per
+      platform and makes the height unpredictable.
+
+      A brief is prose, several sentences of it, and a box that shows two of
+      them at a time hides the thing you are editing.
+    */
+    line-height: 1.5;
+    min-height: 7.8em; /* 5.2 rows */
 }
 
 .briefInput::placeholder {
     color: #7d8590;
+}
+
+/*
+  Briefs already run, offered back as links.
+
+  Reset as a list because these are navigation, not prose: each one is a free
+  replay of a composition already paid for, and they have to read as clickable
+  without reading as the button above them, which is the thing that spends.
+*/
+.briefHistory {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.briefHistoryLink {
+    display: block;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-left: 2px solid #30363d;
+    color: #e6edf3;
+    text-decoration: none;
+
+    &:hover {
+        border-left-color: #58a6ff;
+        background: rgba(88, 166, 255, 0.08);
+    }
 }
 
 /*
