@@ -25,6 +25,41 @@ const REASON =
     'The only Chicago date inside your budget, and the most in-demand night you can reach without flying.'
 
 describe('validateLayout', () => {
+    it('keeps a `visitor_metro` the snapshot has a date in', () => {
+        const result = validateLayout({ ...validSpec, visitor_metro: 'Los Angeles' }, market)
+
+        expect(result.spec.visitor_metro).toBe('Los Angeles')
+        expect(result.notes).toEqual([])
+    })
+
+    it('normalises `visitor_metro` to the snapshot’s own spelling', () => {
+        // `selectProductions` groups on exact string equality, so a casing
+        // difference would silently put every date in "away" and head the
+        // section after a city it is not showing.
+        const result = validateLayout({ ...validSpec, visitor_metro: 'los angeles' }, market)
+
+        expect(result.spec.visitor_metro).toBe('Los Angeles')
+    })
+
+    it('drops a `visitor_metro` that is not a city in the snapshot', () => {
+        // This one gets printed, so an invented city is worse than none: the
+        // header names a place with no rows under it.
+        const result = validateLayout({ ...validSpec, visitor_metro: 'Atlantis' }, market)
+
+        expect(result.spec.visitor_metro).toBeNull()
+        expect(result.notes).toEqual([
+            {
+                level: 'repaired',
+                reason: 'dropped `visitor_metro` (`Atlantis` is not a city in this snapshot)',
+            },
+        ])
+    })
+
+    it('leaves `visitor_metro` null when the model says nothing', () => {
+        // The baseline's case: nothing composed, so the context's geo stands.
+        expect(validateLayout(validSpec, market).spec.visitor_metro).toBeNull()
+    })
+
     it('passes a valid spec through and applies prop defaults', () => {
         const result = validateLayout(validSpec, market)
 

@@ -277,6 +277,12 @@ export class LiveProvider implements OrchestrationProvider {
                 at: new Date().toISOString(),
                 mode,
                 key,
+                // Load-bearing on the failure path, not bookkeeping. A typed
+                // brief lives in the drawer's React state until a call
+                // succeeds, so when one times out at 180s this line is the only
+                // surviving copy of what was asked for — and a timeout is the
+                // most expensive outcome, since it buys nothing.
+                brief: context.brief ?? null,
                 trigger: this.options.trigger ?? 'unknown',
                 outcome,
                 durationMs: Date.now() - startedAt,
@@ -323,6 +329,7 @@ export class LiveProvider implements OrchestrationProvider {
                 at: resolved.provenance.generated_at,
                 mode,
                 key,
+                brief: context.brief ?? null,
                 trigger: this.options.trigger ?? 'unknown',
                 outcome: 'composed',
                 durationMs: call.durationMs,

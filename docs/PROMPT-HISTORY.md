@@ -16,6 +16,18 @@ Keep appending here, newest first, when the prompt version changes.
 
 ---
 
+**v12 (2026-09-14):** `visitor_metro` — the composition states where the visitor
+is, and the renderer uses it. `selectProductions` grouped dates against
+`context.geo.metro` and the section header printed it, so the geo-IP guess was
+the only location the page could express, even though `buildMessage` tells the
+model the description outranks it. The first open-ended custom brief — an LA
+visitor against the Chicago fixture — composed correctly by setting
+`group_by_geo: false` on all three modules, which is the model bending its
+composition around a rendering limit rather than a decision anyone asked for.
+Set `group_by_geo: true` with that brief and the heading read "Near Chicago". A
+system that only works while the model keeps choosing to sidestep the question
+is not working.
+
 **v11 (2026-09-14):** superlatives in `top_pick_reason` must be scoped to what
 the page shows. The first trimmed v10 run wrote "the most in-demand date you can
 reach without flying" about a Chicago date at demand 0.90 — while prod-038, also

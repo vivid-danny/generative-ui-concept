@@ -11,7 +11,7 @@ guardrails. This document says where the code actually is and what to do next.
 
 ## Status: slice 6 — the recommendation explains itself, and calls are deliberate
 
-System prompt is at **v11**. The page is composed at request time by
+System prompt is at **v12**. The page is composed at request time by
 `claude-sonnet-5`. 172 tests pass, typecheck is clean, production build
 succeeds. Committed on `vivid-danny/genui-concept-build`; nothing is pushed.
 
@@ -45,7 +45,7 @@ And one that changes the page: **the top pick now says why, on hover.**
 | --- | --- | --- |
 | `base` (default) | No visitor context. The baseline every visitor gets. | free, no call |
 | `eval` | A scripted brief putting several levers in tension. | one call **when you press Run**, then cached |
-| `custom` | A brief typed in the drawer. | one call per brief, on press, then cached |
+| `custom` | A brief typed in the drawer. | one call per brief, on press, then cached. Lands empty; the URL gains `brief=` only *after* a call succeeds |
 
 Base keeps the visitor's city — today's real page geolocates, and framing the
 baseline as context-free would argue against a page that does not exist. What it
@@ -215,16 +215,16 @@ after being cut from slice 1, and the developer panel became a left drawer.
 | --- | --- | --- |
 | Contracts | `src/contracts/` | The four Zod schemas: context, market, module catalog, layout spec. Frozen apart from two additive amendments — see below. |
 | Orchestration | `src/orchestration/` | The seam, `BaseProvider`, **`LiveProvider` + `bridge.ts`** (spawns the Claude Code CLI), `cache.ts`, `ledger.ts`, `validate.ts`, `derive.ts`. `readComposition` is the page's only path in — it cannot call |
-| The call gate | `pages/api/compose.ts` | **The only thing in the app that can spend money.** POST only, one in-flight call per cache key, every attempt written to the ledger |
+| The call gate | `pages/api/compose.ts` | **The only thing in the app that can spend money.** POST only, **one in-flight call across the whole server** (a second press on the same composition joins it; anything else gets a 409), every attempt written to the ledger with the brief it came from |
 | Modules | `src/modules/` | `event_header` (chrome), `production_list` and `market_signals` implemented; 6 more specified. Every entry carries a `propsHint` the prompt shows the model |
 | Renderer | `src/renderer/ComposedPage.tsx` | Spec → components, keyed by module id |
 | Shell | `src/shell/` | Navbar, PageShell grid (header / main / rail / SEO slots), Breadcrumbs, PerformerTabs, PerformerFilters, PerformerRail, TrustBanner, SeoContent, Footer, Logo |
 | Design | `src/design/` | Athena tokens copied verbatim, Figma type scale as data, MUI theme, grid constants |
 | Design system | `src/design-system/` | `box`, `typography`, `chip` ported from athena (i18n stripped); local `icons` set (microphone, user, calendar, ticket, shield, heart, rewards) |
 | Fixtures | `src/fixtures/` | Olivia Rodrigo 52-date tour, the base context, and `eval-scenarios.ts` (the scripted brief). **Read `src/fixtures/README.md`** — it marks which fields are real vs fabricated, and the authoring invariants the tests pin |
-| System prompt | `orchestrator/prompt.md` | **v11**, 1,999 words. Read at call time; provenance records the version that ran. History in `docs/PROMPT-HISTORY.md` — kept out of the file because the bridge passes it whole |
+| System prompt | `orchestrator/prompt.md` | **v12**, 2,193 words. Read at call time; provenance records the version that ran. History in `docs/PROMPT-HISTORY.md` — kept out of the file because the bridge passes it whole |
 | Evals | `orchestrator/eval/README.md` | What the deleted spec-library evals owed back, at the live level. The tests themselves are retired — see below |
-| Demo chrome | `src/demo/` | `DemoBar` drawer (modes, the Run button, elapsed counter, spend total), `modes.ts`, and `summarize.ts` — "what it composed" |
+| Demo chrome | `src/demo/` | `DemoBar` drawer (modes, the run button, elapsed counter, last-call cost, the brief history list), `modes.ts`, and `summarize.ts` — "what it composed" |
 
 ### A fresh clone runs — verified 2026-09-14
 
@@ -616,13 +616,20 @@ consistently violating one rule to satisfy another, the rules are the bug.
 
 Roughly in order:
 
-1. **`top_pick_reason` has not been read on a live v11 run.** The rule that
-   superlatives must be scoped to what the page shows came *from* the v10 output
-   and went in untested — the cache was invalidated by the version bump, so
-   `?mode=eval` serves the baseline until someone presses Run. One call says
-   whether the scoping rule holds. What to check: that the sentence addresses the
-   visitor as "you", and that any superlative in it is true of the rows on the
-   page rather than of all 52 dates.
+1. **`visitor_metro` has not been read on a live v12 run.** The field is
+   covered by tests at the validator and the selector, but nothing has checked
+   that the model *populates* it — and the v12 bump invalidated the cache, so
+   every mode serves the baseline until someone presses Run. What to check: a
+   custom brief naming a city other than Chicago sets `visitor_metro` to that
+   city, and a composition with `group_by_geo: true` heads its near-group after
+   it rather than after the fixture. The prompt is now 2,193 words against
+   v11's 1,999; v10 timed out at 180s on 2,733, so this is inside the range that
+   has been fine but it is the largest the prompt has been since that timeout.
+
+   `top_pick_reason` **was** read on a live v11 run (2026-09-14, the first
+   custom brief): 158 chars, addressed the visitor as "you", and its superlative
+   ("the best value of your three LA nights") was scoped to the rows shown. The
+   scoping rule holds.
 2. **`listing_preview`.** The one wanted module still missing, and the only one
    that pairs with a chosen date rather than the tour. Needs top-listings-per-
    event data, which the snapshot does not carry.

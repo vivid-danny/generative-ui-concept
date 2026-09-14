@@ -70,7 +70,7 @@ never spends it without a press.**
 | --- | --- | --- |
 | `base` (default) | No visitor context — the baseline every visitor gets today. Keeps the visitor's city, because the real page geolocates | free, never calls |
 | `eval` | A scripted brief putting budget, distance, popularity and date in tension. See `src/fixtures/eval-scenarios.ts` | one call, then cached |
-| `custom` | A brief you type into the drawer | one call per brief, then cached |
+| `custom` | A brief you type into the drawer | one call per brief, on press, then cached |
 
 Opening `?mode=eval` is **free and instant**. It reads the cache and stops. If
 nothing has been composed for that brief yet you get the baseline page plus a
@@ -86,11 +86,17 @@ covering it.
 It holds, top to bottom:
 
 - **Mode** — `Base` / `Eval` / `Custom`, and the brief each one hands over
-- **Run composition** / **Re-run (new call)** — the only path to a live call.
+- **Compose (one call)** / **Re-run (new call)** — the only path to a live
+  call. In Custom it is the button directly under the textarea, and one press
+  does the whole thing; there used to be a second button above it labelled
+  "Compose" that only navigated, so the obvious press did nothing visible.
   Disabled the instant you press it, with an elapsed second count below, because
   a composition takes 40–180 seconds and silence used to look identical to a dead
   page
-- **Spent this machine** — running total from the call ledger, failures included
+- **Briefs you have run** (Custom only) — the last five typed briefs, from the
+  ledger, each marked *cached* (a free replay) or *needs a call*. Editing the
+  system prompt flips every one of them from the first to the second
+- **Estimated cost** — what the last call cost, failures included
 - **Why this page** — the model's own reasoning for this composition
 - **What it composed** — modules placed, rows that actually rendered, the top
   pick, and how many dates each filter removed
@@ -119,10 +125,17 @@ Three things keep spending deliberate:
 - **Only a POST to `/api/compose` can call the model.** Rendering a page cannot.
   A GET is replayable by design — hot reload, a refresh, a second tab, a link
   prefetch — and that is how five calls once went through from two presses.
-- **One call per cache key at a time.** Concurrent posts share one in-flight
-  promise instead of both paying.
+- **One call at a time, across the whole server.** Two presses for the same
+  composition share one in-flight promise; anything else that arrives mid-call
+  gets a 409 and spends nothing. It used to be one call per *cache key*, which
+  stopped being a limit the moment briefs were typed rather than scripted — a
+  new brief is a new key, so two tabs were two calls.
 - **Every attempt is logged** to `.cache/calls.log`, failures included, with
-  cost, duration and what triggered it. The drawer shows the running total.
+  cost, duration, what triggered it, and **the brief it was composed from**. A
+  typed brief lives in the URL and nowhere else, so this is what makes a
+  composition findable again after the tab is gone. The drawer shows the last
+  call — not a total; the total is reconstructable from the log, which is where
+  a question about cumulative spend belongs.
 
 Compositions are cached on disk under `.cache/` (gitignored), keyed on **the
 exact message sent plus the full text of the system prompt**. So:

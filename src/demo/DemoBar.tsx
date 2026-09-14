@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/router'
 import Link from 'next/link'
 import classNames from 'classnames'
@@ -7,7 +7,7 @@ import type { ResolvedLayout } from '@/contracts/layout-spec'
 
 import styles from './DemoBar.module.scss'
 import type { CompositionSummary } from './summarize'
-import { MODE_SLUGS, type DemoMode, type ModeSlug } from './modes'
+import { MODE_SLUGS, type BriefHistoryEntry, type DemoMode, type ModeSlug } from './modes'
 import type { CallRecord } from '@/orchestration/ledger'
 
 /**
@@ -38,6 +38,13 @@ interface DemoBarProps {
     awaitingRun: boolean
     /** The most recent call attempt. Null before the first one on this machine. */
     lastCall: CallRecord | null
+    /**
+     * Briefs typed before, and whether each still has a composition on disk.
+     * A typed brief exists nowhere but the URL of the tab it was typed in, so
+     * without this the composition you paid for is unreachable once you
+     * navigate away.
+     */
+    briefHistory: BriefHistoryEntry[]
     /** The page itself — rendered beside the drawer so opening it pushes right. */
     children: React.ReactNode
 }
@@ -100,16 +107,41 @@ const DRAWER_KEY = 'genui:drawer'
  * 180s; without a number on screen there is no difference between thinking and
  * broken — which is how three calls got fired on top of each other.
  */
+interface ComposeError {
+    message: string
+    /**
+     * Whether this failure cost anything. A 409 from the one-call lock spent
+     * nothing and wrote no ledger line; a timeout spent the full input tokens
+     * and left no composition. Telling the reader "this is in the ledger either
+     * way" when it is not is the kind of small lie that makes the rest of the
+     * cost reporting unbelievable.
+     */
+    spent: boolean
+}
+
+interface ComposeRequest {
+    mode: ModeSlug
+    brief: string | null
+    fresh?: boolean
+    /**
+     * Where to land once the composition exists. Custom passes the URL for the
+     * brief it just composed, which is how the URL became a *result* of a run
+     * rather than something you had to navigate to first. Omitted means "re-read
+     * where we already are".
+     */
+    href?: string
+}
+
 function useCompose(): {
     composing: boolean
     elapsed: number
-    error: string | null
-    run: (body: { mode: ModeSlug; brief: string | null; fresh?: boolean }) => void
+    error: ComposeError | null
+    run: (body: ComposeRequest) => void
 } {
     const router = useRouter()
     const [startedAt, setStartedAt] = useState<number | null>(null)
     const [elapsed, setElapsed] = useState(0)
-    const [error, setError] = useState<string | null>(null)
+    const [error, setError] = useState<ComposeError | null>(null)
 
     useEffect(() => {
         if (startedAt === null) return
@@ -120,7 +152,7 @@ function useCompose(): {
         return () => window.clearInterval(tick)
     }, [startedAt])
 
-    const run = (body: { mode: ModeSlug; brief: string | null; fresh?: boolean }) => {
+    const run = ({ href, ...body }: ComposeRequest) => {
         if (startedAt !== null) return
         setError(null)
         setElapsed(0)
@@ -134,16 +166,33 @@ function useCompose(): {
             .then(async (response) => {
                 const payload = (await response.json()) as { error?: string; reason?: string }
                 if (!response.ok) {
-                    // The page stays as it was rather than going blank. A failed
-                    // call still cost money; the ledger has it either way.
-                    setError(payload.reason ?? payload.error ?? `call failed (${response.status})`)
+                    // The page stays as it was rather than going blank.
+                    setError({
+                        message:
+                            payload.reason ?? payload.error ?? `call failed (${response.status})`,
+                        // 409 is the one-call lock refusing, before any call was
+                        // made. Everything else got as far as the model.
+                        spent: response.status !== 409,
+                    })
                     return
                 }
-                // Re-read props. The composition is in cache now, so this is free.
-                await router.replace(router.asPath, undefined, { scroll: false })
+                // Re-read props. The composition is in cache now, so this is
+                // free. `shallow` is deliberately not passed — it is the one
+                // flag that would suppress the getServerSideProps re-run this
+                // whole call depends on. `scroll: false` matters more than it
+                // looks: a query change defaults to scrolling to the top, and
+                // doing that after a 40–180s wait throws away the page you
+                // waited for.
+                await router.replace(href ?? router.asPath, undefined, { scroll: false })
             })
             .catch((cause: unknown) => {
-                setError(cause instanceof Error ? cause.message : 'the request never completed')
+                // The request itself never completed, so whether the model was
+                // reached is unknown — assume it was and say so, because the
+                // expensive mistake is reporting a call as free.
+                setError({
+                    message: cause instanceof Error ? cause.message : 'the request never completed',
+                    spent: true,
+                })
             })
             .finally(() => setStartedAt(null))
     }
@@ -157,6 +206,7 @@ export const DemoBar: React.FC<DemoBarProps> = ({
     summary,
     awaitingRun,
     lastCall,
+    briefHistory,
     children,
 }) => {
     const { provenance, notes, spec } = resolved
@@ -176,19 +226,56 @@ export const DemoBar: React.FC<DemoBarProps> = ({
             window.sessionStorage.setItem(DRAWER_KEY, next ? 'open' : 'closed')
             return next
         })
-    const router = useRouter()
-    // The textarea's own value. The composed brief lives in the URL, so this is
-    // only the in-progress edit.
-    const [draft, setDraft] = useState(active.brief ?? '')
+    // The textarea's own value. Initialised here only to avoid a flash on first
+    // paint; the effect below is what actually keeps it right.
+    const [draft, setDraft] = useState(active.slug === 'custom' ? (active.brief ?? '') : '')
     const { composing, elapsed, error, run } = useCompose()
 
-    // Switching to a typed brief is a navigation, not a call: the page loads the
-    // baseline for it and waits to be told to compose.
-    const submitBrief = (event: React.FormEvent) => {
+    /**
+     * Keep the textarea on the brief the page is actually showing.
+     *
+     * This has to be an effect, not just an initialiser. `pages/_app.tsx`
+     * renders `<Component>` with no `key`, so a query-only navigation re-renders
+     * this component without remounting it and an initialiser runs once per
+     * hard load. That is how switching Eval → Custom used to arrive with the
+     * eval brief already in the box — and, worse, how clicking a remembered
+     * brief could leave stale text in a textarea whose button then composed it,
+     * paying for a brief that was not the one on screen.
+     *
+     * Keyed on what the page is *showing*, via a ref, so it fires once per
+     * navigation and not once per render. Gating on `composing` instead looks
+     * equivalent and is not: the flag going false at the end of a *failed* call
+     * would re-run this and overwrite the typed text with the brief in the URL —
+     * and until a call succeeds, the textarea is the only copy of it.
+     */
+    const syncedTo = useRef<string | null>(null)
+
+    useEffect(() => {
+        const showing = `${active.slug}:${active.brief ?? ''}`
+        if (syncedTo.current === showing) return
+        syncedTo.current = showing
+        setDraft(active.slug === 'custom' ? (active.brief ?? '') : '')
+    }, [active.slug, active.brief])
+
+    const typed = draft.trim()
+    // `fresh` means "re-run the thing on screen", and nothing else. It used to
+    // be `!awaitingRun`, which describes the brief in the *URL* — so typing a
+    // new brief over a composed one asked to skip the cache, and paid for a
+    // brief that may well have been cached already. Every replay from the
+    // history list hit that.
+    const sameBrief = typed === (active.brief ?? '')
+    const composedThis = sameBrief && !awaitingRun
+
+    /** One press: call, then let the URL catch up to what was composed. */
+    const composeTyped = (event: React.FormEvent) => {
         event.preventDefault()
-        const brief = draft.trim()
-        if (!brief || composing) return
-        router.push(`/?mode=custom&brief=${encodeURIComponent(brief)}`)
+        if (!typed || composing) return
+        run({
+            mode: 'custom',
+            brief: typed,
+            fresh: composedThis,
+            href: `/?mode=custom&brief=${encodeURIComponent(typed)}`,
+        })
     }
 
     useEffect(() => {
@@ -221,7 +308,11 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                             {MODE_SLUGS.map((slug) => (
                                 <Link
                                     key={slug}
-                                    href={slug === 'custom' && draft.trim() ? `/?mode=custom&brief=${encodeURIComponent(draft.trim())}` : `/?mode=${slug}`}
+                                    // Plainly `/?mode=custom`, never carrying
+                                    // the draft. It used to, which meant the
+                                    // Custom tab inherited whatever brief the
+                                    // tab you left had — usually the eval one.
+                                    href={`/?mode=${slug}`}
                                     className={classNames(styles.variant, {
                                         [styles.variantActive]: slug === active.slug,
                                         [styles.variantDisabled]: composing,
@@ -248,35 +339,63 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                         */}
                         <span className={styles.label}>Given to the page</span>
                         <span className={styles.note}>{active.given}</span>
-                        {active.brief && <blockquote className={styles.brief}>{active.brief}</blockquote>}
+                        {/*
+                          Quoted only where there is nowhere else to read it.
+                          In Custom the textarea below holds the same text, and
+                          two copies of an editable value invite the question of
+                          which one the button will use.
+                        */}
+                        {active.slug !== 'custom' && active.brief && (
+                            <blockquote className={styles.brief}>{active.brief}</blockquote>
+                        )}
 
                         {active.slug === 'custom' && (
-                            <form className={styles.briefForm} onSubmit={submitBrief}>
+                            <form className={styles.briefForm} onSubmit={composeTyped}>
                                 <textarea
                                     className={styles.briefInput}
                                     value={draft}
                                     onChange={(event) => setDraft(event.target.value)}
+                                    // The real height is `min-height` in the
+                                    // stylesheet; this is the no-CSS floor.
                                     rows={4}
                                     placeholder="Describe who is landing. Plain sentences — the model reads this."
                                     aria-label="Visitor brief"
                                 />
+                                {/*
+                                  One button, and it is the one that spends. It
+                                  used to take two presses: a submit that only
+                                  navigated, labelled "Compose", and a separate
+                                  Run below it. Typing a brief and pressing the
+                                  button under it did nothing visible, which
+                                  invites pressing it again.
+                                */}
                                 <button
                                     type="submit"
                                     className={styles.runButton}
-                                    disabled={!draft.trim() || composing}
+                                    // Disabled the instant the request starts,
+                                    // not on completion: the second press is the
+                                    // one that pays twice.
+                                    disabled={!typed || composing}
                                 >
-                                    {composing ? 'Composing…' : 'Compose'}
+                                    {composing
+                                        ? 'Composing…'
+                                        : composedThis
+                                          ? 'Re-run (new call)'
+                                          : 'Compose (one call)'}
                                 </button>
                             </form>
                         )}
 
-                        {active.brief && (
+                        {/*
+                          Eval's run path. Custom has its own button inside the
+                          form above; this one stays because Eval has no
+                          textarea to put a button under, and gating it on
+                          `active.brief` alone would show two buttons in Custom.
+                        */}
+                        {active.slug !== 'custom' && active.brief && (
                             <button
                                 type="button"
                                 className={styles.runButton}
-                                // Disabled the instant the request starts, not on
-                                // completion: the second press is the one that
-                                // pays twice.
                                 disabled={composing}
                                 onClick={() =>
                                     run({
@@ -296,6 +415,50 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                             </button>
                         )}
 
+                        {/*
+                          Briefs already typed on this machine, from the call
+                          ledger. A typed brief lives in the URL and nowhere
+                          else, so without this the composition you paid for
+                          becomes unreachable the moment you switch tabs — it is
+                          still on disk, under a hash.
+
+                          Each says whether it replays for nothing or costs a
+                          call. Same brief, both answers possible: editing the
+                          system prompt or the catalog invalidates every key.
+                        */}
+                        {active.slug === 'custom' && briefHistory.length > 0 && (
+                            <>
+                                <span className={styles.label}>Briefs you have run</span>
+                                <ul className={styles.briefHistory}>
+                                    {briefHistory.map((entry) => (
+                                        <li key={entry.brief}>
+                                            <Link
+                                                href={`/?mode=custom&brief=${encodeURIComponent(entry.brief)}`}
+                                                className={classNames(styles.briefHistoryLink, {
+                                                    [styles.variantDisabled]: composing,
+                                                })}
+                                                aria-disabled={composing}
+                                                tabIndex={composing ? -1 : undefined}
+                                                onClick={(event) => {
+                                                    if (composing) event.preventDefault()
+                                                }}
+                                                title={entry.brief}
+                                            >
+                                                {entry.brief.length > 90
+                                                    ? `${entry.brief.slice(0, 90)}…`
+                                                    : entry.brief}
+                                                <span className={styles.composingHint}>
+                                                    {entry.cached
+                                                        ? 'cached — replays for nothing'
+                                                        : 'no composition on disk — needs a call'}
+                                                </span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </>
+                        )}
+
                         {composing && (
                             <p className={styles.composing} role="status" aria-live="polite">
                                 <span className={styles.spinner} aria-hidden="true" />
@@ -312,10 +475,11 @@ export const DemoBar: React.FC<DemoBarProps> = ({
 
                         {error && (
                             <p className={styles.composeError} role="alert">
-                                {error}
+                                {error.message}
                                 <span className={styles.composingHint}>
-                                    The page still shows what it had. The call is in
-                                    .cache/calls.log either way.
+                                    {error.spent
+                                        ? 'The page still shows what it had. The call is in .cache/calls.log either way.'
+                                        : 'The page still shows what it had. Nothing was spent and nothing was logged.'}
                                 </span>
                             </p>
                         )}

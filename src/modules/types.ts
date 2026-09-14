@@ -38,4 +38,13 @@ export interface ModuleComponentProps<P = Record<string, unknown>> {
      * far as the row that happens to be showing it.
      */
     topPickReason?: string | null
+    /**
+     * The visitor's city as the composition understands it, overriding
+     * `context.geo.metro` when set.
+     *
+     * Threaded rather than passed as a prop for the same reason as `topPick`:
+     * where the visitor is, is one fact about the page. Two sections disagreeing
+     * about it is not a composition anyone would want to express.
+     */
+    visitorMetro?: string | null
 }

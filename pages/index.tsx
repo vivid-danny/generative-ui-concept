@@ -6,11 +6,18 @@ import type { ResolvedLayout } from '@/contracts/layout-spec'
 import type { Market } from '@/contracts/market'
 import DemoBar from '@/demo/DemoBar'
 import { summarizeComposition, type CompositionSummary } from '@/demo/summarize'
-import { MARKET, isModeSlug, modeFor, DEFAULT_MODE, type DemoMode } from '@/demo/modes'
+import {
+    MARKET,
+    isModeSlug,
+    modeFor,
+    DEFAULT_MODE,
+    type BriefHistoryEntry,
+    type DemoMode,
+} from '@/demo/modes'
 import EventHeader from '@/modules/event-header'
 import { BaseProvider } from '@/orchestration/base'
 import { readComposition } from '@/orchestration/live'
-import { readLedger, lastCall, type CallRecord } from '@/orchestration/ledger'
+import { readLedger, lastCall, recentBriefs, type CallRecord } from '@/orchestration/ledger'
 import ComposedPage, { hasRegion } from '@/renderer/ComposedPage'
 import PageShell from '@/shell/PageShell'
 import PerformerFilters from '@/shell/PerformerFilters'
@@ -53,6 +60,12 @@ interface HomeProps {
      * the question after pressing Run is what the press cost.
      */
     lastCall: CallRecord | null
+    /**
+     * Briefs already typed on this machine, with whether each still has a
+     * composition on disk. The `cached` flag is the point: without it every
+     * entry in the drawer's list is a coin flip between free and ~$0.15.
+     */
+    briefHistory: BriefHistoryEntry[]
 }
 
 export default function Home({
@@ -63,6 +76,7 @@ export default function Home({
     summary,
     awaitingRun,
     lastCall: lastCallRecord,
+    briefHistory,
 }: HomeProps) {
     return (
         <>
@@ -72,6 +86,7 @@ export default function Home({
                 summary={summary}
                 awaitingRun={awaitingRun}
                 lastCall={lastCallRecord}
+                briefHistory={briefHistory}
             >
                 <PageShell
                     header={
@@ -135,6 +150,19 @@ export const getServerSideProps: GetServerSideProps<HomeProps> = async ({ query 
     const composed = mode.brief === null ? null : await readComposition(mode.context, MARKET, mode.slug)
     const resolved = composed ?? (await new BaseProvider().getLayout(mode.context, MARKET))
 
+    // One read of the ledger, two answers from it. `readComposition` cannot
+    // call the model, so resolving whether each remembered brief is still
+    // cached is free — and it is the difference between the drawer offering a
+    // replay and offering a call it does not name as one.
+    const ledger = await readLedger()
+    const briefHistory = await Promise.all(
+        recentBriefs(ledger).map(async (brief) => ({
+            brief,
+            cached:
+                (await readComposition(modeFor('custom', brief).context, MARKET, 'custom')) !== null,
+        })),
+    )
+
     return {
         props: {
             mode,
@@ -143,7 +171,8 @@ export const getServerSideProps: GetServerSideProps<HomeProps> = async ({ query 
             resolved,
             summary: summarizeComposition(resolved.spec, MARKET, mode.context),
             awaitingRun: mode.brief !== null && composed === null,
-            lastCall: lastCall(await readLedger()),
+            lastCall: lastCall(ledger),
+            briefHistory,
         },
     }
 }

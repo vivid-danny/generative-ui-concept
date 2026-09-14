@@ -63,6 +63,31 @@ export const LayoutSpecSchema = z.object({
      * Required whenever `top_pick` is set, enforced in the validator because it
      * is a rule about the pair rather than about either field.
      */
+    /**
+     * Where the composition believes the visitor is, by city name.
+     *
+     * The context carries a `geo.metro`, but it is a geo-IP guess and the brief
+     * outranks it — `buildMessage` says so outright ("where the two disagree,
+     * the description wins"). The problem was that only the *model* got that
+     * memo: `selectProductions` groups dates by `context.geo.metro` and the
+     * section header prints it, so a page composed for Los Angeles off an LA
+     * brief still headed its near-group "Near Chicago".
+     *
+     * The model was getting the right answer by avoiding the question —
+     * switching `group_by_geo` off whenever the brief disagreed with the geo.
+     * That is a composition constrained by a rendering limitation, which is
+     * backwards, and it only held as long as it kept choosing to sidestep.
+     *
+     * So the spec carries the city and the renderer prefers it. Page-level for
+     * the same reason as `top_pick`: one visitor, one location, not a per-section
+     * prop that could contradict itself. Null means "nothing better than the
+     * context" — which is the baseline's case, since it composes nothing.
+     *
+     * Checked against the snapshot by the validator: a city no date is in
+     * cannot group anything, and would print a header naming a place the page
+     * does not show.
+     */
+    visitor_metro: z.string().nullable().default(null),
     top_pick_reason: z
         .string()
         .trim()
