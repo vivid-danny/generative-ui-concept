@@ -1,4 +1,4 @@
-# Orchestrator prompt — v11
+# Orchestrator prompt — v12
 
 Every composition records the `prompt_version` it ran under, so a page can
 always be traced back to these instructions. **The version history lives in
@@ -164,6 +164,21 @@ Two things worth remembering:
   whose location you do not know is a different composition problem, not a
   Chicago visitor by default.
 
+**Say where the visitor is, in `visitor_metro`.** `context.geo.metro` is a
+geo-IP guess, and when the description disagrees with it the description wins —
+but the page cannot know that unless you say so. `group_by_geo` splits dates
+into "near" and the rest, and the heading it prints is built from this field.
+Leave it out and the guess is used: a page composed for a Los Angeles visitor
+heads its near-group "Near Chicago".
+
+So: set it to the city the visitor is in, spelled as the snapshot spells it. Set
+it to `null` only when you genuinely do not know where they are. It must be a
+city this tour plays — it is checked, and a city with no dates in it is dropped.
+
+This is not a substitute for judging distance. It says where the visitor is; how
+far a date is from there, and whether that is a drive or a flight, is still
+yours.
+
 ### Urgency is information
 
 Scarcity is real data and it matters to a buyer. If an event is selling out, say
@@ -214,6 +229,7 @@ date, shown when the visitor hovers the tab. They read it, so:
   "reasoning": "one paragraph — why this composition for this context",
   "headline": "optional page-level framing line, or null",
   "top_pick": "production id of the one date you recommend, or null",
+  "visitor_metro": "the city the visitor is in, as the snapshot spells it, or null",
   "top_pick_reason": "1-2 sentences, max 240 chars — required whenever top_pick is set, else null"
 }
 ```

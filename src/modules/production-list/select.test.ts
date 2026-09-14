@@ -70,6 +70,42 @@ describe('selectProductions', () => {
         expect([...dates].sort()).toEqual(dates)
     })
 
+    it('groups by the composition’s metro, not the context’s, when the spec names one', () => {
+        // The context fixture says Chicago; the brief said Los Angeles. Before
+        // `visitor_metro` existed the model could only avoid this by switching
+        // `group_by_geo` off — a composition bent around a rendering limit.
+        //
+        // `max_items` is the whole tour on purpose: truncation happens before
+        // grouping, and LA's three dates are the 47th, 48th and 50th cheapest
+        // of 52, so a smaller cap removes them before there is anything to
+        // group and the test passes for the wrong reason.
+        const grouped = selectProductions(
+            market,
+            context,
+            props({ sort: 'price', group_by_geo: true, max_items: 52 }),
+            undefined,
+            null,
+            'Los Angeles',
+        )
+
+        expect(grouped.groups[0].key).toBe('near')
+        expect(grouped.groups[0].label).toBe('Near Los Angeles')
+        expect(grouped.groups[0].productions.every((p) => p.city === 'Los Angeles')).toBe(true)
+    })
+
+    it('falls back to the context’s metro when the spec names none', () => {
+        const grouped = selectProductions(
+            market,
+            context,
+            props({ sort: 'price', group_by_geo: true, max_items: 52 }),
+            undefined,
+            null,
+            null,
+        )
+
+        expect(grouped.groups[0].label).toBe(`Near ${context.geo.metro}`)
+    })
+
     it('lifts the visitor’s own metro above the sort order when grouping by geo', () => {
         const grouped = allDates(
             selectProductions(market, context, props({ sort: 'price', group_by_geo: true, max_items: 20 })),

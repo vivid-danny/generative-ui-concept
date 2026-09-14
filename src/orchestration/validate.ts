@@ -344,6 +344,32 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
         })
     }
 
+    // The visitor's city, checked against the snapshot for the same reason the
+    // pick is: it is a claim about the data, and this one gets *printed*. An
+    // invented city groups nothing — every date falls into "away" — and the
+    // section header names a place the page does not show. Falling back to the
+    // context's geo-IP guess is the honest failure; it is at least a city
+    // something in the tour is in.
+    //
+    // Case-insensitive, because "los angeles" and "Los Angeles" are the same
+    // claim and the exact-match grouping in `selectProductions` is not. The
+    // snapshot's own spelling wins, so the header reads the way the rows do.
+    let visitorMetro = spec.visitor_metro
+    if (visitorMetro !== null) {
+        const match = market.productions.find(
+            (production) => production.city.toLowerCase() === visitorMetro!.trim().toLowerCase(),
+        )
+        if (!match) {
+            notes.push({
+                level: 'repaired',
+                reason: `dropped \`visitor_metro\` (\`${visitorMetro}\` is not a city in this snapshot)`,
+            })
+            visitorMetro = null
+        } else {
+            visitorMetro = match.city
+        }
+    }
+
     const kept: LayoutSpec['layout'] = []
     const instanceCount = new Map<string, number>()
     const regionCount = new Map<string, number>()
@@ -517,6 +543,7 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
             reasoning: spec.reasoning,
             headline: spec.headline,
             top_pick: topPick,
+            visitor_metro: visitorMetro,
             top_pick_reason: topPickReason,
         },
         notes,

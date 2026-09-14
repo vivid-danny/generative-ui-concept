@@ -27,6 +27,7 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
     excludeItemIds,
     topPick,
     topPickReason,
+    visitorMetro,
 }) => {
     // No "see all" escape hatch here. The composition does narrow the list — by
     // budget filter and by max_items — and the visitor still has to be able to
@@ -39,6 +40,7 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
         props,
         excludeItemIds,
         topPick,
+        visitorMetro,
     )
 
     // An empty section renders nothing at all. An empty state here would be
@@ -87,7 +89,15 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
                                     {group.productions.length === 1 ? 'Show' : 'Shows'} Near
                                 </span>
                                 <button type="button" className={styles.geo}>
-                                    {context.geo.metro}, {group.productions[0].state}
+                                    {/*
+                                      The composition's city, not the geo-IP
+                                      one. These differ whenever a typed brief
+                                      says where the visitor is, and printing
+                                      the guess here named a place the page was
+                                      not showing.
+                                    */}
+                                    {visitorMetro ?? context.geo.metro},{' '}
+                                    {group.productions[0].state}
                                     <ChevronDownIcon width={20} height={20} />
                                 </button>
                             </Typography>

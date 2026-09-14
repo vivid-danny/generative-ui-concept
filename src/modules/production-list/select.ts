@@ -103,6 +103,14 @@ export function selectProductions(
     exclude?: ReadonlySet<string>,
     /** The page's recommended date, from the spec rather than from props. */
     topPick?: string | null,
+    /**
+     * The visitor's city per the composition, preferred over `context.geo.metro`.
+     *
+     * The context's metro is a geo-IP guess; a typed brief saying otherwise
+     * outranks it everywhere else, and used to be ignored here. Falls back to
+     * the context when the spec says nothing, which is the baseline's case.
+     */
+    visitorMetro?: string | null,
 ): Selection {
     const { filter, sort, group_by_geo: groupByGeo, max_items: maxItems } = props
 
@@ -163,10 +171,12 @@ export function selectProductions(
 
     const groups: ProductionGroup[] = []
     if (groupByGeo) {
-        const near = visible.filter((production) => production.city === context.geo.metro)
-        const away = visible.filter((production) => production.city !== context.geo.metro)
+        // The composition's read of where the visitor is, or the geo-IP guess.
+        const metro = visitorMetro ?? context.geo.metro
+        const near = visible.filter((production) => production.city === metro)
+        const away = visible.filter((production) => production.city !== metro)
         if (near.length > 0) {
-            groups.push({ key: 'near', label: `Near ${context.geo.metro}`, productions: near })
+            groups.push({ key: 'near', label: `Near ${metro}`, productions: near })
         }
         if (away.length > 0) {
             groups.push({
