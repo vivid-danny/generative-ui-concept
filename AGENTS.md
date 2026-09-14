@@ -2,15 +2,32 @@
 
 How to engage with me. These rules govern the shape of every response in this repo.
 
-## Top-level instructions
+**These are requirements, not defaults.** A response that breaks one is wrong
+even if its content is correct. Rewrite it before sending rather than sending it
+with an apology attached. The pre-send check at the bottom of this file runs
+against every response — including short ones, including answers to questions I
+asked in passing.
 
-**Permission to not know.** If the answer is not supported by the documents I provided, say so explicitly rather than estimating. It is acceptable to answer "the provided materials do not cover this."
+## The goal is digestibility, not brevity
 
-**Source restriction.** Answer using only the attached content. Do not use general knowledge unless asked to. For anything the content does not address, list it under "Not covered by this document."
+Shortening is a side effect, not the point. A long answer I can follow beats a
+short one I have to decode. Three things, every time:
 
-**Auditable citation.** For every claim, cite the section and clause number it comes from, in parentheses, so I can verify it against the source.
+1. What broke, in language a non-engineer would understand.
+2. Why it broke — the cause, not the trace.
+3. What is worth looking into next.
 
-**Quote-grounding.** Before you analyze, extract the exact sentences from the document that bear on my question. Then base your analysis only on those quotes.
+No extended technical reasoning. Do not show me how you verified something
+unless I ask. Do not walk me through the code path. Do not defend a conclusion
+at length — state it and move on. If the mechanism genuinely matters, one
+sentence of it is the budget.
+
+I am reading to decide what to do, not to review your work.
+
+**Permission to not know.** If something is not supported by what you actually
+looked at, say so instead of estimating. "I cannot tell from this" is an
+acceptable answer. One sentence naming what you could not see beats a paragraph
+defending what you could.
 
 ## How I think
 
@@ -21,6 +38,25 @@ How to engage with me. These rules govern the shape of every response in this re
 - Dopamine is scarce. Visible progress matters. Buried wins do not register.
 
 ## Rules
+
+### 0. Never make anything up
+
+**This outranks every rule below it.** An invented fact costs far more than a
+missing one: it means I cannot trust the parts that were right, so I have to
+re-check work I already paid for. That is the most expensive thing you can do to
+me.
+
+- Never state a fact you have not checked.
+- Never describe a file, a result, or an output you have not actually looked at.
+- Never invent a doubt, a question, or an uncertainty to satisfy a rule in this
+  file. An empty slot in the format is fine; a fabricated one is not.
+- If something is worth saying but unverified, say both in the same breath: "I
+  have not checked this, but —".
+
+- Bad: "Next: read `AGENTS.md:28-31` and tell me if that survives the cut." (Nothing was in doubt. The doubt was invented to fill rule 3.)
+- Good: "The edit is done. Nothing is open."
+
+Not knowing costs nothing. Guessing costs trust.
 
 ### 1. Lead with the next action
 
@@ -103,6 +139,26 @@ Forbidden closers: "Let me know if you need anything else," "Hope this helps," "
 
 Start with the answer. End when the answer is done.
 
+### 11. Explain causes in plain language
+
+Name the cause the way you would to someone who does not read code. Paths and
+identifiers are pointers, not explanations.
+
+- Bad: "`max_price` filters `floor_price` only, so `median_price` is unbounded and the hero's medians exceed the stated ceiling."
+- Good: "The budget filter only checks the cheapest seat in the building, so a $250 budget still showed $305 seats. Nothing checks the price of the seat she'd actually buy."
+
+The plain sentence comes first. The identifier goes in parentheses after, if at
+all.
+
+### 12. Separate what broke from what to look into
+
+Two groups, in this order: what went wrong, then what is worth following up on.
+Nothing else. A finding with no follow-up is still worth stating; a follow-up
+with no finding behind it is a tangent and belongs under rule 4.
+
+Order both by what they change for me, not by technical severity. This is not a
+backlog and nothing in it is urgent.
+
 ## When to break the rules
 
 Override the defaults when:
@@ -116,7 +172,9 @@ Override the defaults when:
 
 ## Pre-send check
 
-Before sending, delete:
+Not optional. Run it on every response.
+
+Delete:
 
 - The first sentence if it announces what you are about to do.
 - The last sentence if it asks "anything else?" or recaps what just happened.
@@ -124,6 +182,10 @@ Before sending, delete:
 - Any hedging adverb adding no information ("perhaps," "might," "could possibly"). Keep a hedge that carries real uncertainty; deleting it manufactures confidence.
 - Any idiom or figurative phrase ("circle back," "get the ball rolling," "on the same page"). Replace with the literal action.
 
-Then verify: if the reader reads only the first line and the last line, do they know (a) what to do next, and (b) what just happened?
+Then answer all five. Any "no" means rewrite before sending:
 
-If yes, send.
+1. Does the first line give me something to do?
+2. Is every list five items or fewer?
+3. Could a non-engineer read this and say what broke and why?
+4. Is every claim in it something you checked, or marked as unchecked?
+5. If the last line names a next action, is that action real?
