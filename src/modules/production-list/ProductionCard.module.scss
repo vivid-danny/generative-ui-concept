@@ -56,6 +56,10 @@
 // so the tab bends, not the list.
 .topPick {
     position: absolute;
+    // Hoverable, and focusable when a reason exists. The cursor is the only
+    // hint that the tab has anything behind it — deliberately no icon or
+    // underline, so the resting page looks exactly as it did.
+    cursor: help;
     top: var(--top-pick-top, -0.35rem);
     right: 1.35rem;
     padding: var(--spacing-xs) var(--spacing-md);
@@ -166,12 +170,16 @@
     white-space: nowrap;
 }
 
-// Only good news for the buyer gets colour — a price that has come down, or
-// the cheapest date in the section. Everything else stays neutral: colouring
-// "prices rose" red would be pressure dressed as information, and colouring
-// every row would make the colour mean nothing.
+// Price movement is coloured in both directions; everything else stays
+// neutral. Colouring every row would make the colour mean nothing, so this is
+// reserved for the one signal that has a direction — and `FLAT_BAND` in
+// card-signal.ts keeps a 1% wobble out of it, so a coloured row is a real move.
 .signalGood {
     color: var(--status-success-dark);
+}
+
+.signalAdverse {
+    color: var(--status-error-main);
 }
 
 .signalNeutral {
@@ -190,4 +198,28 @@
     color: var(--surface-primary-main, #ce3197);
     cursor: pointer;
     white-space: nowrap;
+}
+
+// The Top Pick tooltip.
+//
+// MUI's default is a dark grey bubble at 11px, which reads as a browser
+// affordance rather than part of this page. This is the same pink as the tab it
+// hangs off, so the reason looks like it came from the thing that was hovered.
+//
+// Wider than MUI's 300px default because the content is two sentences of prose
+// rather than a label, and a 300px column turns them into five short lines.
+.pickTooltip {
+    max-width: 22rem;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-radius: var(--radius-sm);
+    background: var(--surface-primary-main, #ce3197);
+    color: var(--text-contrast);
+    font-family: 'GT Walsheim', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.pickTooltipArrow {
+    color: var(--surface-primary-main, #ce3197);
 }

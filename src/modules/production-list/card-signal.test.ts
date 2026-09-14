@@ -50,8 +50,19 @@ describe('price_trend', () => {
         expect(trend(-0.126).label).toBe('↓ 13% this week')
     })
 
-    it('reads a rise the same way, without dressing it as a warning', () => {
-        expect(trend(0.06)).toEqual({ tone: 'neutral', label: '↑ 6% this week' })
+    it('reads a rise as adverse, because a buyer deciding when to commit needs it', () => {
+        // Reverses an earlier call that left a rise in neutral so as not to
+        // read as pressure. The move is real and on the date in the row, and
+        // colouring only falls states a preference about which way the news
+        // should go.
+        expect(trend(0.06)).toEqual({ tone: 'adverse', label: '↑ 6% this week' })
+    })
+
+    it('leaves noise uncoloured in either direction', () => {
+        // What keeps the red honest: it appears only where the week actually
+        // moved, never on a 1% wobble.
+        expect(trend(0.009).tone).toBe('neutral')
+        expect(trend(-0.009).tone).toBe('neutral')
     })
 
     it('calls anything inside a point either way steady', () => {

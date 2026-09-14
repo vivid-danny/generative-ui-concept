@@ -41,9 +41,11 @@ export type CardSignal = (typeof CARD_SIGNAL_IDS)[number]
  * `price_trend` that got promoted into the shared type because it was the only
  * signal there. Most of these are not directional — "Typical seat ~$210" is not
  * up or down — so the shared shape carries the one thing every signal has: is
- * this good news for the buyer, or just information.
+ * this good news for the buyer, bad news, or just information.
+ *
+ * `adverse` was added on 2026-09-14, reversing an earlier call recorded below.
  */
-export type SignalTone = 'good' | 'neutral'
+export type SignalTone = 'good' | 'neutral' | 'adverse'
 
 export interface CardSignalValue {
     tone: SignalTone
@@ -80,11 +82,20 @@ export const CARD_SIGNALS: Record<CardSignal, CardSignalDefinition> = {
 
             const percent = Math.round(Math.abs(change) * 100)
 
-            // Only a fall is coloured. Making "prices rose" red would be
-            // pressure dressed as information.
+            // Both directions are coloured, which reverses an earlier call.
+            // The old reasoning was that red on "prices rose" is pressure
+            // dressed as information — true of a manufactured number, but this
+            // one is a real week-over-week move on the date in the row, and a
+            // buyer deciding *when* to commit is exactly who needs it. Leaving
+            // a rise in grey while a fall gets colour states a preference about
+            // which way the news should go, which is its own distortion.
+            //
+            // It stays honest because `FLAT_BAND` already refuses to colour
+            // noise: a 1% wobble reads "Steady" in neutral, so red only appears
+            // where the move is real.
             return change < 0
                 ? { tone: 'good', label: `↓ ${percent}% this week` }
-                : { tone: 'neutral', label: `↑ ${percent}% this week` }
+                : { tone: 'adverse', label: `↑ ${percent}% this week` }
         },
     },
 
