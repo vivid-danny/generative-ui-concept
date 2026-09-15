@@ -16,6 +16,43 @@ Keep appending here, newest first, when the prompt version changes.
 
 ---
 
+**v14 (2026-09-15):** Hard requirements moved into the numbered rules, and the
+band below the hero became one of them. Five v13 runs came back with three pages
+that were hero-and-rail only. Two of those chose it deliberately — the reasoning
+on the St. Paul brief says a lower band "would only tempt travel he's already
+ruled out" — and the Atlanta run did write a third section, an un-headed
+full-tour list with `group_by_geo: true`, which the validator dropped.
+
+That last one is the reason this is a placement change rather than an
+explanation. The prompt already told the model the page owns the full tour list
+("You do not place this and cannot remove it") and already told it an un-headed
+repeat is dropped. Both were ignored. Rule 5 — "do not place `event_header`" —
+says the same class of thing in the numbered list, and was obeyed. Same file,
+same instruction, followed where it was a rule and not where it was prose. So
+the shell fact and the heading requirement became rules 5 and 6, and the lower
+band became rule 7, rather than being said again more firmly.
+
+The band also got a licence it did not have: it is orientation, not a second set
+of options, so it may show dates the visitor ruled out provided its heading says
+so. Without that, the requirement is unsatisfiable exactly where the thin pages
+came from — the St. Paul brief had one date in the whole snapshot matching his
+constraints.
+
+`headline` is gone: `spec.headline` printed a third line under the tour name and
+subtitle in `event_header`, which was redundant framing above a page whose
+sections already carry their own headings. Removed from the contract, the
+component, `ModuleComponentProps`, the renderer and the prompt's output block.
+
+Three war stories left for this file (the `prod-043` hero, the Vegas rank claim,
+the `"]` reasoning array). The rules they were attached to stayed; the incidents
+were addressed to us, not to the model reading them.
+
+`ValidationNote` gained a fourth level, `gap` — a rule the validator reports
+because it cannot repair it. It fires when a page comes out with one
+`production_list`, and it names the drop when a drop is what caused it. Writing
+the missing section is the orchestrator's job; the alternative to a note is a
+page that looks finished because nothing was dropped to make it thin.
+
 **v13 (2026-09-14):** `top_pick` moved out of the spec and into the hero
 section's props. The Texas custom brief recommended prod-026 (Las Vegas) and
 wrote "the most in-demand night in your top group" about it — while the hero its

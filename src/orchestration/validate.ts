@@ -640,11 +640,36 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
         })
     }
 
+    // A composition rule the validator reports rather than repairs.
+    //
+    // Every page owes one section below its recommendation band: the top three
+    // answer the visitor's question, and without anything under them the other
+    // forty-nine dates are left to the shell's full-tour list to explain. Three
+    // of five runs on v13 came out hero-and-rail only, and nothing said so —
+    // the pages looked finished because nothing had been dropped to make them
+    // thin.
+    //
+    // Writing that section is the orchestrator's job, so this counts and tells
+    // rather than appends. It names the drop when a drop is what caused it,
+    // because "missing a heading" and "the page lost the band it owed you" are
+    // the cheap and expensive halves of the same failure, and the first does
+    // not imply the second.
+    const bands = kept.filter((entry) => entry.module === 'production_list').length
+    if (bands === 1) {
+        const droppedABand = notes.some((note) => note.reason.includes('without a `heading`'))
+        notes.push({
+            level: 'gap',
+            module: 'production_list',
+            reason: droppedABand
+                ? 'the page carries one `production_list` — the section below the hero was dropped above, so the page has a recommendation and nothing under it'
+                : 'the page carries one `production_list` — nothing sits below the recommendation band to say what the rest of the tour is for',
+        })
+    }
+
     return {
         spec: {
             layout: kept,
             reasoning: spec.reasoning,
-            headline: spec.headline,
             top_pick: topPick,
             visitor_metro: visitorMetro,
             top_pick_reason: topPickReason,

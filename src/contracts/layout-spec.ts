@@ -23,7 +23,6 @@ export const LayoutSpecSchema = z.object({
     layout: z.array(LayoutEntrySchema),
     /** Required: demo material and the primary debugging tool (§7). */
     reasoning: z.string().min(1),
-    headline: z.string().nullable().default(null),
     /**
      * The one date the composition recommends, by production id.
      *
@@ -54,7 +53,7 @@ export const LayoutSpecSchema = z.object({
      * over the "Top Pick" tab.
      *
      * The first model-written prose a visitor reads. Every other string the
-     * model writes is a *framing* — a heading, a headline — but this one states
+     * model writes is a *framing* — a section heading — but this one states
      * reasons, and a reason is made of facts. Nothing downstream can check
      * whether they are true: the bounds below constrain shape and length, and
      * the system prompt carries the rest (say what you like about why; every
@@ -150,7 +149,17 @@ export interface ResolvedLayout {
 }
 
 export interface ValidationNote {
-    level: 'dropped' | 'repaired' | 'fallback'
+    /**
+     * `gap` is the one level that is not about a spec the validator changed.
+     *
+     * A composition rule the validator cannot repair — a page that came out
+     * without a section below its recommendation band — still has to be visible
+     * somewhere, and the alternative to a note is a page that looks finished
+     * because nothing was dropped to make it thin. Writing the missing section
+     * is the orchestrator's job, so the validator reports the gap rather than
+     * filling it.
+     */
+    level: 'dropped' | 'repaired' | 'fallback' | 'gap'
     module?: string
     reason: string
 }

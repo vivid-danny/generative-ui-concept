@@ -67,7 +67,6 @@ export class BaseProvider implements OrchestrationProvider {
                 ],
                 reasoning:
                     'No composition happened. This is the page every visitor gets: the dates near you, then the rest of the tour, in calendar order. Nothing about who is landing changed what appears, what order it appears in, or what it emphasises.',
-                headline: null,
             },
             provenance: SpecProvenanceSchema.parse({
                 generated_at: new Date().toISOString(),

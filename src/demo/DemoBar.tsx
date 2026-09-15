@@ -59,6 +59,7 @@ const NOTE_CLASS = {
     dropped: styles.noteDropped,
     repaired: styles.noteRepaired,
     fallback: styles.noteFallback,
+    gap: styles.noteGap,
 } as const
 
 /**

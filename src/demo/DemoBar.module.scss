@@ -127,6 +127,12 @@
     font-weight: 700;
 }
 
+// Not an error: nothing in the spec was changed. A requirement the composition
+// did not meet, which reads as a different kind of thing from a drop.
+.noteGap {
+    color: #58a6ff;
+}
+
 .raw {
     max-height: 320px;
     margin: 0;

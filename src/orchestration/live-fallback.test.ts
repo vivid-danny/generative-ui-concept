@@ -68,7 +68,6 @@ function reply(result: string): BridgeResult {
 const GOOD = JSON.stringify({
     layout: [{ module: 'production_list', size: 'hero', props: { sort: 'price' } }],
     reasoning: 'a real reason from the model',
-    headline: 'a headline',
 })
 
 beforeEach(() => {
@@ -100,7 +99,6 @@ describe('LiveProvider', () => {
             JSON.stringify({
                 layout: [{ module: 'vibe_check', props: {} }, { module: 'production_list', props: {} }],
                 reasoning: 'r',
-                headline: null,
             }),
         )
 
@@ -166,7 +164,6 @@ describe('LiveProvider — replaying a cached composition', () => {
                     },
                 ],
                 reasoning: 'stored earlier',
-                headline: null,
             },
             notes: [],
             provenance: {
@@ -220,7 +217,6 @@ describe('readComposition — what the page is allowed to do', () => {
             spec: {
                 layout: [{ module: 'production_list', size: 'hero', props: { sort: 'price' } }],
                 reasoning: 'composed earlier',
-                headline: null,
                 top_pick: null,
                 visitor_metro: null,
                 top_pick_reason: null,

@@ -81,7 +81,6 @@ export default function Harness() {
                                         context={context}
                                         size={size}
                                         props={props}
-                                        headline={null}
                                     />
                                 </section>
                             )

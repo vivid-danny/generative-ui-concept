@@ -20,7 +20,6 @@ const context = ContextSchema.parse(leahBudget80)
 const SPEC = {
     layout: [{ module: 'production_list', size: 'standard', props: { sort: 'date' } }],
     reasoning: 'because',
-    headline: null,
 }
 
 describe('extractLayoutSpec', () => {
@@ -53,7 +52,6 @@ describe('extractLayoutSpec', () => {
                 },
             ],
             reasoning: 'nested',
-            headline: null,
         }
         expect(extractLayoutSpec(`text ${JSON.stringify(nested)} more`)).toEqual(nested)
     })

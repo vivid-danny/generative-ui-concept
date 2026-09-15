@@ -14,8 +14,6 @@ export interface ModuleComponentProps<P = Record<string, unknown>> {
     context: Context
     size: Size
     props: P
-    /** Page-level framing line from the spec, if the orchestrator wrote one. */
-    headline: string | null
     /**
      * Items an earlier section on this page already showed.
      *
