@@ -98,7 +98,6 @@ export const ComposedPage: React.FC<ComposedPageProps> = ({
                     context={context}
                     size={entry.size ?? 'standard'}
                     props={entry.props}
-                    headline={spec.headline}
                     excludeItemIds={exclusions[index]}
                     // Only the hero is offered the pick. The validator
                     // already refuses one authored anywhere else, but the pick

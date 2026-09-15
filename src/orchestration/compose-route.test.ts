@@ -48,7 +48,7 @@ function pending() {
     return {
         settle,
         layout: gate.then(() => ({
-            spec: { layout: [], reasoning: 'composed', headline: null, top_pick: null },
+            spec: { layout: [], reasoning: 'composed', top_pick: null },
             notes: [],
             provenance: { source: 'live', cost_usd: 0.15, duration_ms: 60_000 },
         })),

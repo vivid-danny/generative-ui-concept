@@ -17,7 +17,7 @@ import styles from './index.module.scss'
 
 const MONTH_YEAR = new Intl.DateTimeFormat('en-US', { month: 'short', year: 'numeric' })
 
-export const EventHeader: React.FC<ModuleComponentProps> = ({ market, headline }) => {
+export const EventHeader: React.FC<ModuleComponentProps> = ({ market }) => {
     const { performer, productions } = market
 
     const dates = [...productions].sort((a, b) => a.date.localeCompare(b.date))
@@ -34,12 +34,6 @@ export const EventHeader: React.FC<ModuleComponentProps> = ({ market, headline }
                 <Typography variant="subtitleXl" className={styles.subtitle}>
                     {performer.tour_name ?? `${productions.length} dates · ${run}`}
                 </Typography>
-
-                {headline && (
-                    <Typography variant="subtitleLg" className={styles.headline}>
-                        {headline}
-                    </Typography>
-                )}
 
                 {/* Conversion banner — Figma 17055:178931. Static per the design. */}
                 <span className={styles.banner}>

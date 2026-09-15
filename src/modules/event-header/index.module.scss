@@ -36,13 +36,6 @@
     opacity: 0.92;
 }
 
-// The Figma header ends at the subtitle + CTA row. The composed headline is an
-// addition, so it gets its own slot rather than displacing designed content.
-.headline {
-    max-width: 720px;
-    margin-top: var(--spacing-xs);
-}
-
 .banner {
     display: inline-flex;
     align-items: center;

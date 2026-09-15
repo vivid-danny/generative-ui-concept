@@ -17,7 +17,6 @@ const market: Market = MarketSchema.parse(marketJson)
 const validSpec = {
     layout: [{ module: 'production_list', size: 'standard', props: { sort: 'date' } }],
     reasoning: 'a reason',
-    headline: null,
 }
 
 /**
@@ -36,12 +35,24 @@ const withHeroPick = (props: Record<string, unknown>) => ({
 const REASON =
     'The only Chicago date inside your budget, and the most in-demand night you can reach without flying.'
 
+/**
+ * The notes that mean the validator *changed* something.
+ *
+ * A `gap` note reports a composition rule the validator cannot repair — a page
+ * with nothing below its recommendation band — so it is present on any spec
+ * carrying a single list, including the minimal `validSpec` most of these tests
+ * build on. A test asserting "nothing was touched" is asserting about drops and
+ * repairs, not about that.
+ */
+const changes = (result: ReturnType<typeof validateLayout>) =>
+    result.notes.filter((note) => note.level !== 'gap')
+
 describe('validateLayout', () => {
     it('keeps a `visitor_metro` the snapshot has a date in', () => {
         const result = validateLayout({ ...validSpec, visitor_metro: 'Los Angeles' }, market)
 
         expect(result.spec.visitor_metro).toBe('Los Angeles')
-        expect(result.notes).toEqual([])
+        expect(changes(result)).toEqual([])
     })
 
     it('normalises `visitor_metro` to the snapshot’s own spelling', () => {
@@ -59,7 +70,7 @@ describe('validateLayout', () => {
         const result = validateLayout({ ...validSpec, visitor_metro: 'Atlantis' }, market)
 
         expect(result.spec.visitor_metro).toBeNull()
-        expect(result.notes).toEqual([
+        expect(changes(result)).toEqual([
             {
                 level: 'repaired',
                 reason: 'dropped `visitor_metro` (`Atlantis` is not a city in this snapshot)',
@@ -76,7 +87,7 @@ describe('validateLayout', () => {
         const result = validateLayout(validSpec, market)
 
         expect(result.usedFallback).toBe(false)
-        expect(result.notes).toEqual([])
+        expect(changes(result)).toEqual([])
         expect(result.spec.layout).toHaveLength(1)
         // `group_by_geo` and `max_items` were absent; the module's own defaults fill in.
         expect(result.spec.top_pick).toBeNull()
@@ -132,7 +143,7 @@ describe('validateLayout', () => {
             market,
         )
 
-        expect(result.notes).toEqual([])
+        expect(changes(result)).toEqual([])
         expect(result.spec.layout[1]).toMatchObject({
             module: 'market_signals',
             size: 'fixed',
@@ -231,7 +242,7 @@ describe('validateLayout', () => {
         )
 
         expect(result.spec.layout[0].props.max_items).toBe(3)
-        expect(result.notes).toEqual([])
+        expect(changes(result)).toEqual([])
     })
 
     it('drops a top pick that is not a date in this snapshot', () => {
@@ -250,7 +261,7 @@ describe('validateLayout', () => {
 
         expect(result.spec.top_pick).toBe(real)
         expect(result.spec.top_pick_reason).toBe(REASON)
-        expect(result.notes).toEqual([])
+        expect(changes(result)).toEqual([])
     })
 
     describe('the pick belongs to the hero', () => {
@@ -307,7 +318,7 @@ describe('validateLayout', () => {
 
             expect(twice.spec.top_pick).toBe(real)
             expect(twice.spec.top_pick_reason).toBe(REASON)
-            expect(twice.notes).toEqual([])
+            expect(changes(twice)).toEqual([])
         })
 
         it('says so when the section holding the pick is dropped', () => {
@@ -460,7 +471,7 @@ describe('validateLayout', () => {
         )
 
         expect(result.spec.layout[0].props.group_by_geo).toBe(true)
-        expect(result.notes).toEqual([])
+        expect(changes(result)).toEqual([])
     })
 
     it('strips a bad card signal back to null rather than dropping the section', () => {
@@ -557,7 +568,7 @@ describe('validateLayout', () => {
         )
 
         expect(result.spec.layout[0].props.filter).toEqual({ max_price: 80 })
-        expect(result.notes).toEqual([])
+        expect(changes(result)).toEqual([])
     })
 
     // Repeats used to be forbidden. The model instead uses `production_list` as a
@@ -589,7 +600,7 @@ describe('validateLayout', () => {
             'Worth the drive',
             'Rest of the tour',
         ])
-        expect(result.notes).toEqual([])
+        expect(changes(result)).toEqual([])
     })
 
     it('drops instances past the limit', () => {
@@ -636,7 +647,53 @@ describe('validateLayout', () => {
 
         expect(result.spec.layout).toHaveLength(1)
         expect(result.spec.layout[0].props.heading).toBeNull()
-        expect(result.notes).toEqual([])
+        expect(changes(result)).toEqual([])
+    })
+
+    it('notes a page that ends up with only one list', () => {
+        // The composition rule is that something sits below the recommendation
+        // band. The validator cannot write that section, so it says the page is
+        // missing it rather than pretending the page is complete.
+        const result = validateLayout(validSpec, market)
+
+        const gap = result.notes.find((note) => note.level === 'gap')
+        expect(gap?.reason).toContain('one `production_list`')
+        expect(result.spec.layout).toHaveLength(1)
+    })
+
+    it('does not note a page that carries a section below the hero', () => {
+        const result = validateLayout(
+            {
+                ...validSpec,
+                layout: [
+                    { module: 'production_list', size: 'hero', props: { heading: 'In Chicago' } },
+                    { module: 'production_list', props: { heading: 'Worth the drive' } },
+                ],
+            },
+            market,
+        )
+
+        expect(result.notes.some((note) => note.level === 'gap')).toBe(false)
+    })
+
+    it('says the page lost its required band when a drop is what left it thin', () => {
+        // The expensive half of an un-headed drop, once every page owes a
+        // second band: the note above reports a missing heading, and on its own
+        // it does not say the page came out thin as a result.
+        const result = validateLayout(
+            {
+                ...validSpec,
+                layout: [
+                    { module: 'production_list', size: 'hero', props: { heading: 'In Chicago' } },
+                    { module: 'production_list', props: { heading: null } },
+                ],
+            },
+            market,
+        )
+
+        expect(result.notes.some((note) => note.reason.includes('without a `heading`'))).toBe(true)
+        const gap = result.notes.find((note) => note.level === 'gap')
+        expect(gap?.reason).toContain('dropped')
     })
 
     it('repairs a size the module does not offer', () => {

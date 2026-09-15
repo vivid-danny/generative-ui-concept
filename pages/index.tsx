@@ -95,7 +95,6 @@ export default function Home({
                             context={context}
                             size="fixed"
                             props={{}}
-                            headline={resolved.spec.headline}
                         />
                     }
                     rail={

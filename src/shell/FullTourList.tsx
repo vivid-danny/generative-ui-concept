@@ -52,7 +52,6 @@ export const FullTourList: React.FC<{ market: Market; context: Context }> = ({
                 market={market}
                 context={context}
                 size="standard"
-                headline={null}
                 props={{
                     // Everything off: no filter, nothing grouped, and no top
                     // pick — this list is the escape hatch from the
