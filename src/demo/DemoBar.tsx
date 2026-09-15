@@ -445,7 +445,7 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                         )}
 
                         {/*
-                          The briefs you have already typed live in a panel of
+                          The calls you have already made live in a panel of
                           their own, beside this drawer. They were a list here,
                           which put every brief ever run between the compose box
                           and the composition — so the output moved further down
@@ -459,7 +459,7 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                                 onClick={toggleHistory}
                                 aria-expanded={historyOpen}
                             >
-                                Briefs you have run ({briefHistory.length})
+                                Recent calls ({briefHistory.length})
                                 <span aria-hidden>{historyOpen ? '×' : '›'}</span>
                             </button>
                         )}
@@ -661,14 +661,14 @@ export const DemoBar: React.FC<DemoBarProps> = ({
               covering the output.
             */}
             {isOpen && showHistory && historyOpen && (
-                <aside className={styles.historyPanel} aria-label="Briefs you have run">
+                <aside className={styles.historyPanel} aria-label="Recent calls">
                     <div className={styles.historyPanelHeader}>
-                        <span className={styles.label}>Briefs you have run</span>
+                        <span className={styles.label}>Recent calls</span>
                         <button
                             type="button"
                             className={styles.historyClose}
                             onClick={toggleHistory}
-                            aria-label="Close the brief list"
+                            aria-label="Close the recent calls list"
                         >
                             ×
                         </button>
