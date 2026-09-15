@@ -91,6 +91,7 @@ const formatWhen = (iso: string) => {
 
 const TOGGLE_KEY = 'h'
 const DRAWER_KEY = 'genui:drawer'
+const HISTORY_KEY = 'genui:briefPanel'
 
 /**
  * Runs one composition, and reports on it while it runs.
@@ -227,6 +228,29 @@ export const DemoBar: React.FC<DemoBarProps> = ({
             window.sessionStorage.setItem(DRAWER_KEY, next ? 'open' : 'closed')
             return next
         })
+
+    /**
+     * The brief-history panel, remembered the same way and for a sharper reason.
+     *
+     * Every row in it is a link, so opening it and clicking one is a full
+     * navigation — and plain local state would close the panel on the very
+     * click it exists to serve, leaving you to reopen it for the next brief.
+     * Closed by default: the list is what was pushing the composition output
+     * down the drawer, and a panel that defaults open just moves the crowding
+     * onto the product instead.
+     */
+    const [historyOpen, setHistoryOpen] = useState(false)
+
+    useEffect(() => {
+        setHistoryOpen(window.sessionStorage.getItem(HISTORY_KEY) === 'open')
+    }, [])
+
+    const toggleHistory = () =>
+        setHistoryOpen((open) => {
+            const next = !open
+            window.sessionStorage.setItem(HISTORY_KEY, next ? 'open' : 'closed')
+            return next
+        })
     // The textarea's own value. Initialised here only to avoid a flash on first
     // paint; the effect below is what actually keeps it right.
     const [draft, setDraft] = useState(active.slug === 'custom' ? (active.brief ?? '') : '')
@@ -266,6 +290,10 @@ export const DemoBar: React.FC<DemoBarProps> = ({
     // history list hit that.
     const sameBrief = typed === (active.brief ?? '')
     const composedThis = sameBrief && !awaitingRun
+
+    // Custom only, and only with something to list — the same conditions the
+    // inline list had. Eval's brief is scripted and has nowhere to come back to.
+    const showHistory = active.slug === 'custom' && briefHistory.length > 0
 
     /** One press: call, then let the URL catch up to what was composed. */
     const composeTyped = (event: React.FormEvent) => {
@@ -417,47 +445,23 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                         )}
 
                         {/*
-                          Briefs already typed on this machine, from the call
-                          ledger. A typed brief lives in the URL and nowhere
-                          else, so without this the composition you paid for
-                          becomes unreachable the moment you switch tabs — it is
-                          still on disk, under a hash.
-
-                          Each says whether it replays for nothing or costs a
-                          call. Same brief, both answers possible: editing the
-                          system prompt or the catalog invalidates every key.
+                          The briefs you have already typed live in a panel of
+                          their own, beside this drawer. They were a list here,
+                          which put every brief ever run between the compose box
+                          and the composition — so the output moved further down
+                          the scroll with each call, and reading a spec meant
+                          scrolling past the history that produced it.
                         */}
-                        {active.slug === 'custom' && briefHistory.length > 0 && (
-                            <>
-                                <span className={styles.label}>Briefs you have run</span>
-                                <ul className={styles.briefHistory}>
-                                    {briefHistory.map((entry) => (
-                                        <li key={entry.brief}>
-                                            <Link
-                                                href={`/?mode=custom&brief=${encodeURIComponent(entry.brief)}`}
-                                                className={classNames(styles.briefHistoryLink, {
-                                                    [styles.variantDisabled]: composing,
-                                                })}
-                                                aria-disabled={composing}
-                                                tabIndex={composing ? -1 : undefined}
-                                                onClick={(event) => {
-                                                    if (composing) event.preventDefault()
-                                                }}
-                                                title={entry.brief}
-                                            >
-                                                {entry.brief.length > 90
-                                                    ? `${entry.brief.slice(0, 90)}…`
-                                                    : entry.brief}
-                                                <span className={styles.composingHint}>
-                                                    {entry.cached
-                                                        ? 'cached — replays for nothing'
-                                                        : 'no composition on disk — needs a call'}
-                                                </span>
-                                            </Link>
-                                        </li>
-                                    ))}
-                                </ul>
-                            </>
+                        {showHistory && (
+                            <button
+                                type="button"
+                                className={styles.historyToggle}
+                                onClick={toggleHistory}
+                                aria-expanded={historyOpen}
+                            >
+                                Briefs you have run ({briefHistory.length})
+                                <span aria-hidden>{historyOpen ? '×' : '›'}</span>
+                            </button>
                         )}
 
                         {composing && (
@@ -638,6 +642,65 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                         <p className={styles.panelHeading}>Raw model output</p>
                         <pre className={styles.raw}>{provenance.raw_response ?? '(static fallback — no model output)'}</pre>
                     </div>
+                </aside>
+            )}
+
+            {/*
+              Briefs already typed on this machine, from the call ledger. A
+              typed brief lives in the URL and nowhere else, so without this the
+              composition you paid for becomes unreachable the moment you switch
+              tabs — it is still on disk, under a hash.
+
+              Each says whether it replays for nothing or costs a call. Same
+              brief, both answers possible: editing the system prompt or the
+              catalog invalidates every key.
+
+              A column beside the drawer rather than a layer over the product.
+              The drawer pushes the page right instead of covering it, and a
+              panel opened to fix "I cannot read the output" has no business
+              covering the output.
+            */}
+            {isOpen && showHistory && historyOpen && (
+                <aside className={styles.historyPanel} aria-label="Briefs you have run">
+                    <div className={styles.historyPanelHeader}>
+                        <span className={styles.label}>Briefs you have run</span>
+                        <button
+                            type="button"
+                            className={styles.historyClose}
+                            onClick={toggleHistory}
+                            aria-label="Close the brief list"
+                        >
+                            ×
+                        </button>
+                    </div>
+
+                    <ul className={styles.briefHistory}>
+                        {briefHistory.map((entry) => (
+                            <li key={entry.brief}>
+                                <Link
+                                    href={`/?mode=custom&brief=${encodeURIComponent(entry.brief)}`}
+                                    className={classNames(styles.briefHistoryLink, {
+                                        [styles.variantDisabled]: composing,
+                                    })}
+                                    aria-disabled={composing}
+                                    tabIndex={composing ? -1 : undefined}
+                                    onClick={(event) => {
+                                        if (composing) event.preventDefault()
+                                    }}
+                                    title={entry.brief}
+                                >
+                                    {entry.brief.length > 90
+                                        ? `${entry.brief.slice(0, 90)}…`
+                                        : entry.brief}
+                                    <span className={styles.composingHint}>
+                                        {entry.cached
+                                            ? 'cached — replays for nothing'
+                                            : 'no composition on disk — needs a call'}
+                                    </span>
+                                </Link>
+                            </li>
+                        ))}
+                    </ul>
                 </aside>
             )}
 

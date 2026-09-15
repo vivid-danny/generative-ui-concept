@@ -230,11 +230,85 @@
 */
 .briefHistory {
     margin: 0;
-    padding: 0;
+    padding: var(--spacing-lg);
     list-style: none;
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xs);
+}
+
+/*
+  The panel the list lives in — a column beside the drawer, not a layer over the
+  product. Narrower than the drawer's 432px because a row is truncated at 90
+  characters and has nothing to do with the space a composition needs.
+*/
+.historyPanel {
+    position: sticky;
+    top: 0;
+    z-index: 19;
+    flex: 0 0 300px;
+    width: 300px;
+    height: 100vh;
+    overflow-y: auto;
+    border-left: 1px solid #30363d;
+    background: #0d1117;
+    color: #e6edf3;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px;
+}
+
+.historyPanelHeader {
+    position: sticky;
+    top: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-lg);
+    border-bottom: 1px solid #30363d;
+    background: #0d1117;
+}
+
+/*
+  Opens the panel, and says how many are in it without opening it. Deliberately
+  not a `.variant` or a `.runButton`: it navigates nowhere and spends nothing,
+  and the button beside it in the drawer is the one that costs money.
+*/
+.historyToggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    width: 100%;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border: 1px solid #30363d;
+    border-radius: 4px;
+    background: transparent;
+    color: #7d8590;
+    font-family: inherit;
+    font-size: inherit;
+    text-align: center;
+    cursor: pointer;
+
+    &:hover {
+        border-color: #58a6ff;
+        color: #e6edf3;
+    }
+}
+
+.historyClose {
+    padding: 0 var(--spacing-xs);
+    border: 0;
+    background: transparent;
+    color: #7d8590;
+    font-family: inherit;
+    font-size: 16px;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+        color: #e6edf3;
+    }
 }
 
 .briefHistoryLink {
