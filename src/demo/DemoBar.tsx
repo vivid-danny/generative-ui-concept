@@ -507,8 +507,7 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                             ) : lastCall.outcome === 'composed' ? (
                                 <>
                                     {formatUsd(lastCall.costUsd ?? 0)} ·{' '}
-                                    {formatSeconds(lastCall.durationMs)} ·{' '}
-                                    {lastCall.mode}
+                                    {formatSeconds(lastCall.durationMs)} · {lastCall.mode}
                                     <span className={styles.composingHint}>
                                         {formatWhen(lastCall.at)}
                                     </span>
@@ -517,8 +516,7 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                                 <>
                                     Failed after {formatSeconds(lastCall.durationMs)}
                                     <span className={styles.composingHint}>
-                                        Billed, and there is no composition for it.
-                                        {' '}
+                                        Billed, and there is no composition for it.{' '}
                                         {formatWhen(lastCall.at)}
                                     </span>
                                 </>
@@ -536,7 +534,8 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                         <ul className={styles.moduleList}>
                             {summary.modules.map((module, index) => (
                                 <li key={`${module.module}:${index}`}>
-                                    {module.module} <span className={styles.dim}>· {module.size}</span>
+                                    {module.module}{' '}
+                                    <span className={styles.dim}>· {module.size}</span>
                                 </li>
                             ))}
                         </ul>
@@ -586,10 +585,14 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                                     {group.rows.map((row) => (
                                         <li
                                             key={row.id}
-                                            className={classNames({ [styles.rowHighlighted]: row.isTopPick })}
+                                            className={classNames({
+                                                [styles.rowHighlighted]: row.isTopPick,
+                                            })}
                                         >
                                             {row.date} · {row.city} · from ${row.floorPrice}
-                                            {row.isTopPick && <span className={styles.dim}> ← top pick</span>}
+                                            {row.isTopPick && (
+                                                <span className={styles.dim}> ← top pick</span>
+                                            )}
                                         </li>
                                     ))}
                                 </ul>
@@ -601,7 +604,8 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                             <dt>source</dt>
                             <dd>
                                 {provenance.source}
-                                {provenance.source === 'live' && ' — composed just now, at request time'}
+                                {provenance.source === 'live' &&
+                                    ' — composed just now, at request time'}
                                 {provenance.source === 'precomputed' &&
                                     ' — composed during development, not at request time'}
                             </dd>
@@ -631,7 +635,10 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                         ) : (
                             <ul className={styles.notes}>
                                 {notes.map((note, index) => (
-                                    <li key={`${note.level}-${note.module ?? index}`} className={NOTE_CLASS[note.level]}>
+                                    <li
+                                        key={`${note.level}-${note.module ?? index}`}
+                                        className={NOTE_CLASS[note.level]}
+                                    >
                                         [{note.level}] {note.module ? `${note.module}: ` : ''}
                                         {note.reason}
                                     </li>
@@ -640,7 +647,9 @@ export const DemoBar: React.FC<DemoBarProps> = ({
                         )}
 
                         <p className={styles.panelHeading}>Raw model output</p>
-                        <pre className={styles.raw}>{provenance.raw_response ?? '(static fallback — no model output)'}</pre>
+                        <pre className={styles.raw}>
+                            {provenance.raw_response ?? '(static fallback — no model output)'}
+                        </pre>
                     </div>
                 </aside>
             )}

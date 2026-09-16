@@ -202,7 +202,11 @@ export async function callModel(message: string): Promise<BridgeResult> {
                     return
                 }
                 if (envelope.is_error) {
-                    reject(new Error(`the CLI reported an error: ${String(envelope.result).slice(0, 300)}`))
+                    reject(
+                        new Error(
+                            `the CLI reported an error: ${String(envelope.result).slice(0, 300)}`,
+                        ),
+                    )
                     return
                 }
                 if (typeof envelope.result !== 'string' || envelope.result.trim() === '') {
@@ -215,7 +219,9 @@ export async function callModel(message: string): Promise<BridgeResult> {
                     model: MODEL,
                     promptVersion,
                     costUsd:
-                        typeof envelope.total_cost_usd === 'number' ? envelope.total_cost_usd : null,
+                        typeof envelope.total_cost_usd === 'number'
+                            ? envelope.total_cost_usd
+                            : null,
                     durationMs: Date.now() - startedAt,
                     inputTokens: totalInputTokens(envelope.usage),
                 })

@@ -116,7 +116,8 @@ export function selectProductions(
 
     const matching = market.productions.filter((production) => {
         if (exclude?.has(production.id)) return false
-        if (filter?.max_price !== undefined && production.floor_price > filter.max_price) return false
+        if (filter?.max_price !== undefined && production.floor_price > filter.max_price)
+            return false
         // A list as well as a single name, because "within a drive" is a set of
         // cities and there is no other way to say it. The system prompt makes
         // geography the model's judgment — no distance field, no radius, no
@@ -131,9 +132,15 @@ export function selectProductions(
             const cities = Array.isArray(filter.city) ? filter.city : [filter.city]
             if (!cities.includes(production.city)) return false
         }
-        if (filter?.min_demand_score !== undefined && production.demand_score < filter.min_demand_score)
+        if (
+            filter?.min_demand_score !== undefined &&
+            production.demand_score < filter.min_demand_score
+        )
             return false
-        if (filter?.min_value_score !== undefined && production.value_score < filter.min_value_score)
+        if (
+            filter?.min_value_score !== undefined &&
+            production.value_score < filter.min_value_score
+        )
             return false
         if (
             filter?.min_sales_velocity !== undefined &&

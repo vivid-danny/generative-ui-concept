@@ -92,7 +92,6 @@ export const ProductionCard: React.FC<ProductionCardProps> = ({
     // Which badges the section allowed, narrowed to the ones true of this date.
     const badges = badgesFor(production, eligibleBadges)
 
-
     return (
         <article className={classNames(styles.card, { [styles.topPickCard]: isTopPick })}>
             {/*

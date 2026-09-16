@@ -45,7 +45,10 @@ interface ComposedPageProps {
  * the validator drops, so it should not arrive here. Falling back to it keeps
  * React from warning on duplicate keys if one ever does.
  */
-function moduleKey(entry: { module: string; props: Record<string, unknown> }, index: number): string {
+function moduleKey(
+    entry: { module: string; props: Record<string, unknown> },
+    index: number,
+): string {
     const heading = entry.props.heading
     return typeof heading === 'string' && heading.trim() !== ''
         ? `${entry.module}:${heading}`
@@ -76,41 +79,41 @@ export const ComposedPage: React.FC<ComposedPageProps> = ({
     const exclusions = resolveExclusions(spec.layout, market, context)
 
     return (
-    <>
-        {spec.layout.map((entry, index) => {
-            // Unreachable for a validated spec — the validator drops unknown and
-            // unimplemented modules. Guarded anyway so a renderer bug degrades to
-            // a missing module rather than a crashed page.
-            if (!isModuleId(entry.module)) return null
+        <>
+            {spec.layout.map((entry, index) => {
+                // Unreachable for a validated spec — the validator drops unknown and
+                // unimplemented modules. Guarded anyway so a renderer bug degrades to
+                // a missing module rather than a crashed page.
+                if (!isModuleId(entry.module)) return null
 
-            // Filter while mapping, never before it: `exclusions` is aligned to
-            // position in the *whole* layout, so filtering the array first would
-            // hand each section another section's excluded dates.
-            if (MODULE_CATALOG[entry.module].region !== region) return null
+                // Filter while mapping, never before it: `exclusions` is aligned to
+                // position in the *whole* layout, so filtering the array first would
+                // hand each section another section's excluded dates.
+                if (MODULE_CATALOG[entry.module].region !== region) return null
 
-            const Module = getModuleComponent(entry.module)
-            if (!Module) return null
+                const Module = getModuleComponent(entry.module)
+                if (!Module) return null
 
-            return (
-                <Module
-                    key={moduleKey(entry, index)}
-                    market={market}
-                    context={context}
-                    size={entry.size ?? 'standard'}
-                    props={entry.props}
-                    excludeItemIds={exclusions[index]}
-                    // Only the hero is offered the pick. The validator
-                    // already refuses one authored anywhere else, but the pick
-                    // can still fall past the hero's three rows — and passing
-                    // it on would let the next section down label it, which is
-                    // the page-level behaviour this replaced.
-                    topPick={entry.size === 'hero' ? spec.top_pick : null}
-                    topPickReason={entry.size === 'hero' ? spec.top_pick_reason : null}
-                    visitorMetro={spec.visitor_metro}
-                />
-            )
-        })}
-    </>
+                return (
+                    <Module
+                        key={moduleKey(entry, index)}
+                        market={market}
+                        context={context}
+                        size={entry.size ?? 'standard'}
+                        props={entry.props}
+                        excludeItemIds={exclusions[index]}
+                        // Only the hero is offered the pick. The validator
+                        // already refuses one authored anywhere else, but the pick
+                        // can still fall past the hero's three rows — and passing
+                        // it on would let the next section down label it, which is
+                        // the page-level behaviour this replaced.
+                        topPick={entry.size === 'hero' ? spec.top_pick : null}
+                        topPickReason={entry.size === 'hero' ? spec.top_pick_reason : null}
+                        visitorMetro={spec.visitor_metro}
+                    />
+                )
+            })}
+        </>
     )
 }
 

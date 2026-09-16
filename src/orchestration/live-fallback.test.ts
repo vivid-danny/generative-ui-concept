@@ -97,7 +97,10 @@ describe('LiveProvider', () => {
     it('still validates live output — a hallucinated module is dropped', async () => {
         bridge.reply = reply(
             JSON.stringify({
-                layout: [{ module: 'vibe_check', props: {} }, { module: 'production_list', props: {} }],
+                layout: [
+                    { module: 'vibe_check', props: {} },
+                    { module: 'production_list', props: {} },
+                ],
                 reasoning: 'r',
             }),
         )

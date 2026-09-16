@@ -57,9 +57,7 @@ describe('badgesFor', () => {
 
     it('caps a row at two, so a busy date is not a badge sentence', () => {
         for (const production of market.productions) {
-            expect(badgesFor(production, BADGE_IDS).length).toBeLessThanOrEqual(
-                MAX_BADGES_PER_ROW,
-            )
+            expect(badgesFor(production, BADGE_IDS).length).toBeLessThanOrEqual(MAX_BADGES_PER_ROW)
         }
     })
 
@@ -76,7 +74,8 @@ describe('badgesFor', () => {
         // is running out, moving fast and heavily viewed should say the first
         // two things, not the popularity one.
         const crowded = market.productions.find(
-            (p) => p.sellout_risk === 'high' && p.sales_velocity >= 0.7 && p.fans_viewed_24h >= 1500,
+            (p) =>
+                p.sellout_risk === 'high' && p.sales_velocity >= 0.7 && p.fans_viewed_24h >= 1500,
         )!
         const shown = badgesFor(crowded, BADGE_IDS).map((badge) => badge.id)
 

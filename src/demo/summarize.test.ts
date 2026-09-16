@@ -72,7 +72,11 @@ const SHAPES: { label: string; spec: Parameters<typeof summarizeComposition>[0] 
                         max_items: 8,
                     },
                 },
-                { module: 'market_signals', size: 'fixed' as const, props: { stats: ['fan_demand'] } },
+                {
+                    module: 'market_signals',
+                    size: 'fixed' as const,
+                    props: { stats: ['fan_demand'] },
+                },
                 {
                     module: 'production_list',
                     size: 'standard' as const,
@@ -172,7 +176,7 @@ describe('summarizeComposition with repeated sections', () => {
         props: {
             heading,
             sort: 'date',
-           
+
             group_by_geo: false,
             max_items: 20,
             ...(city ? { filter: { city } } : {}),
@@ -239,7 +243,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
         props: {
             heading,
             sort: 'date',
-           
+
             group_by_geo: false,
             max_items: 20,
             ...props,
@@ -316,10 +320,7 @@ describe('summarizeComposition — no date twice, empty sections reported', () =
         // `filteredOut` says "removed by a filter". A date another section is
         // already showing was not filtered out of the page.
         const spec = {
-            layout: [
-                section('First', { filter: { city: 'Chicago' } }),
-                section('Rest', {}),
-            ],
+            layout: [section('First', { filter: { city: 'Chicago' } }), section('Rest', {})],
             reasoning: 'first claims Chicago',
             top_pick: null,
             visitor_metro: null,
@@ -390,6 +391,8 @@ describe('summarizeComposition — a top pick that renders nowhere', () => {
         )
 
         expect(summary.unshownTopPick).toBeNull()
-        expect(summary.groups.flatMap((group) => group.rows).filter((row) => row.isTopPick)).toHaveLength(1)
+        expect(
+            summary.groups.flatMap((group) => group.rows).filter((row) => row.isTopPick),
+        ).toHaveLength(1)
     })
 })

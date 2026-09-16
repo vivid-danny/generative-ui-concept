@@ -57,8 +57,20 @@ export const PerformerRail: React.FC<{
                         {performer.name.charAt(0)}
                     </span>
                 )}
-                <button type="button" className={styles.favorite} aria-label={`Favorite ${performer.name}`}>
-                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden focusable="false">
+                <button
+                    type="button"
+                    className={styles.favorite}
+                    aria-label={`Favorite ${performer.name}`}
+                >
+                    <svg
+                        width="40"
+                        height="40"
+                        viewBox="0 0 40 40"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        aria-hidden
+                        focusable="false"
+                    >
                         <path
                             d="M4 0.5H36C37.933 0.5 39.5 2.067 39.5 4V36C39.5 37.933 37.933 39.5 36 39.5H4C2.067 39.5 0.5 37.933 0.5 36V4C0.500001 2.067 2.067 0.5 4 0.5Z"
                             fill="white"

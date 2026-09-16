@@ -71,7 +71,11 @@ export async function readCached(key: string): Promise<ResolvedLayout | null> {
 export async function writeCached(key: string, layout: ResolvedLayout): Promise<void> {
     try {
         await mkdir(CACHE_DIR, { recursive: true })
-        await writeFile(path.join(CACHE_DIR, `${key}.json`), JSON.stringify(layout, null, 2), 'utf8')
+        await writeFile(
+            path.join(CACHE_DIR, `${key}.json`),
+            JSON.stringify(layout, null, 2),
+            'utf8',
+        )
     } catch {
         // Failing to cache is not worth failing a composition over.
     }

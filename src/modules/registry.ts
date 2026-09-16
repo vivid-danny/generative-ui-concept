@@ -14,9 +14,7 @@ import type { ModuleComponentProps } from './types'
  * `implemented: false` there is what keeps the two in step. A module missing here
  * is dropped by the validator with a note, never rendered as a blank.
  */
-export const MODULE_REGISTRY: Partial<
-    Record<ModuleId, React.FC<ModuleComponentProps<any>>>
-> = {
+export const MODULE_REGISTRY: Partial<Record<ModuleId, React.FC<ModuleComponentProps<any>>>> = {
     event_header: EventHeader,
     production_list: ProductionList,
     market_signals: MarketSignals,

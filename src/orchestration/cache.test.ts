@@ -41,7 +41,10 @@ describe('cacheKey', () => {
     it('changes when the prompt is edited without its version being bumped', () => {
         // The failure the previous key had: keying on "v3" meant an edited
         // prompt kept serving compositions made under the old instructions.
-        const edited = base.promptText.replace('Compose a page.', 'Compose a page. Prefer weekends.')
+        const edited = base.promptText.replace(
+            'Compose a page.',
+            'Compose a page. Prefer weekends.',
+        )
 
         expect(edited).not.toBe(base.promptText)
         expect(cacheKey({ ...base, promptText: edited })).not.toBe(cacheKey(base))

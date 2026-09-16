@@ -9,7 +9,8 @@
  * the same reason.
  */
 
-export const FONT_FAMILY = "'GT Walsheim', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
+export const FONT_FAMILY =
+    "'GT Walsheim', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif"
 
 /** The DS declares Black as 800, not 900. See fonts.scss. */
 export const FONT_WEIGHT = {

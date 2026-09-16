@@ -7,11 +7,7 @@ import {
     type ModuleId,
     type Size,
 } from '@/contracts/module-catalog'
-import {
-    LayoutSpecSchema,
-    type LayoutSpec,
-    type ValidationNote,
-} from '@/contracts/layout-spec'
+import { LayoutSpecSchema, type LayoutSpec, type ValidationNote } from '@/contracts/layout-spec'
 import type { Market } from '@/contracts/market'
 
 import fallbackLayoutJson from './fallback-layout.json'
@@ -340,7 +336,11 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
 
     for (const entry of spec.layout) {
         if (!isModuleId(entry.module)) {
-            notes.push({ level: 'dropped', module: entry.module, reason: 'not in the module catalog' })
+            notes.push({
+                level: 'dropped',
+                module: entry.module,
+                reason: 'not in the module catalog',
+            })
             continue
         }
         const definition = MODULE_CATALOG[entry.module]

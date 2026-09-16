@@ -48,9 +48,10 @@ export const SeoContent: React.FC<{ market: Market }> = ({ market }) => {
                     </Typography>
                     <Typography variant="body" component="p" className={styles.body}>
                         {performer.name} tickets are available now on Vivid Seats for {tour}. The{' '}
-                        {performer.category.toLowerCase()} act is playing {productions.length} shows across{' '}
-                        {cities} {cities === 1 ? 'city' : 'cities'} this run ({run}), with get-in prices
-                        starting at ${minPrice}. Every order is backed by the 100% Buyer Guarantee.
+                        {performer.category.toLowerCase()} act is playing {productions.length} shows
+                        across {cities} {cities === 1 ? 'city' : 'cities'} this run ({run}), with
+                        get-in prices starting at ${minPrice}. Every order is backed by the 100%
+                        Buyer Guarantee.
                     </Typography>
                 </div>
 
@@ -59,11 +60,11 @@ export const SeoContent: React.FC<{ market: Market }> = ({ market }) => {
                         How to buy {performer.name} tickets
                     </Typography>
                     <Typography variant="body" component="p" className={styles.body}>
-                        Browse every {performer.name} date above, filter by your budget, and pick the seats
-                        that fit. Prices on this tour range from ${minPrice} to ${maxPrice} all-in, so you can
-                        compare {productions.length} dates side by side — whether you want the lowest get-in
-                        price or a specific section. Select a show to see the full seat map and check out in a
-                        few clicks.
+                        Browse every {performer.name} date above, filter by your budget, and pick
+                        the seats that fit. Prices on this tour range from ${minPrice} to $
+                        {maxPrice} all-in, so you can compare {productions.length} dates side by
+                        side — whether you want the lowest get-in price or a specific section.
+                        Select a show to see the full seat map and check out in a few clicks.
                     </Typography>
                 </div>
 
@@ -72,7 +73,8 @@ export const SeoContent: React.FC<{ market: Market }> = ({ market }) => {
                         {performer.name} Tour Dates and Ticket Prices
                     </Typography>
                     <Typography variant="body" component="p" className={styles.body}>
-                        All {performer.name} tour dates and average ticket prices, from the current listings.
+                        All {performer.name} tour dates and average ticket prices, from the current
+                        listings.
                     </Typography>
                     <table className={styles.table}>
                         <thead>

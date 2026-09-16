@@ -17,13 +17,21 @@ export interface BreadcrumbsProps {
     className?: string
 }
 
-export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({ items, variant = 'caption', className }) => (
+export const Breadcrumbs: React.FC<BreadcrumbsProps> = ({
+    items,
+    variant = 'caption',
+    className,
+}) => (
     <nav className={className} aria-label="Breadcrumb">
         <ol className={styles.trail}>
             {items.map((item, index) => {
                 const isLast = index === items.length - 1
                 return (
-                    <li key={item} className={styles.crumb} aria-current={isLast ? 'page' : undefined}>
+                    <li
+                        key={item}
+                        className={styles.crumb}
+                        aria-current={isLast ? 'page' : undefined}
+                    >
                         <Typography variant={variant} component="span">
                             {item}
                         </Typography>

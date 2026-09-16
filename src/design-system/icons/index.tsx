@@ -100,7 +100,11 @@ export const TicketIcon: React.FC<IconProps> = ({ width = 16, height = 16, class
 )
 
 /** shield-check — "Tickets guaranteed" trust row (teal). */
-export const ShieldCheckIcon: React.FC<IconProps> = ({ width = 26, height = 26.722, className }) => (
+export const ShieldCheckIcon: React.FC<IconProps> = ({
+    width = 26,
+    height = 26.722,
+    className,
+}) => (
     <svg width={width} height={height} viewBox="0 0 26 26.722" className={className} {...svgProps}>
         <path
             fillRule="evenodd"
@@ -147,7 +151,10 @@ export const RewardsIcon: React.FC<IconProps> = ({ width = 26, height = 22.5074,
             d="M25.9998 0.00010851L4.31482 7.47291L4.3154 7.47294L4.3159 7.47299L4.31561 7.47281H21.6822L25.9998 0.00010851Z"
             fill="#0951B6"
         />
-        <path d="M4.32027 7.48332L4.31482 7.47342L17.1228 15.3662L12.9971 22.5074L4.32027 7.48332Z" fill="#13BDC3" />
+        <path
+            d="M4.32027 7.48332L4.31482 7.47342L17.1228 15.3662L12.9971 22.5074L4.32027 7.48332Z"
+            fill="#13BDC3"
+        />
         <path d="M26 0.00010851L4.31781 7.47154L0 0.000874522L26 0.00010851Z" fill="#CE3197" />
     </svg>
 )

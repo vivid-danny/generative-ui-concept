@@ -110,9 +110,7 @@ not invent structured values to fill gaps — compose for what you actually know
         )
     }
 
-    sections.push(
-        `Reply with the layout spec object and nothing else — no prose, no code fence.`,
-    )
+    sections.push(`Reply with the layout spec object and nothing else — no prose, no code fence.`)
 
     return sections.join('\n\n')
 }

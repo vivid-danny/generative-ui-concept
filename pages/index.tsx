@@ -90,12 +90,7 @@ export default function Home({
             >
                 <PageShell
                     header={
-                        <EventHeader
-                            market={market}
-                            context={context}
-                            size="fixed"
-                            props={{}}
-                        />
+                        <EventHeader market={market} context={context} size="fixed" props={{}} />
                     }
                     rail={
                         <PerformerRail market={market} composed={hasRegion(resolved.spec, 'rail')}>
@@ -146,7 +141,8 @@ export const getServerSideProps: GetServerSideProps<HomeProps> = async ({ query 
     // lives behind a POST to `/api/compose`, pressed by a person.
     //
     // `?fresh=1` is gone with it. A URL that spends money is the defect.
-    const composed = mode.brief === null ? null : await readComposition(mode.context, MARKET, mode.slug)
+    const composed =
+        mode.brief === null ? null : await readComposition(mode.context, MARKET, mode.slug)
     const resolved = composed ?? (await new BaseProvider().getLayout(mode.context, MARKET))
 
     // One read of the ledger, two answers from it. `readComposition` cannot
@@ -158,7 +154,8 @@ export const getServerSideProps: GetServerSideProps<HomeProps> = async ({ query 
         recentBriefs(ledger).map(async (brief) => ({
             brief,
             cached:
-                (await readComposition(modeFor('custom', brief).context, MARKET, 'custom')) !== null,
+                (await readComposition(modeFor('custom', brief).context, MARKET, 'custom')) !==
+                null,
         })),
     )
 

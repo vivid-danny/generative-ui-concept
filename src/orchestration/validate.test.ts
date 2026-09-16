@@ -129,7 +129,10 @@ describe('validateLayout', () => {
 
     it('drops a module that is catalogued but not implemented yet', () => {
         const result = validateLayout(
-            { ...validSpec, layout: [{ module: 'listing_preview', props: {} }, ...validSpec.layout] },
+            {
+                ...validSpec,
+                layout: [{ module: 'listing_preview', props: {} }, ...validSpec.layout],
+            },
             market,
         )
 
@@ -139,7 +142,10 @@ describe('validateLayout', () => {
 
     it('accepts the rail card and fills in its defaults', () => {
         const result = validateLayout(
-            { ...validSpec, layout: [...validSpec.layout, { module: 'market_signals', props: {} }] },
+            {
+                ...validSpec,
+                layout: [...validSpec.layout, { module: 'market_signals', props: {} }],
+            },
             market,
         )
 
@@ -147,7 +153,9 @@ describe('validateLayout', () => {
         expect(result.spec.layout[1]).toMatchObject({
             module: 'market_signals',
             size: 'fixed',
-            props: { stats: ['fan_demand', 'lowest_price', 'selling_out', 'fans_viewing', 'tour_scale'] },
+            props: {
+                stats: ['fan_demand', 'lowest_price', 'selling_out', 'fans_viewing', 'tour_scale'],
+            },
         })
     })
 
@@ -285,7 +293,11 @@ describe('validateLayout', () => {
                 {
                     ...validSpec,
                     layout: [
-                        { module: 'production_list', size: 'hero', props: { sort: 'demand', heading: 'Top three' } },
+                        {
+                            module: 'production_list',
+                            size: 'hero',
+                            props: { sort: 'demand', heading: 'Top three' },
+                        },
                         {
                             module: 'production_list',
                             size: 'standard',
@@ -358,7 +370,11 @@ describe('validateLayout', () => {
                 {
                     ...validSpec,
                     layout: [
-                        { module: 'production_list', size: 'hero', props: { sort: 'demand', heading: 'Top three' } },
+                        {
+                            module: 'production_list',
+                            size: 'hero',
+                            props: { sort: 'demand', heading: 'Top three' },
+                        },
                         {
                             module: 'production_list',
                             size: 'hero',
@@ -466,7 +482,10 @@ describe('validateLayout', () => {
         // One list on the page with no heading of its own is exactly what the
         // built-in "N Shows Near Chicago" headings are for.
         const result = validateLayout(
-            { ...validSpec, layout: [{ module: 'production_list', props: { group_by_geo: true } }] },
+            {
+                ...validSpec,
+                layout: [{ module: 'production_list', props: { group_by_geo: true } }],
+            },
             market,
         )
 
@@ -517,7 +536,9 @@ describe('validateLayout', () => {
         const result = validateLayout(
             {
                 ...validSpec,
-                layout: [{ module: 'production_list', props: { sort: 'price', make_it_pop: true } }],
+                layout: [
+                    { module: 'production_list', props: { sort: 'price', make_it_pop: true } },
+                ],
             },
             market,
         )
@@ -549,13 +570,17 @@ describe('validateLayout', () => {
         const result = validateLayout(
             {
                 ...validSpec,
-                layout: [{ module: 'production_list', props: { filter: { max_price: cheapest - 20 } } }],
+                layout: [
+                    { module: 'production_list', props: { filter: { max_price: cheapest - 20 } } },
+                ],
             },
             market,
         )
 
         expect(result.spec.layout[0].props.filter).toEqual({})
-        expect(result.notes.some((note) => note.reason.includes('below the cheapest ticket'))).toBe(true)
+        expect(result.notes.some((note) => note.reason.includes('below the cheapest ticket'))).toBe(
+            true,
+        )
         // The note has to name the rejected value, or it cannot be debugged.
         expect(result.notes.some((note) => note.reason.includes(String(cheapest - 20)))).toBe(true)
         expect(result.notes.every((note) => !note.reason.includes('undefined'))).toBe(true)
@@ -563,7 +588,10 @@ describe('validateLayout', () => {
 
     it('keeps a max_price the market can actually satisfy', () => {
         const result = validateLayout(
-            { ...validSpec, layout: [{ module: 'production_list', props: { filter: { max_price: 80 } } }] },
+            {
+                ...validSpec,
+                layout: [{ module: 'production_list', props: { filter: { max_price: 80 } } }],
+            },
             market,
         )
 
