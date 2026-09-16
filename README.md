@@ -34,19 +34,30 @@ Check the CLI is ready before anything else:
 claude --version        # any 2.x
 ```
 
+There is no `.env` and no service to point at. Verified from a clean clone on
+2026-09-16: `npm ci`, typecheck, 208 tests and `next build` all pass, and the dev
+server serves `/`, `/harness` and the fonts with no further setup. The planning
+material that drove the build was kept deliberately outside the repo, and nothing
+here refers to it.
+
 ## Running it
 
-```bash
-npm install
-npm run dev             # http://localhost:3000
-```
+**Steps 1–5 cost nothing and make no model call.**
 
-Then in another shell, as you like:
+1. `npm install`
+2. `npm run dev` — http://localhost:3000
+3. Open **`/`** — the baseline page: no visitor context, no model involved
+4. Press **`Shift+H`** — the developer drawer
+5. Set **Mode** to **Eval** — a composed page, read from cache, with the model's
+   own reasoning under **Why this page**
+
+Then, as you like:
 
 ```bash
 npm test                # 208 tests, none of which call the model
 npm run typecheck
 npm run build
+npm run format
 ```
 
 **If a dev server is already running, do not start another.** Your harness may
@@ -57,9 +68,6 @@ you want, not a stale one. Check first:
 ```bash
 pgrep -fl "next dev"
 ```
-
-Also check *which* app is on port 3000 before trusting a `curl` — another Next.js
-app on the same port will serve a perfectly good page, just not this one.
 
 ## The three modes
 
@@ -86,13 +94,10 @@ covering it.
 It holds, top to bottom:
 
 - **Mode** — `Base` / `Eval` / `Custom`, and the brief each one hands over
-- **Compose (one call)** / **Re-run (new call)** — the only path to a live
-  call. In Custom it is the button directly under the textarea, and one press
-  does the whole thing; there used to be a second button above it labelled
-  "Compose" that only navigated, so the obvious press did nothing visible.
-  Disabled the instant you press it, with an elapsed second count below, because
-  a composition takes 40–180 seconds and silence used to look identical to a dead
-  page
+- **Compose (one call)** / **Re-run (new call)** — the only path to a live call.
+  In Custom it is the button directly under the textarea, and one press does the
+  whole thing. Disabled the instant you press it, with an elapsed second count
+  below
 - **Briefs you have run** (Custom only) — the last five typed briefs, from the
   ledger, each marked *cached* (a free replay) or *needs a call*. Editing the
   system prompt flips every one of them from the first to the second
@@ -104,9 +109,8 @@ It holds, top to bottom:
 - **Validator** — every drop or repair, or "passed unmodified"
 - **Raw model output** — the unparsed reply
 
-Drawer state is remembered for the session and starts closed. It is deliberately
-not in the URL: a query param survived navigation, so hiding the drawer and then
-switching mode brought it straight back.
+Drawer state is remembered for the session and starts closed, deliberately not in
+the URL.
 
 There is also `/harness` — dev only, unlinked. Every module at every size from
 fixture props, for judging visual fidelity without a composition in the way. It
@@ -123,13 +127,9 @@ firing is the signal that the prompt or catalog has grown.
 Three things keep spending deliberate:
 
 - **Only a POST to `/api/compose` can call the model.** Rendering a page cannot.
-  A GET is replayable by design — hot reload, a refresh, a second tab, a link
-  prefetch — and that is how five calls once went through from two presses.
 - **One call at a time, across the whole server.** Two presses for the same
   composition share one in-flight promise; anything else that arrives mid-call
-  gets a 409 and spends nothing. It used to be one call per *cache key*, which
-  stopped being a limit the moment briefs were typed rather than scripted — a
-  new brief is a new key, so two tabs were two calls.
+  gets a 409 and spends nothing.
 - **Every attempt is logged** to `.cache/calls.log`, failures included, with
   cost, duration, what triggered it, and **the brief it was composed from**. A
   typed brief lives in the URL and nowhere else, so this is what makes a
@@ -202,20 +202,6 @@ around is not a rule:
 belongs: if the page would be *wrong* when the rule is broken, enforce it in code;
 if it is a judgment about what serves this visitor, put it in the system prompt.
 
-## Cloning this
-
-Verified from a clean clone on 2026-09-16: `npm ci`, typecheck, 208 tests and
-`next build` all pass, and the dev server serves `/`, `/harness` and the fonts
-with no further setup. `/?mode=eval` works immediately and fires nothing — you
-get the baseline page and a Run button.
-
-You need Node 24 and the `claude` CLI signed in under **your own** subscription.
-There is no `.env`, no API key, and no service to point at.
-
-The planning material that drove the build — the source plan and the slice
-breakdown — was deliberately kept outside the repo. None of it is needed to run
-this, and nothing here refers to it.
-
 ## Guardrails
 
 - **Everything runs locally.** No network dependency on vividseats.com, any CDN,
@@ -229,3 +215,18 @@ this, and nothing here refers to it.
 - **This is a prototype, not a production delivery.** No auth, analytics,
   monitoring, i18n, CI or hardening. Fixture data is partly fabricated —
   `src/fixtures/README.md` marks which fields are real.
+
+## Why it works this way
+
+What each rule above cost to learn.
+
+- **Five calls once went through from two presses.** A GET is replayable — hot
+  reload, a refresh, a second tab, a link prefetch — so only a POST can spend.
+- **Two tabs were two calls.** The lock used to be per cache key, which stopped
+  being a limit the moment briefs were typed rather than scripted: a new brief is
+  a new key. It is now server-wide.
+- **The obvious press did nothing visible.** A second button above the textarea,
+  also labelled "Compose", only navigated. One press now does the whole thing.
+- **Silence looked identical to a dead page**, hence the elapsed counter.
+- **Hiding the drawer then switching mode brought it straight back**, because the
+  state was a query param that survived navigation. It is session state now.
