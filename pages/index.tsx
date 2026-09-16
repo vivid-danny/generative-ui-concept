@@ -36,7 +36,7 @@ import styles from './index.module.scss'
  * happens here, behind `OrchestrationProvider`, without the client changing.
  *
  * `event_header` is rendered by the page rather than from the spec: it is always
- * first and is not the orchestrator's to place (source plan §4). The validator
+ * first and is not the orchestrator's to place. The validator
  * strips it from any layout that tries.
  */
 

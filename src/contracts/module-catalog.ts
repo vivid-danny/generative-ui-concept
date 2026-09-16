@@ -12,7 +12,7 @@ import { CARD_SIGNAL_IDS } from '@/modules/production-list/card-signal'
 import { STAT_IDS } from '@/modules/market-signals/signals'
 
 /**
- * Module catalog — source plan §3.3.
+ * Module catalog.
  *
  * This file is the orchestrator's tool manifest as well as the renderer's
  * registry contract, which is why every `purpose` is written as one sentence
@@ -31,7 +31,7 @@ export interface ModuleDefinition {
     readonly id: string
     /** Written for the orchestrator LLM: when should it reach for this module? */
     readonly purpose: string
-    /** Which of the customer decision levers (§1) this module answers. */
+    /** Which of the customer decision levers this module answers. */
     readonly lever: 'price' | 'date' | 'location' | 'seat_quality' | 'orientation'
     readonly sizes: readonly Size[]
     readonly defaultSize: Size
@@ -59,7 +59,7 @@ export interface ModuleDefinition {
     readonly dataRequirements: readonly string[]
     /**
      * False for page chrome the LLM does not get to place — `event_header` is
-     * always first (§4). The validator strips these from any emitted layout.
+     * always first. The validator strips these from any emitted layout.
      */
     readonly orchestrated: boolean
     /** False while the module is specified but has no component yet. */
@@ -371,7 +371,7 @@ export const PLACEABLE_MODULE_IDS = MODULE_IDS.filter(
 )
 
 /**
- * Modules that constitute a path to purchase. Source plan §3.4 requires at least
- * one of these in every layout — there is always a way to buy.
+ * Modules that constitute a path to purchase. At least one of these is required
+ * in every layout — there is always a way to buy.
  */
 export const PATH_TO_PURCHASE_MODULE_IDS = ['production_list', 'listing_preview'] as const

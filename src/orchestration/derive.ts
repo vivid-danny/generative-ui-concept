@@ -6,8 +6,8 @@
  * We derive rather than store them so the fixture stays a snapshot of inventory,
  * not of the calendar.
  *
- * Timezone landmine (see docs/HANDOFF.md): fixture dates are venue-local
- * wall-clock strings with no offset ("2026-12-05T19:30:00"). Parsing them into a
+ * Timezone landmine: fixture dates are venue-local wall-clock strings with no
+ * offset ("2026-12-05T19:30:00"). Parsing them into a
  * `Date` and reading UTC fields shifts the day. So we read the day-of-week and
  * the calendar day off the local components of the parsed date, the same way
  * `ProductionCard` and `summarize` format them — never `getUTC*`.

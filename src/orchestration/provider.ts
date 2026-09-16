@@ -3,7 +3,7 @@ import type { Market } from '@/contracts/market'
 import type { ResolvedLayout } from '@/contracts/layout-spec'
 
 /**
- * The swappable orchestration seam — source plan §2, principle 4.
+ * The swappable orchestration seam.
  *
  * Defined on day one so the switch from precomputed specs to a live LLM call is
  * a one-line provider swap and nothing downstream changes. Everything the

@@ -17,12 +17,12 @@ import type { Market } from '@/contracts/market'
 import fallbackLayoutJson from './fallback-layout.json'
 
 /**
- * Validator — source plan §3.4.
+ * Validator.
  *
  * Two principles, both deliberate:
  *
- * 1. **Repair, don't discard.** §3.4 says "on any validation failure render the
- *    fallback", but taken literally one bad prop would throw away an otherwise
+ * 1. **Repair, don't discard.** The rule as first specified was "on any
+ *    validation failure render the fallback", but taken literally one bad prop would throw away an otherwise
  *    good composition. So a bad module is dropped and a bad prop is repaired;
  *    the whole-page fallback is reserved for specs that fail structurally.
  * 2. **Every intervention is recorded.** The notes are surfaced in the demo —
@@ -30,7 +30,7 @@ import fallbackLayoutJson from './fallback-layout.json'
  */
 
 /**
- * §3.4 specifies 3–6 modules. The minimum is 1 while only `production_list` is
+ * The spec calls for 3–6 modules. The minimum is 1 while only `production_list` is
  * implemented — a floor of 3 would make every spec fail. Restore it to 3 in
  * slice 2, once the catalog has enough implemented modules to satisfy it.
  */
@@ -191,7 +191,7 @@ function repairProps(
 
 /**
  * Catches props that are individually valid but nonsensical against this
- * snapshot — the case §3.4 misses. A `max_price` under every floor price passes
+ * snapshot — the case schema validation misses. A `max_price` under every floor price passes
  * its schema and renders an empty module, which reads as a broken page.
  */
 /**
@@ -491,7 +491,7 @@ export function validateLayout(raw: unknown, market: Market): ValidationResult {
         }
     }
 
-    // §3.4: there is always a path to purchase. Appending the default list module
+    // There is always a path to purchase. Appending the default list module
     // preserves the rest of the composition, where falling back would discard it.
     const hasPathToPurchase = kept.some((entry) =>
         (PATH_TO_PURCHASE_MODULE_IDS as readonly string[]).includes(entry.module),

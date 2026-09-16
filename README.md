@@ -6,9 +6,9 @@ page for a Chicago fan with $80 than for someone who will fly — not different
 copy in a fixed template, but different modules, in a different order, with
 different props.
 
-**Picking this up fresh?** Read [`docs/HANDOFF.md`](docs/HANDOFF.md) — current
-status, the load-bearing decisions, the landmines, and what to do next. This file
-is how to get it running.
+**Picking this up fresh?** This file is how to get it running.
+[`docs/COMPOSABILITY.md`](docs/COMPOSABILITY.md) is the decision rule for what the
+model is allowed to decide, and where a new constraint belongs.
 
 ---
 
@@ -44,22 +44,22 @@ npm run dev             # http://localhost:3000
 Then in another shell, as you like:
 
 ```bash
-npm test                # 172 tests, none of which call the model
+npm test                # 208 tests, none of which call the model
 npm run typecheck
 npm run build
 ```
 
-**If a dev server is already running, do not start another.** Conductor starts
-one for this worktree on **port 3100**. A second `next dev` fails with "Unable to
-acquire lock at `.next/dev/lock`" — and that is the lock of the server you want,
-not a stale one. Check first:
+**If a dev server is already running, do not start another.** Your harness may
+already be serving this worktree on another port. A second `next dev` fails with
+"Unable to acquire lock at `.next/dev/lock`" — and that is the lock of the server
+you want, not a stale one. Check first:
 
 ```bash
 pgrep -fl "next dev"
 ```
 
-Also check *which* app is on port 3000 before trusting a `curl`: `vivid-web-athena`
-also runs there and serves a perfectly good page, just not this one.
+Also check *which* app is on port 3000 before trusting a `curl` — another Next.js
+app on the same port will serve a perfectly good page, just not this one.
 
 ## The three modes
 
@@ -204,7 +204,7 @@ if it is a judgment about what serves this visitor, put it in the system prompt.
 
 ## Cloning this
 
-Verified from a clean clone on 2026-09-14: `npm ci`, typecheck, 172 tests and
+Verified from a clean clone on 2026-09-16: `npm ci`, typecheck, 208 tests and
 `next build` all pass, and the dev server serves `/`, `/harness` and the fonts
 with no further setup. `/?mode=eval` works immediately and fires nothing — you
 get the baseline page and a Run button.
@@ -212,11 +212,9 @@ get the baseline page and a Run button.
 You need Node 24 and the `claude` CLI signed in under **your own** subscription.
 There is no `.env`, no API key, and no service to point at.
 
-The planning material — the source plan, the slice breakdown, what to build next
-— is deliberately outside the repo and will be deleted when building is done.
-None of it is needed to run this. The `§` citations in `docs/` and in code
-comments refer to it; treat them as footnotes, since the claim beside each one
-is stated in full. `docs/HANDOFF.md` and this file stand on their own.
+The planning material that drove the build — the source plan and the slice
+breakdown — was deliberately kept outside the repo. None of it is needed to run
+this, and nothing here refers to it.
 
 ## Guardrails
 
@@ -225,9 +223,9 @@ is stated in full. `docs/HANDOFF.md` and this file stand on their own.
   `a.vsstatic.com` and Cloudinary are unreachable here and 404, so commit assets
   to `/public` instead of hotlinking. `next.config.js` deliberately has no
   `images.remotePatterns`. The one exception is the CLI subprocess.
-- `/Users/daniel.lopez/vividseats/vivid-web-athena` is **read-only**. Source is
+- Your local `vivid-web-athena` checkout is **read-only**. Source is
   read and copied out; nothing is written back.
-- **No commits, branches or PRs without Danny saying so. Never push.**
+- **No commits, branches or PRs without the repo owner saying so. Never push.**
 - **This is a prototype, not a production delivery.** No auth, analytics,
   monitoring, i18n, CI or hardening. Fixture data is partly fabricated —
   `src/fixtures/README.md` marks which fields are real.

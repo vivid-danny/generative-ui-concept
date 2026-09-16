@@ -11,8 +11,8 @@ const NAV_LINKS = ['Explore', 'Trending', 'Sports', 'Concerts', 'Theater & Comed
  * Static page chrome, built from Figma 17055:178920.
  *
  * Deliberately inert — no search, no auth, no navigation. Its whole job is to
- * make a screenshot of this page read as vividseats.com, which the source plan
- * (§4) calls load-bearing for the demo.
+ * make a screenshot of this page read as vividseats.com, which is load-bearing
+ * for the demo.
  */
 export const Navbar: React.FC = () => (
     <header>

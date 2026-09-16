@@ -2,8 +2,8 @@
 
 ## `market.json` — provenance
 
-**This snapshot is hand-authored, not captured.** Source plan §5 defers real
-snapshot capture, and slice 1 does not need listing volume, so the fixture was
+**This snapshot is hand-authored, not captured.** Real snapshot capture is deferred,
+and slice 1 does not need listing volume, so the fixture was
 written by hand to a plausible shape rather than scraped. Nothing here came off
 vividseats.com.
 
@@ -13,7 +13,7 @@ and weekends, lead times, price tiers, and demand. The first seven productions
 (`prod-001`…`prod-007`) are the original slice-1 anchors, unchanged in their
 inventory/price fields; the rest were appended.
 
-That matters because the source plan (§3.2) distinguishes real inventory from
+That matters because real inventory is distinct from
 derived signals, and three planned modules read entirely from derived fields.
 Until a real capture happens, treat every number below as illustrative:
 
@@ -21,9 +21,9 @@ Until a real capture happens, treat every number below as illustrative:
 | --- | --- |
 | `performer.*` | Real performer, invented ids. `image_url` points at a committed local asset under `/public/performers` — nothing is fetched from a CDN. |
 | `performer.tour_name` | Invented tour name. Optional: the header and SEO copy fall back to a derived date-range line when it is absent. |
-| `productions[].date/venue/city/state` | Real venues in plausible tour cities; dates chosen so the Chicago second night is 94 days out, matching the §3.1 context example. |
+| `productions[].date/venue/city/state` | Real venues in plausible tour cities; dates chosen so the Chicago second night is 94 days out, matching the context example. |
 | `productions[].listing_count` | Invented, plausible magnitude. |
-| `productions[].floor_price` / `median_price` | Invented. §3.2 says these should be real once a capture exists. |
+| `productions[].floor_price` / `median_price` | Invented. These should be real once a capture exists. |
 | `productions[].sellout_risk` | **Fabricated** derived field. |
 | `productions[].price_trend_7d` | **Fabricated** derived field. |
 | `productions[].inventory_by_tier` | Computed from `listing_count` by fixed ratios (~0.12 / 0.67 / 0.05). |

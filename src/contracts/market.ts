@@ -1,9 +1,9 @@
 import { z } from 'zod'
 
 /**
- * Market data schema — source plan §3.2.
+ * Market data schema.
  *
- * The snapshot the page is composed *from*. Per §3.2 the listings and prices are
+ * The snapshot the page is composed *from*. The listings and prices are
  * real; the derived fields are computed or plausibly fabricated, and each one is
  * marked below so nobody later mistakes a fabricated signal for a measured one.
  * That distinction is load-bearing: three of the planned modules
@@ -113,7 +113,7 @@ export const MarketSchema = z.object({
     }),
     productions: z.array(ProductionSchema).min(1),
     listings_sample: z.array(ListingSchema),
-    /** When the snapshot was taken. The demo narrates this date — §9. */
+    /** When the snapshot was taken. The demo narrates this date. */
     captured_at: z.string().min(1),
 })
 

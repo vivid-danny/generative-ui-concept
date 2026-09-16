@@ -8,7 +8,7 @@ import { getModuleComponent } from '@/modules/registry'
 import { resolveExclusions } from '@/modules/production-list/select'
 
 /**
- * Spec -> components. The renderer is dumb (source plan §2, principle 3): it
+ * Spec -> components. The renderer is dumb: it
  * mounts what the validated spec tells it to and makes no decisions of its own.
  *
  * Keys are module ids, never array indices. That is a Stage-4 requirement paid

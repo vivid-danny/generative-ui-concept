@@ -6,7 +6,7 @@ import { getModuleComponent } from '@/modules/registry'
 
 /**
  * Module harness — every implemented module rendered at every size it offers,
- * from fixture props (source plan §6, the components agent's deliverable).
+ * from fixture props.
  *
  * This is the acceptance surface for visual fidelity: a module passes when it
  * looks at home beside a screenshot of the live page. Keeping it separate from

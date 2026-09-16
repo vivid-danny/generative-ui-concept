@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { SizeSchema } from './module-catalog'
 
 /**
- * Layout spec — source plan §3.4. This is the orchestrator's entire output: the
+ * Layout spec. This is the orchestrator's entire output: the
  * LLM emits structure, never code.
  *
  * Deliberately permissive at the shape level. `module` is a plain string and
@@ -21,7 +21,7 @@ export const LayoutEntrySchema = z.object({
 
 export const LayoutSpecSchema = z.object({
     layout: z.array(LayoutEntrySchema),
-    /** Required: demo material and the primary debugging tool (§7). */
+    /** Required: demo material and the primary debugging tool. */
     reasoning: z.string().min(1),
     /**
      * The one date the composition recommends, by production id.
