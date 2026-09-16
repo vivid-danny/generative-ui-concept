@@ -74,7 +74,11 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
                           sections, each names itself.
                         */}
                         {props.heading ? (
-                            <Typography variant="titleSm" component="h2" className={styles.allHeader}>
+                            <Typography
+                                variant="titleSm"
+                                component="h2"
+                                className={styles.allHeader}
+                            >
                                 <span>{props.heading}</span>
                                 <span className={styles.sep}>•</span>
                                 <span className={styles.count}>
@@ -83,7 +87,11 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
                                 </span>
                             </Typography>
                         ) : group.key === 'near' ? (
-                            <Typography variant="titleSm" component="h2" className={styles.geoHeader}>
+                            <Typography
+                                variant="titleSm"
+                                component="h2"
+                                className={styles.geoHeader}
+                            >
                                 <span>
                                     {group.productions.length}{' '}
                                     {group.productions.length === 1 ? 'Show' : 'Shows'} Near
@@ -102,7 +110,11 @@ export const ProductionList: React.FC<ModuleComponentProps<ProductionListProps>>
                                 </button>
                             </Typography>
                         ) : (
-                            <Typography variant="titleSm" component="h2" className={styles.allHeader}>
+                            <Typography
+                                variant="titleSm"
+                                component="h2"
+                                className={styles.allHeader}
+                            >
                                 <span>{market.performer.name} Tour Dates</span>
                                 <span className={styles.sep}>•</span>
                                 <span className={styles.count}>

@@ -1,0 +1,14 @@
+node_modules/
+.next/
+out/
+.cache/
+.context/
+
+# Generated from the design system - regenerate, never hand-edit.
+src/design/tokens/
+
+# Fixture data and hand-authored specs. Reformatting these is pure churn and
+# market.json's shape is documented in src/fixtures/README.md.
+src/fixtures/market.json
+src/fixtures/contexts/
+src/orchestration/fallback-layout.json

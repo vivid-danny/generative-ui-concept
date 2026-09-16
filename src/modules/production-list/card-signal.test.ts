@@ -103,7 +103,9 @@ describe('price_gap_to_cheapest', () => {
         // the list the visitor is scanning.
         const chicago = market.productions.filter((production) => production.city === 'Chicago')
         const cheapestInChicago = Math.min(...chicago.map((production) => production.floor_price))
-        const tourFloor = Math.min(...market.productions.map((production) => production.floor_price))
+        const tourFloor = Math.min(
+            ...market.productions.map((production) => production.floor_price),
+        )
 
         expect(cheapestInChicago).toBeGreaterThan(tourFloor)
 

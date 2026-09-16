@@ -9,3 +9,6 @@ logs/
 
 # Generated compositions - cached model output, not source.
 .cache/
+
+# Agent scratch space - planning notes and attachments, not source.
+.context/

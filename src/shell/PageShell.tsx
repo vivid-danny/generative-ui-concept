@@ -17,7 +17,7 @@ interface PageShellProps {
 
 /**
  * The performer page shell: navbar, full-bleed header, two-column content grid,
- * footer. Grid values come from `src/design/layout.ts` via PageShell.module.scss.
+ * footer. Grid values live in PageShell.module.scss.
  *
  * The shell knows nothing about layout specs — it is just the frame the composed
  * column sits in, which keeps the renderer's job (spec -> modules) separate from

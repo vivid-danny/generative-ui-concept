@@ -4,9 +4,9 @@
  * The point of an eval scenario is to exercise several decision levers at once,
  * so a single composition tells you whether the orchestrator can weigh them
  * against each other rather than answering only the one it was handed. Written
- * as prose because that is what Danny will type in front of a room, and because
- * a brief that reads naturally is a fairer test of the prompt than a list of
- * structured fields.
+ * as prose because that is what the presenter will type in front of a room, and
+ * because a brief that reads naturally is a fairer test of the prompt than a
+ * list of structured fields.
  *
  * These are deliberately thin for now — the mechanism matters this slice, the
  * content gets iterated next. When adding one, name the levers it touches so it

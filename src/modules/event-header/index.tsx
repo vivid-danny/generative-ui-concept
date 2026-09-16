@@ -6,8 +6,8 @@ import type { ModuleComponentProps } from '../types'
 import styles from './index.module.scss'
 
 /**
- * `event_header` — page chrome, always first, never placed by the orchestrator
- * (source plan §4). Rebuilt from Figma 17055:178925 rather than ported: athena's
+ * `event_header` — page chrome, always first, never placed by the orchestrator.
+ * Rebuilt from Figma 17055:178925 rather than ported: athena's
  * three candidate components all depend on `@vividseats/vivid-ui-kit`, which is
  * not available here.
  *

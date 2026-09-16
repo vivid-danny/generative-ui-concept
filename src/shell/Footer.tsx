@@ -7,8 +7,14 @@ import styles from './Footer.module.scss'
 
 const COLUMNS = [
     { heading: 'Connect', links: ['Contact Us', 'Event News', 'Facebook', 'Instagram', 'Twitter'] },
-    { heading: 'Our Company', links: ['About Us', 'Buyer Guarantee', 'Careers', 'Press', 'Investors'] },
-    { heading: 'Our Services', links: ['Affiliate Program', 'Fan Forecast™', 'Partners', 'Sell Tickets'] },
+    {
+        heading: 'Our Company',
+        links: ['About Us', 'Buyer Guarantee', 'Careers', 'Press', 'Investors'],
+    },
+    {
+        heading: 'Our Services',
+        links: ['Affiliate Program', 'Fan Forecast™', 'Partners', 'Sell Tickets'],
+    },
     { heading: 'Shop', links: ['Gift Cards', 'Refer a Friend', 'Rewards', 'Vivid Seats App'] },
 ]
 
@@ -24,7 +30,11 @@ export const Footer: React.FC = () => (
             <div className={styles.columns}>
                 {COLUMNS.map((column) => (
                     <div key={column.heading} className={styles.column}>
-                        <Typography variant="overline" component="p" className={styles.columnHeading}>
+                        <Typography
+                            variant="overline"
+                            component="p"
+                            className={styles.columnHeading}
+                        >
                             {column.heading}
                         </Typography>
                         {column.links.map((link) => (

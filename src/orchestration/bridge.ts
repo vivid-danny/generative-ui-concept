@@ -3,7 +3,7 @@ import { readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 /**
- * The local bridge to the model — source plan Stage 3.
+ * The local bridge to the model.
  *
  * Spawns the Claude Code CLI, which is already authenticated with a
  * subscription on this machine. No API key is available (enterprise plan, no API
@@ -11,8 +11,7 @@ import path from 'node:path'
  * hosted, which is an accepted constraint rather than a gap.
  *
  * **Server-only.** Never import this from a component — it spawns a child
- * process. `LiveProvider` calls it directly from `getServerSideProps`; the
- * `pages/api/orchestrate` route wraps it for manual poking with curl.
+ * process. `LiveProvider` calls it directly from `getServerSideProps`.
  *
  * The system prompt is read from `orchestrator/prompt.md` rather than embedded
  * here, so the versioned prompt stays the single source of truth and provenance
@@ -203,7 +202,11 @@ export async function callModel(message: string): Promise<BridgeResult> {
                     return
                 }
                 if (envelope.is_error) {
-                    reject(new Error(`the CLI reported an error: ${String(envelope.result).slice(0, 300)}`))
+                    reject(
+                        new Error(
+                            `the CLI reported an error: ${String(envelope.result).slice(0, 300)}`,
+                        ),
+                    )
                     return
                 }
                 if (typeof envelope.result !== 'string' || envelope.result.trim() === '') {
@@ -216,7 +219,9 @@ export async function callModel(message: string): Promise<BridgeResult> {
                     model: MODEL,
                     promptVersion,
                     costUsd:
-                        typeof envelope.total_cost_usd === 'number' ? envelope.total_cost_usd : null,
+                        typeof envelope.total_cost_usd === 'number'
+                            ? envelope.total_cost_usd
+                            : null,
                     durationMs: Date.now() - startedAt,
                     inputTokens: totalInputTokens(envelope.usage),
                 })

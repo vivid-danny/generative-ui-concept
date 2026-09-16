@@ -17,8 +17,20 @@ export default function Document(props: DocumentProps & DocumentHeadTagsProps) {
                   title, Regular for body). Preloading all four costs more than
                   it saves.
                 */}
-                <link rel="preload" href="/fonts/GT-Walsheim-Black.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
-                <link rel="preload" href="/fonts/GT-Walsheim-Regular.woff2" as="font" type="font/woff2" crossOrigin="anonymous" />
+                <link
+                    rel="preload"
+                    href="/fonts/GT-Walsheim-Black.woff2"
+                    as="font"
+                    type="font/woff2"
+                    crossOrigin="anonymous"
+                />
+                <link
+                    rel="preload"
+                    href="/fonts/GT-Walsheim-Regular.woff2"
+                    as="font"
+                    type="font/woff2"
+                    crossOrigin="anonymous"
+                />
             </Head>
             <body>
                 <Main />

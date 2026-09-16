@@ -134,7 +134,11 @@ export const STATS: Record<StatId, StatDefinition> = {
         form: 'metric',
         label: 'Fan demand',
         applies: () => true,
-        value: (market) => band(mean(market, (p) => p.demand_score), DEMAND_BANDS),
+        value: (market) =>
+            band(
+                mean(market, (p) => p.demand_score),
+                DEMAND_BANDS,
+            ),
     },
     lowest_price: {
         id: 'lowest_price',
@@ -160,7 +164,11 @@ export const STATS: Record<StatId, StatDefinition> = {
         form: 'metric',
         label: 'Prices this week',
         applies: () => true,
-        value: (market) => band(mean(market, (p) => p.price_trend_7d), PRICE_BANDS),
+        value: (market) =>
+            band(
+                mean(market, (p) => p.price_trend_7d),
+                PRICE_BANDS,
+            ),
     },
     selling_out: {
         id: 'selling_out',
@@ -196,7 +204,6 @@ export const STATS: Record<StatId, StatDefinition> = {
             `${whole(sum(market, (p) => p.listing_count))} tickets available on the tour`,
     },
 }
-
 
 /**
  * How many of each shape the card holds.

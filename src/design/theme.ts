@@ -36,13 +36,29 @@ export const color = Object.fromEntries(
 // MUI defaults we are not using, so `variant` only ever offers real DS names.
 declare module '@mui/material/styles' {
     interface TypographyVariants extends Record<TypeScaleKey, TypographyStyleOptions> {}
-    interface TypographyVariantsOptions extends Partial<Record<TypeScaleKey, TypographyStyleOptions>> {}
+    interface TypographyVariantsOptions extends Partial<
+        Record<TypeScaleKey, TypographyStyleOptions>
+    > {}
 }
 
 declare module '@mui/material/Typography' {
     interface TypographyPropsVariantOverrides
-        extends Record<TypeScaleKey, true>,
-            Record<'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6' | 'subtitle1' | 'subtitle2' | 'body1' | 'body2' | 'button', false> {}
+        extends
+            Record<TypeScaleKey, true>,
+            Record<
+                | 'h1'
+                | 'h2'
+                | 'h3'
+                | 'h4'
+                | 'h5'
+                | 'h6'
+                | 'subtitle1'
+                | 'subtitle2'
+                | 'body1'
+                | 'body2'
+                | 'button',
+                false
+            > {}
 }
 
 /** Which HTML element each DS variant renders as by default. */
@@ -83,10 +99,26 @@ export const theme = createTheme({
             dark: color.SecondaryDark,
             contrastText: color.SecondaryContrast,
         },
-        error: { main: color.StatusErrorMain, light: color.StatusErrorLight, dark: color.StatusErrorDark },
-        warning: { main: color.StatusWarningMain, light: color.StatusWarningLight, dark: color.StatusWarningDark },
-        info: { main: color.StatusInfoMain, light: color.StatusInfoLight, dark: color.StatusInfoDark },
-        success: { main: color.StatusSuccessMain, light: color.StatusSuccessLight, dark: color.StatusSuccessDark },
+        error: {
+            main: color.StatusErrorMain,
+            light: color.StatusErrorLight,
+            dark: color.StatusErrorDark,
+        },
+        warning: {
+            main: color.StatusWarningMain,
+            light: color.StatusWarningLight,
+            dark: color.StatusWarningDark,
+        },
+        info: {
+            main: color.StatusInfoMain,
+            light: color.StatusInfoLight,
+            dark: color.StatusInfoDark,
+        },
+        success: {
+            main: color.StatusSuccessMain,
+            light: color.StatusSuccessLight,
+            dark: color.StatusSuccessDark,
+        },
         text: {
             primary: color.TextPrimary,
             secondary: color.TextSecondary,

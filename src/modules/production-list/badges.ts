@@ -83,8 +83,7 @@ export const BADGES: Record<BadgeId, BadgeDefinition> = {
         tone: 'popularity',
         icon: '👀',
         applies: (production) => production.fans_viewed_24h >= NOTABLE_VIEWERS,
-        label: (production) =>
-            `${production.fans_viewed_24h.toLocaleString('en-US')} Fans Viewed`,
+        label: (production) => `${production.fans_viewed_24h.toLocaleString('en-US')} Fans Viewed`,
     },
     newly_released: {
         id: 'newly_released',

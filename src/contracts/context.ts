@@ -1,10 +1,10 @@
 import { z } from 'zod'
 
 /**
- * Context schema — source plan §3.1.
+ * Context schema.
  *
  * Everything the orchestrator is told about *who is landing*. Kept strictly
- * separate from market data (§3.2): context is about the visitor, market is
+ * separate from market data: context is about the visitor, market is
  * about the inventory, and the whole premise is that the same market produces
  * different pages for different contexts.
  */
@@ -74,7 +74,7 @@ export const ContextSchema = z.object({
     brief: z.string().nullable().default(null),
     /**
      * Free-form budget ceiling in dollars, when the visitor has stated one.
-     * Not in the §3.1 sketch, but the MVP's one interaction (`budget_entry`)
+     * Not in the original sketch, but the MVP's one interaction (`budget_entry`)
      * needs somewhere to put its value, and it belongs to the visitor.
      */
     stated_budget: z.number().positive().nullable().default(null),

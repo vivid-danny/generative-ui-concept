@@ -41,7 +41,11 @@ describe('selectProductions', () => {
     })
 
     it('filters by price ceiling and reports what it hid', () => {
-        const selection = selectProductions(market, context, props({ filter: { max_price: 80 }, max_items: 20 }))
+        const selection = selectProductions(
+            market,
+            context,
+            props({ filter: { max_price: 80 }, max_items: 20 }),
+        )
         const shown = allDates(selection)
 
         expect(shown.length).toBeGreaterThan(0)
@@ -54,7 +58,11 @@ describe('selectProductions', () => {
     // the top regardless of sort.
     it('sorts by price when asked, not just by date', () => {
         const byPrice = allDates(
-            selectProductions(market, context, props({ sort: 'price', group_by_geo: false, max_items: 20 })),
+            selectProductions(
+                market,
+                context,
+                props({ sort: 'price', group_by_geo: false, max_items: 20 }),
+            ),
         )
         const prices = byPrice.map((production) => production.floor_price)
 
@@ -108,7 +116,11 @@ describe('selectProductions', () => {
 
     it('lifts the visitor’s own metro above the sort order when grouping by geo', () => {
         const grouped = allDates(
-            selectProductions(market, context, props({ sort: 'price', group_by_geo: true, max_items: 20 })),
+            selectProductions(
+                market,
+                context,
+                props({ sort: 'price', group_by_geo: true, max_items: 20 }),
+            ),
         )
 
         // Chicago's floor prices are not the lowest, so if grouping were not
@@ -122,9 +134,12 @@ describe('selectProductions', () => {
         expect(allDates(selection)).toHaveLength(3)
     })
 
-
     it('separates the visitor’s metro from everywhere else', () => {
-        const selection = selectProductions(market, context, props({ group_by_geo: true, max_items: 20 }))
+        const selection = selectProductions(
+            market,
+            context,
+            props({ group_by_geo: true, max_items: 20 }),
+        )
 
         expect(selection.groups.map((group) => group.key)).toEqual(['near', 'away'])
         const near = selection.groups.find((group) => group.key === 'near')!
@@ -133,7 +148,11 @@ describe('selectProductions', () => {
     })
 
     it('collapses to a single group when geo grouping is off', () => {
-        const selection = selectProductions(market, context, props({ group_by_geo: false, max_items: 20 }))
+        const selection = selectProductions(
+            market,
+            context,
+            props({ group_by_geo: false, max_items: 20 }),
+        )
 
         expect(selection.groups).toHaveLength(1)
         expect(selection.groups[0].key).toBe('all')
@@ -145,7 +164,6 @@ describe('selectProductions', () => {
         expect(selection.groups).toHaveLength(0)
         expect(selection.filteredOutCount).toBe(market.productions.length)
     })
-
 })
 
 describe('selectProductions — demand, value and trait collections', () => {
@@ -153,7 +171,13 @@ describe('selectProductions — demand, value and trait collections', () => {
         selection.groups.flatMap((group) => group.productions)
 
     const pick = (overrides: Partial<ProductionListProps>) =>
-        all(selectProductions(market, context, props({ group_by_geo: false, max_items: 52, ...overrides })))
+        all(
+            selectProductions(
+                market,
+                context,
+                props({ group_by_geo: false, max_items: 52, ...overrides }),
+            ),
+        )
 
     it('scopes to high-demand dates', () => {
         const shown = pick({ filter: { min_demand_score: 0.9 } })
@@ -211,8 +235,11 @@ describe('selectProductions — demand, value and trait collections', () => {
 
 describe('selectProductions — value and demand sorts', () => {
     const ordered = (overrides: Partial<ProductionListProps>) =>
-        selectProductions(market, context, props({ group_by_geo: false, max_items: 52, ...overrides }))
-            .groups.flatMap((group) => group.productions)
+        selectProductions(
+            market,
+            context,
+            props({ group_by_geo: false, max_items: 52, ...overrides }),
+        ).groups.flatMap((group) => group.productions)
 
     it('sorts by value score, best first', () => {
         // These used to sort on median_price, which predated value_score — so
@@ -227,13 +254,15 @@ describe('selectProductions — value and demand sorts', () => {
 
         expect(scores).toEqual([...scores].sort((a, b) => b - a))
     })
-
 })
 
 describe('selectProductions — weekend and lead time', () => {
     const pick = (overrides: Partial<ProductionListProps>) =>
-        selectProductions(market, context, props({ group_by_geo: false, max_items: 52, ...overrides }))
-            .groups.flatMap((group) => group.productions)
+        selectProductions(
+            market,
+            context,
+            props({ group_by_geo: false, max_items: 52, ...overrides }),
+        ).groups.flatMap((group) => group.productions)
 
     // Fri=5, Sat=6, Sun=0 — read off the local date, matching derive.ts.
     const dayOf = (production: { date: string }) => new Date(production.date).getDay()
@@ -287,8 +316,9 @@ describe('selectProductions — weekend and lead time', () => {
             filter: { day_type: 'weekend', city: 'Milwaukee', max_price: 80 },
         })
 
-        expect(shown.every((p) => isWeekendDay(p) && p.city === 'Milwaukee' && p.floor_price <= 80))
-            .toBe(true)
+        expect(
+            shown.every((p) => isWeekendDay(p) && p.city === 'Milwaukee' && p.floor_price <= 80),
+        ).toBe(true)
     })
 })
 
@@ -344,7 +374,7 @@ describe('resolveExclusions', () => {
     })
 })
 
-describe('selectProductions — the page\'s top pick', () => {
+describe("selectProductions — the page's top pick", () => {
     /**
      * The pick is a named date, not a strategy, so the only question a section
      * answers is "am I showing that row". Every case below where the answer is
@@ -423,13 +453,19 @@ describe('filter.city as a set', () => {
     // The capability the system prompt asked for and did not have: "within a
     // drive" is a set of cities, and one exact name could not say it.
     it('admits every city in the list', () => {
-        const { groups } = selectProductions(market, context, props({
-            filter: { city: ['Milwaukee', 'Detroit', 'Cleveland'] },
-            group_by_geo: false,
-            max_items: 7,
-        }))
+        const { groups } = selectProductions(
+            market,
+            context,
+            props({
+                filter: { city: ['Milwaukee', 'Detroit', 'Cleveland'] },
+                group_by_geo: false,
+                max_items: 7,
+            }),
+        )
 
-        const cities = new Set(groups.flatMap((group) => group.productions).map((item) => item.city))
+        const cities = new Set(
+            groups.flatMap((group) => group.productions).map((item) => item.city),
+        )
         expect(cities).toEqual(new Set(['Milwaukee', 'Detroit', 'Cleveland']))
     })
 
@@ -437,11 +473,15 @@ describe('filter.city as a set', () => {
         // Tampa at $88 is what actually shipped in a hero for a visitor who
         // said she would not fly. It passed the price filter; nothing else
         // could keep it out.
-        const { groups } = selectProductions(market, context, props({
-            filter: { max_price: 88, city: ['Chicago', 'Milwaukee', 'Detroit'] },
-            group_by_geo: false,
-            max_items: 7,
-        }))
+        const { groups } = selectProductions(
+            market,
+            context,
+            props({
+                filter: { max_price: 88, city: ['Chicago', 'Milwaukee', 'Detroit'] },
+                group_by_geo: false,
+                max_items: 7,
+            }),
+        )
 
         const cities = groups.flatMap((group) => group.productions).map((item) => item.city)
         expect(cities).not.toContain('Tampa')
@@ -449,24 +489,36 @@ describe('filter.city as a set', () => {
     })
 
     it('still takes a single city as a string', () => {
-        const { groups } = selectProductions(market, context, props({
-            filter: { city: 'Milwaukee' },
-            group_by_geo: false,
-            max_items: 7,
-        }))
+        const { groups } = selectProductions(
+            market,
+            context,
+            props({
+                filter: { city: 'Milwaukee' },
+                group_by_geo: false,
+                max_items: 7,
+            }),
+        )
 
-        const cities = new Set(groups.flatMap((group) => group.productions).map((item) => item.city))
+        const cities = new Set(
+            groups.flatMap((group) => group.productions).map((item) => item.city),
+        )
         expect(cities).toEqual(new Set(['Milwaukee']))
     })
 
     it('renders nothing for a city with no dates, rather than failing', () => {
-        const { groups } = selectProductions(market, context, props({
-            filter: { city: ['Nowhere', 'Milwaukee'] },
-            group_by_geo: false,
-            max_items: 7,
-        }))
+        const { groups } = selectProductions(
+            market,
+            context,
+            props({
+                filter: { city: ['Nowhere', 'Milwaukee'] },
+                group_by_geo: false,
+                max_items: 7,
+            }),
+        )
 
-        const cities = new Set(groups.flatMap((group) => group.productions).map((item) => item.city))
+        const cities = new Set(
+            groups.flatMap((group) => group.productions).map((item) => item.city),
+        )
         expect(cities).toEqual(new Set(['Milwaukee']))
     })
 })

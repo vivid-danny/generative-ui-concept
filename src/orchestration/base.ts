@@ -9,8 +9,8 @@ import { FALLBACK_LAYOUT } from './validate'
  * The baseline: the page as it works today, for everyone.
  *
  * This exists to be contrasted against. A composed page only means something
- * next to the page it replaces, and the source plan asks for exactly this — a
- * "today's flow" reference to demo against.
+ * next to the page it replaces, so this is the "today's flow" reference the
+ * demo contrasts with.
  *
  * It reuses `FALLBACK_LAYOUT` — `production_list` at standard size, date-sorted
  * and geo-grouped — and scopes it to the visitor's own city.

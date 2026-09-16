@@ -48,7 +48,8 @@ function marketOf(overrides: Partial<Market['productions'][number]>[]): Market {
 
 const metric = (id: StatId, on: Market = market) =>
     resolveSignals(on, props({ stats: [id] })).metrics[0]
-const fact = (id: StatId, on: Market = market) => resolveSignals(on, props({ stats: [id] })).facts[0]
+const fact = (id: StatId, on: Market = market) =>
+    resolveSignals(on, props({ stats: [id] })).facts[0]
 
 describe('STATS', () => {
     it('defines every id, and every definition agrees with its key', () => {
@@ -245,7 +246,10 @@ describe('resolveSignals — naming a stat is a request, not a guarantee', () =>
         })
 
         it('keeps the orchestrator order when it asked for both', () => {
-            const resolved = resolveSignals(market, props({ stats: ['lowest_price', 'fan_demand'] }))
+            const resolved = resolveSignals(
+                market,
+                props({ stats: ['lowest_price', 'fan_demand'] }),
+            )
 
             expect(resolved.metrics.map((m) => m.id)).toEqual(['lowest_price', 'fan_demand'])
         })

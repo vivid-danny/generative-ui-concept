@@ -133,10 +133,7 @@ function describe(mode: ReturnType<typeof modeFor>): string {
     return brief.length > 60 ? `"${brief.slice(0, 60)}…"` : `"${brief}"`
 }
 
-async function compose(
-    mode: ReturnType<typeof modeFor>,
-    fresh: boolean,
-): Promise<ComposeResult> {
+async function compose(mode: ReturnType<typeof modeFor>, fresh: boolean): Promise<ComposeResult> {
     const provider = new LiveProvider({ mode: mode.slug, fresh, trigger: 'run button' })
     const resolved = await provider.getLayout(mode.context, MARKET)
 

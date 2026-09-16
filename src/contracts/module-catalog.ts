@@ -12,7 +12,7 @@ import { CARD_SIGNAL_IDS } from '@/modules/production-list/card-signal'
 import { STAT_IDS } from '@/modules/market-signals/signals'
 
 /**
- * Module catalog — source plan §3.3.
+ * Module catalog.
  *
  * This file is the orchestrator's tool manifest as well as the renderer's
  * registry contract, which is why every `purpose` is written as one sentence
@@ -31,7 +31,7 @@ export interface ModuleDefinition {
     readonly id: string
     /** Written for the orchestrator LLM: when should it reach for this module? */
     readonly purpose: string
-    /** Which of the customer decision levers (§1) this module answers. */
+    /** Which of the customer decision levers this module answers. */
     readonly lever: 'price' | 'date' | 'location' | 'seat_quality' | 'orientation'
     readonly sizes: readonly Size[]
     readonly defaultSize: Size
@@ -59,7 +59,7 @@ export interface ModuleDefinition {
     readonly dataRequirements: readonly string[]
     /**
      * False for page chrome the LLM does not get to place — `event_header` is
-     * always first (§4). The validator strips these from any emitted layout.
+     * always first. The validator strips these from any emitted layout.
      */
     readonly orchestrated: boolean
     /** False while the module is specified but has no component yet. */
@@ -217,7 +217,7 @@ export const MODULE_CATALOG = {
             '  just the words.',
             'sort: "date" | "price" | "value" | "demand"  (default "date")',
             '  "value" and "demand" sort by those scores, best first.',
-            'group_by_geo: boolean  (default true; splits the visitor\'s own metro into its own group)',
+            "group_by_geo: boolean  (default true; splits the visitor's own metro into its own group)",
             'max_items: integer  (default 7)',
             '  Capped by prominence: a `hero` section holds 3, any other holds 7. Asking',
             '  for more is not an error, it is just trimmed — but three dates read as a',
@@ -261,7 +261,7 @@ export const MODULE_CATALOG = {
             '  not to these dates puts badges on none, and the section renders bare.',
             '',
             'You may place this module more than once to build sections — e.g. one',
-            'filtered to the visitor\'s city, one for dates within driving range, one',
+            "filtered to the visitor's city, one for dates within driving range, one",
             'for the rest of the tour. Up to 3 instances. Every instance must then',
             'set `heading`, and should set `group_by_geo: false` so its own heading',
             'is the only one.',
@@ -274,7 +274,7 @@ export const MODULE_CATALOG = {
     market_signals: {
         id: 'market_signals',
         purpose:
-            'A compact read on the tour as a whole — what tickets cost, whether prices are moving, how much demand there is, how big the run is. Shown in the page\'s right rail beside the list, as supporting context: reach for it when a number about the tour would settle something the visitor is weighing, and never as the page\'s main argument. Its title and the wording of every stat are ours; what you choose is which facts appear and in what order, so pick the ones this visitor is actually weighing rather than all of them.',
+            "A compact read on the tour as a whole — what tickets cost, whether prices are moving, how much demand there is, how big the run is. Shown in the page's right rail beside the list, as supporting context: reach for it when a number about the tour would settle something the visitor is weighing, and never as the page's main argument. Its title and the wording of every stat are ours; what you choose is which facts appear and in what order, so pick the ones this visitor is actually weighing rather than all of them.",
         lever: 'orientation',
         sizes: ['fixed'],
         defaultSize: 'fixed',
@@ -293,7 +293,13 @@ export const MODULE_CATALOG = {
                     .array(z.enum(STAT_IDS))
                     .min(1)
                     .max(5)
-                    .default(['fan_demand', 'lowest_price', 'selling_out', 'fans_viewing', 'tour_scale']),
+                    .default([
+                        'fan_demand',
+                        'lowest_price',
+                        'selling_out',
+                        'fans_viewing',
+                        'tour_scale',
+                    ]),
             })
             .strict(),
         propsHint: [
@@ -309,7 +315,7 @@ export const MODULE_CATALOG = {
             '    "tickets_available"   how much inventory exists across the tour',
             '  (default ["fan_demand", "lowest_price", "selling_out", "fans_viewing", "tour_scale"])',
             '  Order matters: earlier stats lead. Where each one sits on the card, and how',
-            '  it is worded, is the card\'s decision — the one thing you choose here is',
+            "  it is worded, is the card's decision — the one thing you choose here is",
             '  which facts appear and in what order. A stat with nothing behind it in this',
             '  snapshot is dropped, so naming one is a request, not a guarantee. Three or',
             '  four beats five.',
@@ -371,7 +377,7 @@ export const PLACEABLE_MODULE_IDS = MODULE_IDS.filter(
 )
 
 /**
- * Modules that constitute a path to purchase. Source plan §3.4 requires at least
- * one of these in every layout — there is always a way to buy.
+ * Modules that constitute a path to purchase. At least one of these is required
+ * in every layout — there is always a way to buy.
  */
 export const PATH_TO_PURCHASE_MODULE_IDS = ['production_list', 'listing_preview'] as const

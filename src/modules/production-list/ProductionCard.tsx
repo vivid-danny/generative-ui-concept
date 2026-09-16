@@ -21,7 +21,7 @@ import styles from './ProductionCard.module.scss'
  *   slice-1 demo turns on the viewer being able to see *why* a budget changes
  *   the page. Omitting it would be faithful to the frame and useless in the demo.
  * - Badge copy is derived from the snapshot rather than hardcoded. Scarcity is
- *   worth telling a buyer about (§7), but the signal has to come from the data —
+ *   worth telling a buyer about, but the signal has to come from the data —
  *   `sellout_risk` and the real `listing_count` — or it demonstrates nothing
  *   about the page responding to live conditions.
  */
@@ -91,7 +91,6 @@ export const ProductionCard: React.FC<ProductionCardProps> = ({
     const date = new Date(production.date)
     // Which badges the section allowed, narrowed to the ones true of this date.
     const badges = badgesFor(production, eligibleBadges)
-
 
     return (
         <article className={classNames(styles.card, { [styles.topPickCard]: isTopPick })}>
